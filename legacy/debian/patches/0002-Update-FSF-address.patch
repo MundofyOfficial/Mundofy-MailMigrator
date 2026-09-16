@@ -1,0 +1,23 @@
+From aecb2a1bc950e1eae5e4137b2cd22faf57c9a78f Mon Sep 17 00:00:00 2001
+From: Gergely Risko <gergely@risko.hu>
+Date: Sat, 29 Mar 2014 18:48:40 +0100
+Subject: Update FSF address
+
+---
+ imapcopymain.pas | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/imapcopymain.pas b/imapcopymain.pas
+index 21bf308..4fd3565 100644
+--- a/imapcopymain.pas
++++ b/imapcopymain.pas
+@@ -137,7 +137,8 @@ BEGIN
+   WriteLn;
+   WriteLn ('You should have received a copy of the GNU General Public License');
+   WriteLn ('along with this program; if not, write to the Free Software');
+-  WriteLn ('Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.');
++  WriteLn ('Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,');
++  WriteLn ('MA 02110-1301, USA.');
+   WriteLn ('---------------------------------------------------------------------------');
+ 
+ END;

@@ -1,0 +1,15 @@
+Description: Do not ignore the DstRootFolder option for the INBOX folder
+Author: Philip Weber <philip.eweber@iaik.tugraz.at>
+Last-Update: 2011-04-20
+Bug-Debian: https://bugs.debian.org/623505
+
+--- a/imapcopymain.pas
++++ b/imapcopymain.pas
+@@ -424,6 +424,7 @@ VAR Src,Dst : ImapServer;
+           DstFolder := Dst.NamespaceUser;
+           IF DstFolder = '' THEN
+             DstFolder := 'INBOX';
++            DstFolder := DstFolder + '.' + DstRootFolder;
+         END;
+       END ELSE
+       BEGIN  // copy all messages to INBOX

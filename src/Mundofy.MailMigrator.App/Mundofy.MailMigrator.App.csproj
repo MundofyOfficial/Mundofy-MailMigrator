@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mundofy.MailMigrator.Core\Mundofy.MailMigrator.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\mundofy_mark_color.png" />
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>MundofyMailMigrator</AssemblyName>
+    <Title>Mundofy MailMigrator</Title>
+    <Product>Mundofy MailMigrator</Product>
+    <Company>Mundofy</Company>
+    <Authors>Danny Schuller (Mundofy)</Authors>
+    <Copyright>Copyright © Mundofy (Danny Schuller)</Copyright>
+    <Description>High-Speed IMAP &amp; POP3 Email Migration Suite for Windows</Description>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+</Project>

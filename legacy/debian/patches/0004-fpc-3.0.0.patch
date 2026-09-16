@@ -1,0 +1,36 @@
+Description: Fix build with fpc 3.0.0
+  Change socket address field names from family/addr/port to sin_family/sin_addr.s_addr/sin_port
+Author: Peter Michael Green <plugwash@debian.org>
+Bug-Debian: https://bugs.debian.org/818448
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2016-09-04
+
+Index: imapcopy-1.04/imaptools.pas
+===================================================================
+--- imapcopy-1.04.orig/imaptools.pas
++++ imapcopy-1.04/imaptools.pas
+@@ -235,10 +235,10 @@ BEGIN
+   END;
+ 
+ 
+-  Addr.family := AF_INET;
+-  Addr.port   := ShortHostToNet (Port);
++  Addr.sin_family := AF_INET;
++  Addr.sin_port   := ShortHostToNet (Port);
+   {WriteLn ('IP: ',hostaddrtostr (Host.IPAddress));}
+-  Addr.addr   := HostToNet (LONGINT (Host.IPAddress));
++  Addr.sin_addr.s_addr := HostToNet (LONGINT (Host.IPAddress));
+   aSocket := fpSocket(AF_INET,SOCK_STREAM,0);
+   IF -1 = Sockets.fpconnect (aSocket,@ADDR,SIZEOF(ADDR)) THEN
+   BEGIN

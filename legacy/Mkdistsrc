@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# build imapcopy for win32 and linux
+# create bin zip/gz and source zip
+#
+[ -f DistSrc/IMAPCopySrc.zip ] && rm -f DistSrc/IMAPCopySrc.zip
+zip DistSrc/IMAPCopySrc.zip *.dpr *.pp *.pas *.inc *.dof Delphi/*.pas Dist/*.cfg Mkdistsrc
+
+[ -d Dist/imapcopy ] || mkdir Dist/imapcopy
+echo "Compiling for Linux"
+fpc -g -gl -B imapcopy.pp || exit 1
+echo "Compiling for Win32"
+fpc -Twin32 -g -gl -B imapcopy.pp || exit 1
+#strip imapcopy || exit 1
+cp imapcopy Dist/imapcopy || exit 1
+cp Dist/ImapCopy.cfg Dist/imapcopy || exit 1
+dos2unix Dist/imapcopy/ImapCopy.cfg
+cd Dist
+tar c imapcopy > imapcopy.tar || exit 1
+gzip -f imapcopy.tar || exit 1
+echo "linux source and binary created"
+
+[ -f IMAPCopy.zip ] && rm -f IMAPCopy.zip
+cp ../imapcopy.exe .
+zip IMAPCopy.zip *.exe *.cfg || exit 1
+cd ..
+echo "Windows binary created"
+

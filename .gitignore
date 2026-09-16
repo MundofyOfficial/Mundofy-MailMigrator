@@ -1,0 +1,26 @@
+## Build and Output Directories
+bin/
+obj/
+publish/
+[Bb]uild/
+out/
+
+## Visual Studio & IDEs
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Temporary & Log Files
+*.log
+FailedMail.dat
+*.tmp
+
+## OS generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store

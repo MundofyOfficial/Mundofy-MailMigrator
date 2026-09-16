@@ -1,0 +1,628 @@
+<Window x:Class="Mundofy.MailMigrator.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewmodels="clr-namespace:Mundofy.MailMigrator.App.ViewModels"
+        xmlns:models="clr-namespace:Mundofy.MailMigrator.Core.Models;assembly=Mundofy.MailMigrator.Core"
+        mc:Ignorable="d"
+        Title="Mundofy MailMigrator — High-Speed IMAP &amp; POP3 Migration Suite" 
+        Icon="pack://application:,,,/Assets/app.ico"
+        Height="800" Width="1140"
+        MinHeight="680" MinWidth="920"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgDarkBrush}">
+    
+    <Window.DataContext>
+        <viewmodels:MainViewModel />
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- TOP BRAND HEADER -->
+        <Border Grid.Row="0" Background="#0B1329" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,0,0,1" Padding="24,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- OFFICIAL MUNDOFY LOGO MARK -->
+                    <Image Source="pack://application:,,,/Assets/mundofy_mark_color.png" 
+                           RenderOptions.BitmapScalingMode="HighQuality"
+                           Width="34" Height="34" 
+                           Margin="0,0,14,0" 
+                           VerticalAlignment="Center" />
+                    
+                    <StackPanel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Mundofy MailMigrator" FontWeight="Bold" FontSize="20" Foreground="#FFFFFF" />
+                            <Border Background="#1E3A8A" CornerRadius="4" Padding="7,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="v1.0.0" FontSize="11" FontWeight="Bold" Foreground="#93C5FD" />
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="Modern High-Speed IMAP &amp; POP3 Email Migration Suite | Free for Everyone" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center">
+                        <Run Text="Created by Danny Schuller  •  " />
+                        <Hyperlink NavigateUri="https://mundofy.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#60A5FA" TextDecorations="None">
+                            mundofy.com
+                        </Hyperlink>
+                        <Run Text="  •  " />
+                        <Hyperlink NavigateUri="https://github.com/MundofyOfficial/Mundofy-MailMigrator/issues" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#93C5FD" TextDecorations="Underline">
+                            Report an Issue
+                        </Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- MAIN CONTENT TABS -->
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="18,12,18,18">
+            
+            <!-- TAB 1: SINGLE MAILBOX MIGRATION -->
+            <TabItem Header="Single Account Migration">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
+                    <StackPanel Margin="0,14,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- SOURCE CARD -->
+                            <Border Grid.Column="0" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="20">
+                                <StackPanel>
+                                    <TextBlock Text="Source Mailbox (From)" FontWeight="Bold" FontSize="15" Foreground="#60A5FA" Margin="0,0,0,14" />
+
+                                    <Grid Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Protocol" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                            <ComboBox SelectedValue="{Binding SingleSourceProtocol, Mode=TwoWay}" SelectedValuePath="Tag" Height="38">
+                                                <ComboBoxItem Content="IMAP (Recommended)" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
+                                                <ComboBoxItem Content="POP3" Tag="{x:Static models:ServerProtocol.Pop3}" />
+                                            </ComboBox>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Port" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                            <TextBox Text="{Binding SingleSourcePort, UpdateSourceTrigger=PropertyChanged}" Height="38" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <TextBox Text="{Binding SingleSourceHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+
+                                    <CheckBox Content="Use SSL/TLS Encryption" IsChecked="{Binding SingleSourceUseSsl}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,14" />
+
+                                    <TextBlock Text="Username / Email Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <TextBox Text="{Binding SingleSourceUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+
+                                    <TextBlock Text="Password / App Password" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <TextBox Text="{Binding SingleSourcePassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" />
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Content="Test Source Connection" Command="{Binding TestSingleSourceCommand}" Padding="18,8" />
+                                        <TextBlock Grid.Column="1" Text="{Binding SingleSourceStatus}" VerticalAlignment="Center" Margin="14,0,0,0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- DESTINATION CARD -->
+                            <Border Grid.Column="2" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="20">
+                                <StackPanel>
+                                    <TextBlock Text="Destination Mailbox (To)" FontWeight="Bold" FontSize="15" Foreground="#34D399" Margin="0,0,0,14" />
+
+                                    <Grid Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Protocol" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                            <TextBox Text="IMAP" IsReadOnly="True" Background="#1E293B" Foreground="{StaticResource TextSecondaryBrush}" Height="38" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Port" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                            <TextBox Text="{Binding SingleDestPort, UpdateSourceTrigger=PropertyChanged}" Height="38" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <TextBox Text="{Binding SingleDestHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+
+                                    <CheckBox Content="Use SSL/TLS Encryption" IsChecked="{Binding SingleDestUseSsl}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,14" />
+
+                                    <TextBlock Text="Username / Email Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <TextBox Text="{Binding SingleDestUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+
+                                    <TextBlock Text="Password / App Password" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <TextBox Text="{Binding SingleDestPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" />
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0" Content="Test Dest Connection" Command="{Binding TestSingleDestCommand}" Padding="18,8" />
+                                        <TextBlock Grid.Column="1" Text="{Binding SingleDestStatus}" VerticalAlignment="Center" Margin="14,0,0,0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- SINGLE MIGRATION ACTIONS & PROGRESS -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,18,0,0">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="Migration Progress" FontWeight="Bold" FontSize="15" Foreground="#FFFFFF" />
+                                        <TextBlock Text="{Binding SingleJob.StatusMessage}" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                    
+                                    <!-- PROMINENT BUTTONS WITH GENEROUS PADDING & ICONS -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartSingleMigrationCommand}" Margin="0,0,12,0">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="▶" Margin="0,0,10,0" FontSize="12" VerticalAlignment="Center" />
+                                                <TextBlock Text="Start Migration" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Style="{StaticResource DangerButtonStyle}" Command="{Binding CancelSingleMigrationCommand}">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="⏹" Margin="0,0,10,0" FontSize="12" VerticalAlignment="Center" />
+                                                <TextBlock Text="Cancel" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+
+                                <ProgressBar Value="{Binding SingleJob.ProgressPercentage, Mode=OneWay}" Maximum="100" Height="14" Margin="0,0,0,16" />
+
+                                <!-- Metrics Grid -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1.4*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" Background="#0F172A" CornerRadius="6" Padding="12" Margin="0,0,4,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Current Folder" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <TextBlock Text="{Binding SingleJob.CurrentFolder, FallbackValue='—'}" FontWeight="SemiBold" FontSize="13" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Grid.Column="1" Background="#0F172A" CornerRadius="6" Padding="12" Margin="4,0,4,0">
+                                        <StackPanel>
+                                            <TextBlock Text="New Copied" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <TextBlock Text="{Binding SingleJob.CopiedMessages, Mode=OneWay}" Margin="0,4,0,0" FontWeight="Bold" FontSize="14" Foreground="#34D399" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Grid.Column="2" Background="#0F172A" CornerRadius="6" Padding="12" Margin="4,0,4,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Already on Dest" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <TextBlock Text="{Binding SingleJob.SkippedMessages, Mode=OneWay}" Margin="0,4,0,0" FontWeight="Bold" FontSize="14" Foreground="#60A5FA" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Grid.Column="3" Background="#0F172A" CornerRadius="6" Padding="12" Margin="4,0,4,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Speed" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <TextBlock Text="{Binding SingleJob.TransferSpeed, FallbackValue='0.0 MB/s'}" FontWeight="SemiBold" FontSize="13" Margin="0,4,0,0" Foreground="#FBBF24" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Grid.Column="4" Background="#0F172A" CornerRadius="6" Padding="12" Margin="4,0,0,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Errors / Total" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <TextBlock Margin="0,4,0,0" FontWeight="SemiBold" FontSize="13">
+                                                <Run Text="{Binding SingleJob.FailedMessages, Mode=OneWay}" Foreground="#F87171" />
+                                                <Run Text=" / " Foreground="{StaticResource TextSecondaryBrush}" />
+                                                <Run Text="{Binding SingleJob.TotalMessages, Mode=OneWay}" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 2: BATCH MIGRATION -->
+            <TabItem Header="Batch Migration (Multi-Account)">
+                <Grid Margin="0,14,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- ROW 0: DEFAULT SERVERS & CONCURRENCY SETTING -->
+                    <Border Grid.Row="0" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2.5*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="2.5*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="2.2*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- DEFAULT SOURCE -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Default Source Server" FontWeight="SemiBold" FontSize="13" Foreground="#60A5FA" Margin="0,0,0,6" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="74" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding BatchSourceHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Source Host (e.g. mail.oldserver.com)" />
+                                    <TextBox Grid.Column="2" Text="{Binding BatchSourcePort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993)" />
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- DEFAULT DEST -->
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Default Destination Server" FontWeight="SemiBold" FontSize="13" Foreground="#34D399" Margin="0,0,0,6" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="74" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding BatchDestHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Dest Host (e.g. imap.newserver.com)" />
+                                    <TextBox Grid.Column="2" Text="{Binding BatchDestPort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993)" />
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- CONCURRENCY SETTING -->
+                            <StackPanel Grid.Column="4">
+                                <Grid Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Concurrent Workers:" FontWeight="SemiBold" FontSize="13" Foreground="#FBBF24" />
+                                    <Border Grid.Column="1" Background="#0F172A" CornerRadius="4" Padding="8,2">
+                                        <TextBlock Text="{Binding Concurrency}" FontWeight="Bold" FontSize="12" Foreground="#FBBF24" />
+                                    </Border>
+                                </Grid>
+                                <Slider Minimum="1" Maximum="16" Value="{Binding Concurrency}" TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,6,0,0" />
+                                <TextBlock Text="How many accounts migrate at once" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- ROW 1: BATCH TOOLBAR -->
+                    <Border Grid.Row="1" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                                <Button Content="➕ Add Account" Command="{Binding AddAccountCommand}" Margin="0,0,8,0" Padding="14,8" />
+                                <Button Content="📋 Paste Clipboard" Command="{Binding PasteFromClipboardCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Paste TSV/CSV rows directly from clipboard" />
+                                <Button Content="📂 Load ImapCopy.cfg" Command="{Binding LoadCfgCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Import accounts and servers from legacy ImapCopy.cfg" />
+                                <Button Content="📄 Import CSV" Command="{Binding ImportCsvCommand}" Margin="0,0,8,0" Padding="14,8" />
+                                <Button Content="💾 Export CSV" Command="{Binding ExportCsvCommand}" Margin="0,0,8,0" Padding="14,8" />
+                                <Button Content="🗑 Clear" Command="{Binding ClearBatchCommand}" Margin="0,0,8,0" Padding="14,8" />
+                            </WrapPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="🔍 Test All Credentials" Command="{Binding TestAllBatchCommand}" Padding="16,8" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- ROW 2: INTERACTIVE ACCOUNTS DATAGRID -->
+                    <Border Grid.Row="2" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="2">
+                        <DataGrid ItemsSource="{Binding BatchAccounts}" 
+                                  SelectedItem="{Binding SelectedAccount}"
+                                  AutoGenerateColumns="False" 
+                                  CanUserAddRows="False"
+                                  Background="Transparent"
+                                  RowBackground="#1E293B"
+                                  AlternatingRowBackground="#182234"
+                                  Foreground="{StaticResource TextPrimaryBrush}"
+                                  GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="#334155"
+                                  BorderThickness="0"
+                                  HeadersVisibility="Column"
+                                  ColumnHeaderHeight="38"
+                                  RowHeight="36">
+                            
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="#0F172A" />
+                                    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                    <Setter Property="FontSize" Value="12" />
+                                    <Setter Property="Padding" Value="12,0" />
+                                    <Setter Property="BorderThickness" Value="0,0,0,1" />
+                                    <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+                                </Style>
+                            </DataGrid.ColumnHeaderStyle>
+
+                            <DataGrid.Columns>
+                                <!-- Source User -->
+                                <DataGridTextColumn Header="Source User / Email" Binding="{Binding SourceUser, UpdateSourceTrigger=PropertyChanged}" Width="1.8*" />
+
+                                <!-- Source Password -->
+                                <DataGridTextColumn Header="Source Password" Binding="{Binding SourcePassword, UpdateSourceTrigger=PropertyChanged}" Width="1.4*" />
+
+                                <!-- Dest User -->
+                                <DataGridTextColumn Header="Dest User / Email" Binding="{Binding DestUser, UpdateSourceTrigger=PropertyChanged}" Width="1.8*" />
+
+                                <!-- Dest Password -->
+                                <DataGridTextColumn Header="Dest Password" Binding="{Binding DestPassword, UpdateSourceTrigger=PropertyChanged}" Width="1.4*" />
+
+                                <!-- Status Badge -->
+                                <DataGridTemplateColumn Header="Status" Width="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{Binding Status, Converter={StaticResource StatusToBrushConverter}}" CornerRadius="12" Padding="10,3" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Progress Bar -->
+                                <DataGridTemplateColumn Header="Progress" Width="140">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid VerticalAlignment="Center" Margin="8,0">
+                                                <ProgressBar Value="{Binding ProgressPercentage, Mode=OneWay}" Maximum="100" Height="10" />
+                                                <TextBlock Text="{Binding ProgressPercentage, StringFormat={}{0:F0}%}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Copied / Total -->
+                                <DataGridTemplateColumn Header="Messages" Width="160">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock VerticalAlignment="Center" FontSize="12">
+                                                <Run Text="{Binding CopiedMessages, Mode=OneWay}" Foreground="#34D399" FontWeight="SemiBold" />
+                                                <Run Text=" new" Foreground="{StaticResource TextSecondaryBrush}" />
+                                                <Run Text=" (" Foreground="{StaticResource TextSecondaryBrush}" />
+                                                <Run Text="{Binding SkippedMessages, Mode=OneWay}" Foreground="#60A5FA" />
+                                                <Run Text=" exist) / " Foreground="{StaticResource TextSecondaryBrush}" />
+                                                <Run Text="{Binding TotalMessages, Mode=OneWay}" FontWeight="SemiBold" />
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Speed -->
+                                <DataGridTextColumn Header="Speed" Binding="{Binding TransferSpeed, Mode=OneWay}" Width="90" IsReadOnly="True" />
+
+                                <!-- Details -->
+                                <DataGridTextColumn Header="Details" Binding="{Binding StatusMessage, Mode=OneWay}" Width="2*" IsReadOnly="True" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <!-- ROW 3: BATCH BOTTOM ACTION & STATS -->
+                    <Border Grid.Row="3" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding BatchStatusText}" FontWeight="SemiBold" FontSize="13" Foreground="#FFFFFF" Margin="0,0,0,6" />
+                                <ProgressBar Value="{Binding BatchOverallProgress, Mode=OneWay}" Maximum="100" Height="14" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="18,0,0,0">
+                                <Button Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartBatchCommand}" Margin="0,0,12,0">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="▶" Margin="0,0,10,0" FontSize="12" VerticalAlignment="Center" />
+                                        <TextBlock Text="Start Batch Migration" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource DangerButtonStyle}" Command="{Binding StopBatchCommand}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="⏹" Margin="0,0,10,0" FontSize="12" VerticalAlignment="Center" />
+                                        <TextBlock Text="Stop All" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 3: SETTINGS & LOGS -->
+            <TabItem Header="Settings &amp; Logs">
+                <Grid Margin="0,14,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- ADVANCED SETTINGS CARD -->
+                    <Border Grid.Row="0" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Advanced Migration Options" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" Margin="0,0,0,14" />
+                            
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <CheckBox Content="Deduplicate Messages (Skip existing Message-IDs)" IsChecked="{Binding Deduplicate}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                                    <CheckBox Content="Permit Self-Signed / Invalid SSL Certificates" IsChecked="{Binding AllowInvalidCertificates}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                                    
+                                    <TextBlock Text="Destination Root Folder (Optional prefix)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <TextBox Text="{Binding DstRootFolder, UpdateSourceTrigger=PropertyChanged}" ToolTip="Copies under this folder instead of root (e.g. 'OldMails')" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Folders to Skip (comma separated)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <TextBox Text="{Binding SkipFolders, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+
+                                    <TextBlock Text="Deny Flags (space separated, e.g. \Recent)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <TextBox Text="{Binding DenyFlags, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- LIVE LOGS VIEWER -->
+                    <Border Grid.Row="1" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <Grid Grid.Row="0" Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Live Activity Log" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                <Button Grid.Column="1" Content="Clear Logs" Command="{Binding ClearLogsCommand}" Padding="14,6" FontSize="12" />
+                            </Grid>
+
+                            <ListBox Grid.Row="1" ItemsSource="{Binding Logs}" Background="#0F172A" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" Padding="8,8,14,8">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontFamily="Consolas, monospace" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,2" />
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 4: ABOUT -->
+            <TabItem Header="About">
+                <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="32" Margin="0,14,0,0">
+                    <StackPanel MaxWidth="720" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                            <!-- OFFICIAL MUNDOFY LOGO MARK ON ABOUT SCREEN -->
+                            <Image Source="pack://application:,,,/Assets/mundofy_mark_color.png" 
+                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                   Width="56" Height="56" 
+                                   Margin="0,0,20,0" 
+                                   VerticalAlignment="Center" />
+                            
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Mundofy MailMigrator" FontWeight="Bold" FontSize="24" Foreground="#FFFFFF" />
+                                <TextBlock Text="Version 1.0.0" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- ORIGIN STORY CARD -->
+                        <Border Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="Why This Tool Was Created" FontWeight="Bold" FontSize="13" Foreground="#38BDF8" Margin="0,0,0,6" />
+                                <TextBlock Text="As a managed hosting provider, we routinely help customers migrate their mailboxes to our servers. Moving email can be technically intimidating, and most users lack the specialized knowledge or tools to do it themselves safely without risking lost messages or downtime. For years, Armin Diehl's classic 'imapcopy' tool was the go-to utility. But as modern servers enforced TLS 1.3 and dropped older protocols, imapcopy began failing on TLS handshakes."
+                                           TextWrapping="Wrap" FontSize="12" LineHeight="19" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6" />
+                                <TextBlock Text="Patching an outdated utility was no longer the smartest way forward. With an open mind, we asked: What if we build a modern successor that does everything imapcopy did, but so much more? Native TLS 1.3, POP3 source support, multi-threading, smart Message-ID deduplication, and a clean GUI. We open-sourced it for everyone, and with the help of the community, our goal is to make this the modern, free go-to tool for email migration."
+                                           TextWrapping="Wrap" FontSize="12" LineHeight="19" Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#0F172A" CornerRadius="8" Padding="18" Margin="0,0,0,20">
+                            <StackPanel>
+                                <TextBlock Text="Credits &amp; Authorship" FontWeight="Bold" FontSize="13" Foreground="#60A5FA" Margin="0,0,0,8" />
+                                <TextBlock Text="• Author: Danny Schuller" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,3" />
+                                <TextBlock Text="• Company: Mundofy" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,3" />
+                                <TextBlock FontSize="13" Margin="0,3">
+                                    <Run Text="• Website: " Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <Hyperlink NavigateUri="https://mundofy.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#60A5FA">
+                                        https://mundofy.com
+                                    </Hyperlink>
+                                </TextBlock>
+                                <TextBlock FontSize="13" Margin="0,3">
+                                    <Run Text="• Source Code: " Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <Hyperlink NavigateUri="https://github.com/MundofyOfficial/Mundofy-MailMigrator" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#60A5FA">
+                                        github.com/MundofyOfficial/Mundofy-MailMigrator
+                                    </Hyperlink>
+                                </TextBlock>
+                                <TextBlock FontSize="13" Margin="0,3">
+                                    <Run Text="• Issue Tracker: " Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <Hyperlink NavigateUri="https://github.com/MundofyOfficial/Mundofy-MailMigrator/issues" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#60A5FA">
+                                        github.com/MundofyOfficial/Mundofy-MailMigrator/issues
+                                    </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="• Inspired by: The classic 'imapcopy' tool originally created by Armin Diehl (2001-2009)" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3" />
+                                <TextBlock Text="• IMAP / POP3 Engine: Powered by MailKit (Jeffrey Stedfast)" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- FEEDBACK & ISSUES CARD -->
+                        <Border Background="#1E293B" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,20">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Found a Bug or Have a Feature Request?" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" />
+                                    <TextBlock Text="We welcome community feedback! Report issues, ask questions, or contribute directly on GitHub."
+                                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <Button Grid.Column="1" Click="OpenGitHubIssues_Click" Cursor="Hand" Margin="20,0,0,0" VerticalAlignment="Center"
+                                        Padding="16,8" Background="#2563EB" BorderThickness="0" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="6" />
+                                        </Style>
+                                    </Button.Resources>
+                                    <TextBlock Text="Report an Issue" />
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="Free and open for everyone. Distributed as a standalone portable Windows executable."
+                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+</Window>

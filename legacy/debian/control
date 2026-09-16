@@ -1,0 +1,17 @@
+Source: imapcopy
+Section: mail
+Maintainer: Debian QA Group <packages@qa.debian.org>
+Build-Depends: debhelper-compat (= 13), fp-compiler, xsltproc, docbook-xsl
+Standards-Version: 4.7.4
+Vcs-Browser: https://salsa.debian.org/debian/imapcopy
+Vcs-Git: https://salsa.debian.org/debian/imapcopy.git
+Homepage: http://www.ardiehl.de/imapcopy/
+
+Package: imapcopy
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: IMAP backup, copy and migration tool
+ IMAPCopy is a small command line tool to copy messages for multiple
+ users from one imap server to another.  You can use it with any IMAP
+ implementation, for example you can migrate from Cyrus to MS Exchange
+ or from MS Exchange to Courier IMAP.

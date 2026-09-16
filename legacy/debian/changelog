@@ -1,0 +1,88 @@
+imapcopy (1.04-3) unstable; urgency=medium
+
+  * QA upload.
+  * Fix Vcs fields
+    Closes: #1131344
+  * Orphan package
+    Closes: #1140512
+  * d/copyright:
+     - DEP5
+     - Review
+  * Remove redundant Priority: optional from source stanza.
+  * Update standards version to 4.7.4, no changes needed.
+  * d/watch: version=5
+
+ -- Andreas Tille <tille@debian.org>  Mon, 06 Jul 2026 13:01:23 +0200
+
+imapcopy (1.04-2.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * No real Uploader in Salvage team thus fixing issues in NMU
+    Closes: #1095900
+
+  [ Andreas Tille ]
+  * Add Homepage
+    Closes: #1082035
+  * Fake watch file
+  * Standards-Version: 4.7.0 (routine-update)
+  * debhelper-compat 13 (routine-update)
+  * Remove trailing whitespace in debian/changelog (routine-update)
+  * Trim trailing whitespace.
+  * Fix day-of-week for changelog entry 1.01-1.
+
+  [ Philip Weber ]
+  * Do not ignore the DstRootFolder option for the INBOX folder
+    Closes: #623505
+
+ -- Andreas Tille <tille@debian.org>  Tue, 04 Mar 2025 20:27:35 +0100
+
+imapcopy (1.04-2.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix build with fpc 3.0.0 (Closes: 818448)
+
+ -- Peter Michael Green <plugwash@debian.org>  Sun, 04 Sep 2016 11:31:36 +0000
+
+imapcopy (1.04-2) unstable; urgency=low
+
+  * Changed git packaging to git-dpm format
+  * Added -z relro to linker flags
+  * Removed imapsync reference from description (closes: #620842)
+
+ -- Gergely Risko <risko@debian.org>  Sat, 29 Mar 2014 19:40:37 +0100
+
+imapcopy (1.04-1) unstable; urgency=low
+
+  * New upstream version 1.04.
+  * Moved to collab-maint on git.debian.org -> debian/patches is not
+    needed anymore, patches are maintained on the master git branch from
+    now on
+  * Removed explicit architectures from debian/control
+    (closes: #525272, #457041)
+  * Changed section from mail to net (closes: #369548)
+  * Fixed typo in description (closes: #480675)
+  * made debian/manpage.xml compatible with current docbook
+  * documents stunnel usage in debian/manpage.xml, thanks goes to Mattia
+    Monga for the tip (also added a Suggests on stunnel) (closes: #322090)
+  * patched imaptools.pas to make it compile with FP 2.4
+  * converted debian/rules from cdbs to dh
+  * modified Makefile to compile with debugging symbols (closes: #437201)
+  * bumped standards-version to 3.8.4
+
+ -- RISKO Gergely <risko@debian.org>  Sat, 26 Jun 2010 20:47:57 +0300
+
+imapcopy (1.01+20060420-1) unstable; urgency=low
+
+  * New upstream release
+  * included amd64 in arch list (closes: #335250)
+  * modified package description, added examples for 'any IMAP
+    implementation' (closes: #319459)
+  * changed FSF's address
+
+ -- RISKO Gergely <risko@debian.org>  Tue, 30 May 2006 16:19:30 +0200
+
+imapcopy (1.01-1) unstable; urgency=low
+
+  * initial upload (closes: #302008)
+
+ -- RISKO Gergely <risko@debian.org>  Tue, 05 Jul 2005 00:10:00 +0200

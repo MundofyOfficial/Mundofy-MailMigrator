@@ -1,0 +1,38 @@
+From 03853e39ede7f17ebccbb0a60864759e7020d3c6 Mon Sep 17 00:00:00 2001
+From: Gergely Risko <gergely@risko.hu>
+Date: Sat, 29 Mar 2014 18:38:51 +0100
+Subject: Makefile from previous packaging
+
+Added LDFLAGS to fpc line, so hardening-relro can work.
+---
+ Makefile | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+ create mode 100644 Makefile
+
+diff --git a/Makefile b/Makefile
+new file mode 100644
+index 0000000..a28bbe1
+--- /dev/null
++++ b/Makefile
+@@ -0,0 +1,21 @@
++DB2MAN = /usr/share/sgml/docbook/stylesheet/xsl/docbook-xsl/manpages/docbook.xsl
++XP     = xsltproc --nonet --param man.charmap.use.subset "0"
++
++all: imapcopy imapcopy.1
++
++imapcopy: imapcopymain.pas imaptools.pas inet.pp
++	fpc -k-z -krelro -g imapcopy
++
++imapcopy.1: debian/manpage.xml
++	$(XP) $(DB2MAN) $<
++
++clean:
++	rm -f *.ppu *.o imapcopy imapcopy.1
++
++install: imapcopy
++	install -d $(DESTDIR)/usr/bin
++	install -d $(DESTDIR)/usr/share/man/man1
++	install imapcopy $(DESTDIR)/usr/bin/imapcopy
++	install imapcopy.1 $(DESTDIR)/usr/share/man/man1/imapcopy.1
++
++.PHONY: clean install all

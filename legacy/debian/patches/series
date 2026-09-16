@@ -1,0 +1,5 @@
+0001-Makefile-from-previous-packaging.patch
+0002-Update-FSF-address.patch
+0003-Make-it-compile-with-FP-2.4-or-newer.patch
+0004-fpc-3.0.0.patch
+0005-respect_DstRootFolder.patch

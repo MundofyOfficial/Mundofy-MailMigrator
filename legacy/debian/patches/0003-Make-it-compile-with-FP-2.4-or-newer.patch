@@ -1,0 +1,42 @@
+From 7c756b29293635c375aead2c054c8ef6d3489d92 Mon Sep 17 00:00:00 2001
+From: Gergely Risko <gergely@risko.hu>
+Date: Sat, 29 Mar 2014 18:49:34 +0100
+Subject: Make it compile with FP 2.4 or newer
+
+---
+ imaptools.pas | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/imaptools.pas b/imaptools.pas
+index 296f130..01bfd60 100644
+--- a/imaptools.pas
++++ b/imaptools.pas
+@@ -239,8 +239,8 @@ BEGIN
+   Addr.port   := ShortHostToNet (Port);
+   {WriteLn ('IP: ',hostaddrtostr (Host.IPAddress));}
+   Addr.addr   := HostToNet (LONGINT (Host.IPAddress));
+-  aSocket := Socket(AF_INET,SOCK_STREAM,0);
+-  IF NOT Sockets.Connect (aSocket,ADDR,SIZEOF(ADDR)) THEN
++  aSocket := fpSocket(AF_INET,SOCK_STREAM,0);
++  IF -1 = Sockets.fpconnect (aSocket,@ADDR,SIZEOF(ADDR)) THEN
+   BEGIN
+     Result := errno;
+     IF errno = 0 THEN Result:= 1;
+@@ -418,7 +418,7 @@ BEGIN
+                  @FA);
+   IF Err > 0 THEN
+   BEGIN
+-    ReadBufLen := Recv (ServSock, ReadBuf, SIZEOF(ReadBuf), 0);
++    ReadBufLen := fpRecv (ServSock, @ReadBuf, SIZEOF(ReadBuf), 0);
+     IF ReadBufLen > 0 THEN
+       Result := ReadAChar (C, 0)
+     ELSE
+@@ -521,7 +521,7 @@ FUNCTION WriteALine (Socket : TSocket; Txt : STRING; DebugCommands: BOOLEAN) : I
+ VAR P : INTEGER;
+     S : STRING;
+ BEGIN
+-  Result := {$IFDEF Win32}WinSock.{$ENDIF}send (Socket, PChar(Txt)^, Length (Txt), 0);
++  Result := {$IFDEF Win32}WinSock.{$ENDIF}fpsend (Socket, PChar(Txt), Length (Txt), 0);
+   IF Result = Length (Txt) THEN
+     Result := 0;
+   IF DebugCommands THEN
