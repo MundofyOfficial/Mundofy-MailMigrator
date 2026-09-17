@@ -123,12 +123,26 @@ public class ServerAutoDiscoveryService
         }
 
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        linkedCts.CancelAfter(TimeSpan.FromSeconds(3.5)); // Total budget cap
+        linkedCts.CancelAfter(TimeSpan.FromSeconds(4.0)); // Total budget cap
 
-        // STAGE 2: DNS MX Fingerprinting (Detects Google Workspace / M365 on custom domains)
+        // STAGE 2: RFC 6186 DNS SRV Records (_imaps._tcp and _imap._tcp)
         try
         {
-            var mxResult = await ProbeMxFingerprintAsync(domain, linkedCts.Token);
+            var srvResult = await ProbeDnsSrvRecordsAsync(domain, linkedCts.Token);
+            if (srvResult != null)
+            {
+                return srvResult;
+            }
+        }
+        catch
+        {
+            // Proceed to next stage
+        }
+
+        // STAGE 3: DNS MX Fingerprinting & MX Host Probing
+        try
+        {
+            var mxResult = await ProbeMxRecordsAsync(domain, linkedCts.Token);
             if (mxResult != null)
             {
                 return mxResult;
@@ -139,7 +153,7 @@ public class ServerAutoDiscoveryService
             // Proceed to next stage
         }
 
-        // STAGE 3: Mozilla Thunderbird ISPDB (Global Open-Source Autoconfig Database)
+        // STAGE 4: Mozilla Thunderbird ISPDB (Global Open-Source Autoconfig Database)
         try
         {
             var ispdbResult = await ProbeMozillaIspdbAsync(domain, linkedCts.Token);
@@ -153,7 +167,7 @@ public class ServerAutoDiscoveryService
             // Proceed to next stage
         }
 
-        // STAGE 4: Domain Autoconfig XML (cPanel, Plesk, DirectAdmin)
+        // STAGE 5: Domain Autoconfig XML (cPanel, Plesk, DirectAdmin)
         try
         {
             var autoconfigResult = await ProbeDomainAutoconfigXmlAsync(domain, linkedCts.Token);
@@ -167,7 +181,7 @@ public class ServerAutoDiscoveryService
             // Proceed to next stage
         }
 
-        // STAGE 5: Smart Socket Probe (imap.domain:993, mail.domain:993)
+        // STAGE 6: Smart Socket Probe (mail.domain:993, imap.domain:993)
         try
         {
             var socketResult = await ProbeSocketsAsync(domain, linkedCts.Token);
@@ -178,19 +192,19 @@ public class ServerAutoDiscoveryService
         }
         catch
         {
-            // Fallback
+            // Failed
         }
 
-        // STAGE 6: Standard RFC / Convention Fallback
+        // STAGE 7: FAILURE — NEVER GUESS A FAKE URL. Leave blank so user can enter manually.
         return new ServerAutoDiscoveryResult
         {
-            Success = true,
-            Host = $"imap.{domain}",
+            Success = false,
+            Host = string.Empty,
             Port = 993,
             UseSsl = true,
             Protocol = ServerProtocol.Imap,
             Provider = domain,
-            DetectionSource = "Default Convention Fallback (imap.{domain}:993)"
+            ErrorMessage = $"No verified IMAP server found for domain '{domain}'."
         };
     }
 
@@ -205,7 +219,90 @@ public class ServerAutoDiscoveryService
         return input.ToLowerInvariant();
     }
 
-    private static async Task<ServerAutoDiscoveryResult?> ProbeMxFingerprintAsync(string domain, CancellationToken ct)
+    private static async Task<ServerAutoDiscoveryResult?> ProbeDnsSrvRecordsAsync(string domain, CancellationToken ct)
+    {
+        // 1. Try secure IMAP SRV: _imaps._tcp.{domain} (RFC 6186)
+        var srvImaps = await QuerySrvRecordAsync($"_imaps._tcp.{domain}", ct);
+        if (srvImaps != null)
+        {
+            int port = srvImaps.Value.Port > 0 ? srvImaps.Value.Port : 993;
+            // Validate socket
+            var verifiedHost = await TryProbeSslSocketAsync(srvImaps.Value.Host, port, ct) ?? srvImaps.Value.Host;
+            return new ServerAutoDiscoveryResult
+            {
+                Success = true,
+                Host = verifiedHost,
+                Port = port,
+                UseSsl = true,
+                Protocol = ServerProtocol.Imap,
+                Provider = domain,
+                DetectionSource = $"RFC 6186 DNS SRV (_imaps._tcp.{domain})"
+            };
+        }
+
+        // 2. Try standard IMAP SRV: _imap._tcp.{domain} (RFC 6186)
+        var srvImap = await QuerySrvRecordAsync($"_imap._tcp.{domain}", ct);
+        if (srvImap != null)
+        {
+            int port = srvImap.Value.Port > 0 ? srvImap.Value.Port : 143;
+            bool isSsl = port == 993;
+            return new ServerAutoDiscoveryResult
+            {
+                Success = true,
+                Host = srvImap.Value.Host,
+                Port = port,
+                UseSsl = isSsl,
+                Protocol = ServerProtocol.Imap,
+                Provider = domain,
+                DetectionSource = $"RFC 6186 DNS SRV (_imap._tcp.{domain})"
+            };
+        }
+
+        return null;
+    }
+
+    private static async Task<(string Host, int Port)?> QuerySrvRecordAsync(string srvQueryName, CancellationToken ct)
+    {
+        string url = $"https://cloudflare-dns.com/dns-query?name={Uri.EscapeDataString(srvQueryName)}&type=SRV";
+        using var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Add("Accept", "application/dns-json");
+
+        using var response = await _httpClient.SendAsync(req, ct);
+        if (!response.IsSuccessStatusCode) return null;
+
+        var json = await response.Content.ReadAsStringAsync(ct);
+        using var doc = JsonDocument.Parse(json);
+
+        if (!doc.RootElement.TryGetProperty("Answer", out var answerArray) || answerArray.GetArrayLength() == 0)
+        {
+            return null;
+        }
+
+        foreach (var answer in answerArray.EnumerateArray())
+        {
+            if (answer.TryGetProperty("data", out var dataProp))
+            {
+                // Format: "<priority> <weight> <port> <target>"
+                string data = dataProp.GetString()?.Trim() ?? "";
+                var parts = data.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length >= 4)
+                {
+                    if (int.TryParse(parts[2], out int port))
+                    {
+                        string host = parts[3].Trim().TrimEnd('.').ToLowerInvariant();
+                        if (!string.IsNullOrEmpty(host))
+                        {
+                            return (host, port);
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static async Task<ServerAutoDiscoveryResult?> ProbeMxRecordsAsync(string domain, CancellationToken ct)
     {
         string url = $"https://cloudflare-dns.com/dns-query?name={Uri.EscapeDataString(domain)}&type=MX";
         using var req = new HttpRequestMessage(HttpMethod.Get, url);
@@ -221,6 +318,8 @@ public class ServerAutoDiscoveryService
         {
             return null;
         }
+
+        var candidateMxHosts = new List<string>();
 
         foreach (var answer in answerArray.EnumerateArray())
         {
@@ -257,6 +356,33 @@ public class ServerAutoDiscoveryService
                         DetectionSource = "DNS MX Fingerprint (Microsoft 365)"
                     };
                 }
+
+                // Parse standard MX hostname: e.g. "10 mail.mundofy.com."
+                var parts = data.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                string mxHost = (parts.Length > 1 ? parts[1] : parts[0]).Trim().TrimEnd('.');
+                if (!string.IsNullOrEmpty(mxHost) && !candidateMxHosts.Contains(mxHost))
+                {
+                    candidateMxHosts.Add(mxHost);
+                }
+            }
+        }
+
+        // Test each MX host to see if it responds to IMAP SSL (port 993)
+        foreach (var mxHost in candidateMxHosts)
+        {
+            var verified = await TryProbeSslSocketAsync(mxHost, 993, ct);
+            if (verified != null)
+            {
+                return new ServerAutoDiscoveryResult
+                {
+                    Success = true,
+                    Host = verified,
+                    Port = 993,
+                    UseSsl = true,
+                    Protocol = ServerProtocol.Imap,
+                    Provider = domain,
+                    DetectionSource = $"DNS MX Host Handshake ({verified}:993)"
+                };
             }
         }
 
@@ -350,10 +476,11 @@ public class ServerAutoDiscoveryService
 
     private static async Task<ServerAutoDiscoveryResult?> ProbeSocketsAsync(string domain, CancellationToken ct)
     {
+        // Test mail.domain first, then imap.domain
         var candidateHosts = new[]
         {
-            $"imap.{domain}",
-            $"mail.{domain}"
+            $"mail.{domain}",
+            $"imap.{domain}"
         };
 
         var tasks = candidateHosts.Select(host => TryProbeSslSocketAsync(host, 993, ct)).ToList();
@@ -389,6 +516,7 @@ public class ServerAutoDiscoveryService
             using var client = new TcpClient();
             var connectTask = client.ConnectAsync(host, port, ct).AsTask();
 
+            // Timeout per probe: 1.5 seconds
             var timeoutTask = Task.Delay(1500, ct);
             var finished = await Task.WhenAny(connectTask, timeoutTask);
 

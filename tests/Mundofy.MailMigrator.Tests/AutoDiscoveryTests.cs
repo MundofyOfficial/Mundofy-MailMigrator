@@ -31,17 +31,27 @@ public class AutoDiscoveryTests
     {
         var empty = await _service.DiscoverAsync("");
         Assert.False(empty.Success);
+        Assert.Equal(string.Empty, empty.Host);
 
         var invalid = await _service.DiscoverAsync("notanemail");
         Assert.False(invalid.Success);
+        Assert.Equal(string.Empty, invalid.Host);
     }
 
     [Fact]
-    public async Task TestDomainFallback_ReturnsImapPrefix()
+    public async Task TestNonExistentDomain_LeavesBlankAndReturnsFalse()
     {
-        var result = await _service.DiscoverAsync("user@example-nonexistent-domain-12345.com");
+        var result = await _service.DiscoverAsync("user@nonexistent-fake-domain-9988223.com");
+        Assert.False(result.Success);
+        Assert.Equal(string.Empty, result.Host);
+    }
+
+    [Fact]
+    public async Task TestDnsSrvDiscovery_TheFourMarketeers()
+    {
+        var result = await _service.DiscoverAsync("danny@thefourmarketeers.com");
         Assert.True(result.Success);
-        Assert.Equal("imap.example-nonexistent-domain-12345.com", result.Host);
+        Assert.Equal("mail.mundofy.com", result.Host);
         Assert.Equal(993, result.Port);
         Assert.True(result.UseSsl);
     }
