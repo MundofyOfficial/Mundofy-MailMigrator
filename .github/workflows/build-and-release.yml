@@ -62,6 +62,7 @@ jobs:
         files: |
           publish/win-x64/MundofyMailMigrator-*.exe
           publish/win-x64/MundofyMailMigrator.exe
-        generate_release_notes: true
+        body_path: CHANGELOG.md
+        generate_release_notes: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
