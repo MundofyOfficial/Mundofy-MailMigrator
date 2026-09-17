@@ -2,6 +2,7 @@
 
 [![Download MundofyMailMigrator-v1.1.0.exe](https://img.shields.io/badge/Download-MundofyMailMigrator--v1.1.0.exe-2563EB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/download/v1.1.0/MundofyMailMigrator-v1.1.0.exe)
 [![Latest Release](https://img.shields.io/badge/Release-v1.1.0-059669?style=for-the-badge)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
+[![Changelog](https://img.shields.io/badge/Changelog-v1.1.0-orange?style=for-the-badge)](CHANGELOG.md)
 [![Wiki Documentation](https://img.shields.io/badge/Wiki-Documentation-purple?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/wiki)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
@@ -42,7 +43,9 @@ Rather than keeping this as an internal utility, we open-sourced it for everyone
 ## Key Features
 
 * **⚡ Zero-Config Server Auto-Discovery (New in v1.1.0)**:
-  * Simply enter your email address—Mundofy MailMigrator instantly detects your IMAP server host, port (993), and SSL encryption via a 5-tier discovery cascade (Major Providers, DNS MX Fingerprinting for Google Workspace / M365, Mozilla Thunderbird ISPDB, and cPanel/Plesk Autoconfig).
+  * Simply enter your email address—Mundofy MailMigrator instantly detects your IMAP server host, port (993), and SSL encryption via a 5-tier discovery cascade (Major Providers, RFC 6186 DNS SRV, DNS MX Fingerprinting, Mozilla Thunderbird ISPDB, and cPanel/Plesk Autoconfig).
+* **🗑️ Interactive Batch Row Management (New in v1.1.0)**:
+  * Delete individual erroneous rows effortlessly via the **`➖ Remove Selected`** toolbar button, the **`🗑`** 1-click button on each row, right-click context menu, or by pressing the **`Delete`** key.
 * **Dual Mode**:
   * **Interactive Desktop GUI**: Double-click `MundofyMailMigrator.exe` to launch the modern WPF application.
   * **Headless CLI**: Run from terminal or scripts with `-c ImapCopy.cfg` for automated migrations.
