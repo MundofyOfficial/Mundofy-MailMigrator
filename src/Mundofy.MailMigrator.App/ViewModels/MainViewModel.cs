@@ -50,9 +50,9 @@ public class MainViewModel : INotifyPropertyChanged
                 BatchAccounts.Remove(SelectedAccount);
             }
         }, _ => !IsBatchRunning);
-        PasteFromClipboardCommand = new RelayCommand(PasteFromClipboard);
-        LoadCfgCommand = new RelayCommand(LoadCfgFile);
-        ImportCsvCommand = new RelayCommand(ImportCsvFile);
+        PasteFromClipboardCommand = new RelayCommand(PasteFromClipboard, () => !IsBatchRunning);
+        LoadCfgCommand = new RelayCommand(LoadCfgFile, () => !IsBatchRunning);
+        ImportCsvCommand = new RelayCommand(ImportCsvFile, () => !IsBatchRunning);
         ExportCsvCommand = new RelayCommand(ExportCsvFile, () => BatchAccounts.Count > 0);
         TestAllBatchCommand = new RelayCommand(async () => await TestAllBatchAsync(), () => !IsBatchRunning && BatchAccounts.Count > 0);
         StartBatchCommand = new RelayCommand(async () => await StartBatchAsync(), () => !IsBatchRunning && BatchAccounts.Count > 0);
@@ -721,20 +721,71 @@ public class MainViewModel : INotifyPropertyChanged
             BatchAccounts.Remove(SelectedAccount);
     }
 
+    private enum BatchImportDecision
+    {
+        Cancel,
+        Replace,
+        Append
+    }
+
+    private BatchImportDecision PromptBatchImportMode(int newAccountCount, string sourceDescription)
+    {
+        if (BatchAccounts.Count == 0)
+            return BatchImportDecision.Append;
+
+        var result = MessageBox.Show(
+            $"The batch accounts list currently contains {BatchAccounts.Count} account(s).\n\n" +
+            $"You are importing {newAccountCount} account(s) from {sourceDescription}.\n\n" +
+            "• Click 'Yes' to REPLACE the existing list.\n" +
+            "• Click 'No' to APPEND (add) to the existing list.\n" +
+            "• Click 'Cancel' to abort the import.",
+            "Import Accounts - Replace or Append?",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Question);
+
+        return result switch
+        {
+            MessageBoxResult.Yes => BatchImportDecision.Replace,
+            MessageBoxResult.No => BatchImportDecision.Append,
+            _ => BatchImportDecision.Cancel
+        };
+    }
+
     private void PasteFromClipboard()
     {
+        if (IsBatchRunning) return;
         if (!Clipboard.ContainsText()) return;
         string text = Clipboard.GetText();
         var accounts = CsvAccountParser.Parse(text);
-        if (accounts.Count > 0)
+        if (accounts.Count == 0)
         {
-            foreach (var acc in accounts) BatchAccounts.Add(acc);
-            AddLog(LogLevel.Info, $"Pasted {accounts.Count} accounts from clipboard.");
+            AddLog(LogLevel.Warning, "No valid account rows found in clipboard text.");
+            return;
         }
+
+        var decision = PromptBatchImportMode(accounts.Count, "the clipboard");
+        if (decision == BatchImportDecision.Cancel)
+        {
+            AddLog(LogLevel.Info, "Clipboard import cancelled.");
+            return;
+        }
+
+        if (decision == BatchImportDecision.Replace)
+        {
+            BatchAccounts.Clear();
+        }
+
+        foreach (var acc in accounts) BatchAccounts.Add(acc);
+
+        if (decision == BatchImportDecision.Replace)
+            AddLog(LogLevel.Info, $"Replaced batch list with {accounts.Count} accounts pasted from clipboard.");
+        else
+            AddLog(LogLevel.Info, $"Pasted {accounts.Count} accounts from clipboard (total: {BatchAccounts.Count}).");
     }
 
     private void LoadCfgFile()
     {
+        if (IsBatchRunning) return;
         var dlg = new OpenFileDialog
         {
             Filter = "ImapCopy Config (*.cfg)|*.cfg|Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
@@ -744,6 +795,21 @@ public class MainViewModel : INotifyPropertyChanged
         if (dlg.ShowDialog() == true)
         {
             var result = ImapCopyCfgParser.ParseFile(dlg.FileName);
+            var fileName = Path.GetFileName(dlg.FileName);
+
+            if (result.Accounts.Count == 0)
+            {
+                MessageBox.Show("No account directives found in the selected configuration file.", "Empty Configuration", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var decision = PromptBatchImportMode(result.Accounts.Count, $"'{fileName}'");
+            if (decision == BatchImportDecision.Cancel)
+            {
+                AddLog(LogLevel.Info, $"Loading '{fileName}' cancelled.");
+                return;
+            }
+
             BatchSourceProtocol = result.SourceEndpoint.Protocol;
             BatchSourceHost = result.SourceEndpoint.Host;
             BatchSourcePort = result.SourceEndpoint.Port;
@@ -756,16 +822,24 @@ public class MainViewModel : INotifyPropertyChanged
             if (result.Options.MaxConcurrency > 0)
                 Concurrency = result.Options.MaxConcurrency;
 
-            BatchAccounts.Clear();
+            if (decision == BatchImportDecision.Replace)
+            {
+                BatchAccounts.Clear();
+            }
+
             foreach (var acc in result.Accounts)
                 BatchAccounts.Add(acc);
 
-            AddLog(LogLevel.Success, $"Loaded {result.Accounts.Count} accounts from '{Path.GetFileName(dlg.FileName)}'");
+            if (decision == BatchImportDecision.Replace)
+                AddLog(LogLevel.Success, $"Replaced batch list with {result.Accounts.Count} accounts from '{fileName}'");
+            else
+                AddLog(LogLevel.Success, $"Loaded {result.Accounts.Count} accounts from '{fileName}' (total: {BatchAccounts.Count})");
         }
     }
 
     private void ImportCsvFile()
     {
+        if (IsBatchRunning) return;
         var dlg = new OpenFileDialog
         {
             Filter = "CSV / TSV Files (*.csv;*.tsv)|*.csv;*.tsv|Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
@@ -776,8 +850,32 @@ public class MainViewModel : INotifyPropertyChanged
         {
             var content = File.ReadAllText(dlg.FileName);
             var accounts = CsvAccountParser.Parse(content);
+            var fileName = Path.GetFileName(dlg.FileName);
+
+            if (accounts.Count == 0)
+            {
+                MessageBox.Show("No valid account rows found in the selected file.", "Empty File", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var decision = PromptBatchImportMode(accounts.Count, $"'{fileName}'");
+            if (decision == BatchImportDecision.Cancel)
+            {
+                AddLog(LogLevel.Info, $"Import from '{fileName}' cancelled.");
+                return;
+            }
+
+            if (decision == BatchImportDecision.Replace)
+            {
+                BatchAccounts.Clear();
+            }
+
             foreach (var acc in accounts) BatchAccounts.Add(acc);
-            AddLog(LogLevel.Success, $"Imported {accounts.Count} accounts from '{Path.GetFileName(dlg.FileName)}'");
+
+            if (decision == BatchImportDecision.Replace)
+                AddLog(LogLevel.Success, $"Replaced batch list with {accounts.Count} accounts from '{fileName}'");
+            else
+                AddLog(LogLevel.Success, $"Imported {accounts.Count} accounts from '{fileName}' (total: {BatchAccounts.Count})");
         }
     }
 

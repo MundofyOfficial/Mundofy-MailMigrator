@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Added a dedicated **Action** column with a **`🗑`** button on every row for 1-click row deletion.
   * Added native keyboard **`Delete`** key support on DataGrid rows.
   * Added right-click **Context Menu** on the accounts table with *"Remove Selected Account"* and *"Clear Entire Batch"*.
+  * Added interactive **Replace or Append** confirmation dialog when importing accounts into an existing batch list (via CSV/TSV, ImapCopy.cfg, or Clipboard).
 
 * **📦 Versioned Executable Distribution**:
   * Added explicitly named standalone binary: `MundofyMailMigrator-v1.1.0.exe` alongside `MundofyMailMigrator.exe` to prevent browser caching conflicts.
