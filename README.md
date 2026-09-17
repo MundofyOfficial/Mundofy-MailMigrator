@@ -1,11 +1,11 @@
 # Mundofy MailMigrator (v1.1.0)
 
-[![Download MundofyMailMigrator.exe](https://img.shields.io/badge/Download-MundofyMailMigrator.exe-2563EB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest/download/MundofyMailMigrator.exe)
+[![Download MundofyMailMigrator-v1.1.0.exe](https://img.shields.io/badge/Download-MundofyMailMigrator--v1.1.0.exe-2563EB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/download/v1.1.0/MundofyMailMigrator-v1.1.0.exe)
 [![Latest Release](https://img.shields.io/badge/Release-v1.1.0-059669?style=for-the-badge)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
 [![Wiki Documentation](https://img.shields.io/badge/Wiki-Documentation-purple?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/wiki)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-> 🚀 **[Click Here to Download MundofyMailMigrator.exe (Latest Release v1.1.0)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest/download/MundofyMailMigrator.exe)**  
+> 🚀 **[Click Here to Download MundofyMailMigrator-v1.1.0.exe](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/download/v1.1.0/MundofyMailMigrator-v1.1.0.exe)**  
 > *Single-file standalone Windows executable. Zero installation, zero runtime dependencies.*
 
 > 📚 **[Browse the Full Wiki Documentation](https://github.com/MundofyOfficial/Mundofy-MailMigrator/wiki)** for comprehensive guides on Single Account Migration, Concurrency Batching, CLI Automation, and Troubleshooting.
