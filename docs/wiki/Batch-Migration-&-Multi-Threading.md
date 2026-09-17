@@ -1,4 +1,4 @@
-﻿# Batch Migration & Concurrency Guide
+# Batch Migration & Concurrency Guide
 
 The **Batch Migration** tab enables migrating dozens or hundreds of mailboxes concurrently in a single automated session.
 
@@ -19,9 +19,13 @@ Mundofy MailMigrator includes an adaptive worker engine:
 
 You can populate the account migration table through four convenient methods:
 
-### 1. Direct Table Editing
-* Click **➕ Add Account** to insert a new blank row into the DataGrid.
-* Double-click any cell to enter source username, source password, destination username, destination password, or custom server overrides.
+### 1. Direct Table Editing & Management
+* **➕ Add Account:** Click to insert a new blank row into the DataGrid.
+* **➖ Remove Selected:** Highlight any row and click **➖ Remove Selected** to delete it without affecting the rest of your list.
+* **🗑 Quick Row Delete:** Click the red **🗑** button directly on any row to instantly remove it.
+* **Keyboard Delete:** Select any row and press the **Delete** key on your keyboard.
+* **Right-Click Menu:** Right-click anywhere on the table to remove the selected account.
+* **Inline Editing:** Double-click any cell to edit source username, source password, destination username, or destination password directly.
 
 ### 2. Clipboard Paste (Excel & Tab-Separated)
 * Copy columns directly from Microsoft Excel, Google Sheets, or a text editor in the format:

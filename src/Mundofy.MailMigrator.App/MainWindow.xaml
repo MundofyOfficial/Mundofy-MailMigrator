@@ -345,11 +345,12 @@
 
                             <WrapPanel Grid.Column="0" VerticalAlignment="Center">
                                 <Button Content="➕ Add Account" Command="{Binding AddAccountCommand}" Margin="0,0,8,0" Padding="14,8" />
+                                <Button Content="➖ Remove Selected" Command="{Binding RemoveAccountCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Delete the currently selected account row (or press Delete key)" />
                                 <Button Content="📋 Paste Clipboard" Command="{Binding PasteFromClipboardCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Paste TSV/CSV rows directly from clipboard" />
                                 <Button Content="📂 Load ImapCopy.cfg" Command="{Binding LoadCfgCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Import accounts and servers from legacy ImapCopy.cfg" />
                                 <Button Content="📄 Import CSV" Command="{Binding ImportCsvCommand}" Margin="0,0,8,0" Padding="14,8" />
                                 <Button Content="💾 Export CSV" Command="{Binding ExportCsvCommand}" Margin="0,0,8,0" Padding="14,8" />
-                                <Button Content="🗑 Clear" Command="{Binding ClearBatchCommand}" Margin="0,0,8,0" Padding="14,8" />
+                                <Button Content="🗑 Clear All" Command="{Binding ClearBatchCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Clear entire accounts table" />
                             </WrapPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -360,10 +361,12 @@
 
                     <!-- ROW 2: INTERACTIVE ACCOUNTS DATAGRID -->
                     <Border Grid.Row="2" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="2">
-                        <DataGrid ItemsSource="{Binding BatchAccounts}" 
-                                  SelectedItem="{Binding SelectedAccount}"
+                        <DataGrid x:Name="BatchGrid"
+                                  ItemsSource="{Binding BatchAccounts}" 
+                                  SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
                                   AutoGenerateColumns="False" 
                                   CanUserAddRows="False"
+                                  CanUserDeleteRows="True"
                                   Background="Transparent"
                                   RowBackground="#1E293B"
                                   AlternatingRowBackground="#182234"
@@ -374,6 +377,13 @@
                                   HeadersVisibility="Column"
                                   ColumnHeaderHeight="38"
                                   RowHeight="36">
+                            
+                            <DataGrid.ContextMenu>
+                                <ContextMenu Background="#1E293B" BorderBrush="{StaticResource CardBorderBrush}">
+                                    <MenuItem Header="🗑 Remove Selected Account" Command="{Binding RemoveAccountCommand}" Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <MenuItem Header="🗑 Clear Entire Batch" Command="{Binding ClearBatchCommand}" Foreground="{StaticResource TextPrimaryBrush}" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
                             
                             <DataGrid.ColumnHeaderStyle>
                                 <Style TargetType="DataGridColumnHeader">
@@ -444,6 +454,26 @@
 
                                 <!-- Details -->
                                 <DataGridTextColumn Header="Details" Binding="{Binding StatusMessage, Mode=OneWay}" Width="2*" IsReadOnly="True" />
+
+                                <!-- Action / Delete Row -->
+                                <DataGridTemplateColumn Header="Action" Width="65">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="🗑" 
+                                                    Command="{Binding DataContext.DeleteAccountRowCommand, ElementName=BatchGrid}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="Transparent" 
+                                                    BorderThickness="0" 
+                                                    Foreground="#F87171" 
+                                                    FontSize="14" 
+                                                    Cursor="Hand"
+                                                    ToolTip="Delete this account"
+                                                    HorizontalAlignment="Center" 
+                                                    VerticalAlignment="Center" 
+                                                    Padding="6,2" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Border>

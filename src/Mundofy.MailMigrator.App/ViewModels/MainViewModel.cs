@@ -38,7 +38,18 @@ public class MainViewModel : INotifyPropertyChanged
         AutoDetectBatchDestCommand = new RelayCommand(async () => await AutoDetectBatchDestAsync(), () => !IsBatchRunning && !IsDetectingBatchDest);
 
         AddAccountCommand = new RelayCommand(AddAccount);
-        RemoveAccountCommand = new RelayCommand(RemoveAccount, () => SelectedAccount != null);
+        RemoveAccountCommand = new RelayCommand(RemoveAccount, () => SelectedAccount != null && !IsBatchRunning);
+        DeleteAccountRowCommand = new RelayCommand(param =>
+        {
+            if (param is AccountJob job)
+            {
+                BatchAccounts.Remove(job);
+            }
+            else if (SelectedAccount != null)
+            {
+                BatchAccounts.Remove(SelectedAccount);
+            }
+        }, _ => !IsBatchRunning);
         PasteFromClipboardCommand = new RelayCommand(PasteFromClipboard);
         LoadCfgCommand = new RelayCommand(LoadCfgFile);
         ImportCsvCommand = new RelayCommand(ImportCsvFile);
@@ -318,7 +329,13 @@ public class MainViewModel : INotifyPropertyChanged
     public AccountJob? SelectedAccount
     {
         get => _selectedAccount;
-        set => SetField(ref _selectedAccount, value);
+        set
+        {
+            if (SetField(ref _selectedAccount, value))
+            {
+                RemoveAccountCommand?.RaiseCanExecuteChanged();
+            }
+        }
     }
 
     private bool _isBatchRunning;
@@ -426,6 +443,7 @@ public class MainViewModel : INotifyPropertyChanged
 
     public RelayCommand AddAccountCommand { get; }
     public RelayCommand RemoveAccountCommand { get; }
+    public RelayCommand DeleteAccountRowCommand { get; }
     public RelayCommand PasteFromClipboardCommand { get; }
     public RelayCommand LoadCfgCommand { get; }
     public RelayCommand ImportCsvCommand { get; }
