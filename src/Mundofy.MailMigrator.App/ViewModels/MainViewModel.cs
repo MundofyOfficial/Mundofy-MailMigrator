@@ -38,21 +38,37 @@ public class MainViewModel : INotifyPropertyChanged
         AutoDetectBatchDestCommand = new RelayCommand(async () => await AutoDetectBatchDestAsync(), () => !IsBatchRunning && !IsDetectingBatchDest);
 
         AddAccountCommand = new RelayCommand(AddAccount);
-        RemoveAccountCommand = new RelayCommand(RemoveAccount, () => SelectedAccount != null && !IsBatchRunning);
+        RemoveAccountCommand = new RelayCommand(RemoveAccount, () => SelectedAccount != null && SelectedAccount.Status != MigrationStatus.InProgress);
         DeleteAccountRowCommand = new RelayCommand(param =>
         {
-            if (param is AccountJob job)
+            var job = param as AccountJob ?? SelectedAccount;
+            if (job != null)
             {
+                if (job.Status == MigrationStatus.InProgress)
+                {
+                    MessageBox.Show("Cannot delete an account while it is actively migrating.", "Account Busy", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
                 BatchAccounts.Remove(job);
             }
-            else if (SelectedAccount != null)
-            {
-                BatchAccounts.Remove(SelectedAccount);
-            }
-        }, _ => !IsBatchRunning);
-        PasteFromClipboardCommand = new RelayCommand(PasteFromClipboard, () => !IsBatchRunning);
+        });
+        StartSingleAccountInBatchCommand = new RelayCommand(param =>
+        {
+            var job = param as AccountJob ?? SelectedAccount;
+            if (job != null) StartOrQueueAccount(job);
+        });
+        QueueSelectedAccountCommand = new RelayCommand(() =>
+        {
+            if (SelectedAccount != null) StartOrQueueAccount(SelectedAccount);
+        }, () => SelectedAccount != null && SelectedAccount.Status != MigrationStatus.InProgress);
+        TestSelectedAccountCommand = new RelayCommand(async () => await TestSelectedAccountAsync(), () => SelectedAccount != null && !IsBatchRunning);
+        CopySourceEmailCommand = new RelayCommand(CopySourceEmail, () => SelectedAccount != null);
+        CopyDestEmailCommand = new RelayCommand(CopyDestEmail, () => SelectedAccount != null);
+        ClearCompletedAccountsCommand = new RelayCommand(ClearCompletedAccounts, () => !IsBatchRunning && BatchAccounts.Any(a => a.Status == MigrationStatus.Completed));
+
+        PasteFromClipboardCommand = new RelayCommand(PasteFromClipboard);
         LoadCfgCommand = new RelayCommand(LoadCfgFile, () => !IsBatchRunning);
-        ImportCsvCommand = new RelayCommand(ImportCsvFile, () => !IsBatchRunning);
+        ImportCsvCommand = new RelayCommand(ImportCsvFile);
         ExportCsvCommand = new RelayCommand(ExportCsvFile, () => BatchAccounts.Count > 0);
         TestAllBatchCommand = new RelayCommand(async () => await TestAllBatchAsync(), () => !IsBatchRunning && BatchAccounts.Count > 0);
         StartBatchCommand = new RelayCommand(async () => await StartBatchAsync(), () => !IsBatchRunning && BatchAccounts.Count > 0);
@@ -444,6 +460,12 @@ public class MainViewModel : INotifyPropertyChanged
     public RelayCommand AddAccountCommand { get; }
     public RelayCommand RemoveAccountCommand { get; }
     public RelayCommand DeleteAccountRowCommand { get; }
+    public RelayCommand StartSingleAccountInBatchCommand { get; }
+    public RelayCommand QueueSelectedAccountCommand { get; }
+    public RelayCommand TestSelectedAccountCommand { get; }
+    public RelayCommand CopySourceEmailCommand { get; }
+    public RelayCommand CopyDestEmailCommand { get; }
+    public RelayCommand ClearCompletedAccountsCommand { get; }
     public RelayCommand PasteFromClipboardCommand { get; }
     public RelayCommand LoadCfgCommand { get; }
     public RelayCommand ImportCsvCommand { get; }
@@ -704,21 +726,139 @@ public class MainViewModel : INotifyPropertyChanged
 
     private void AddAccount()
     {
-        BatchAccounts.Add(new AccountJob
+        var newAccount = new AccountJob
         {
-            SourceUser = $"user{BatchAccounts.Count + 1}@domain.com",
+            SourceUser = "",
             SourcePassword = "",
-            DestUser = $"user{BatchAccounts.Count + 1}@dest.com",
+            DestUser = "",
             DestPassword = "",
             Status = MigrationStatus.Ready,
             StatusMessage = "Ready"
-        });
+        };
+        BatchAccounts.Add(newAccount);
+        SelectedAccount = newAccount;
+
+        if (IsBatchRunning)
+        {
+            AddLog(LogLevel.Info, "Added new account row. Type credentials and click '▶' on the row to queue it into the running batch.");
+        }
+    }
+
+    private void StartOrQueueAccount(AccountJob account)
+    {
+        if (string.IsNullOrWhiteSpace(account.SourceUser) || string.IsNullOrWhiteSpace(account.DestUser))
+        {
+            MessageBox.Show("Please enter valid Source and Destination email addresses for this account.", "Missing Details", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (IsBatchRunning)
+        {
+            if (account.Status == MigrationStatus.InProgress)
+            {
+                AddLog(LogLevel.Warning, $"Account '{account.SourceUser}' is already actively migrating.");
+                return;
+            }
+
+            bool enqueued = _batchOrchestrator.EnqueueAccount(account);
+            if (enqueued)
+            {
+                AddLog(LogLevel.Success, $"⚡ Enqueued '{account.SourceUser}' into the active running batch.");
+            }
+            else
+            {
+                AddLog(LogLevel.Warning, $"Could not enqueue '{account.SourceUser}' (batch may be finishing).");
+            }
+        }
+        else
+        {
+            account.Status = MigrationStatus.Ready;
+            account.StatusMessage = "Ready";
+            _ = StartBatchAsync();
+        }
+    }
+
+    private async Task TestSelectedAccountAsync()
+    {
+        if (SelectedAccount == null) return;
+
+        if (string.IsNullOrWhiteSpace(BatchSourceHost) || string.IsNullOrWhiteSpace(BatchDestHost))
+        {
+            MessageBox.Show("Please specify both Source and Destination server hosts in the Batch setup card.", "Missing Host", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var srcEndpoint = new ServerEndpoint
+        {
+            Protocol = BatchSourceProtocol,
+            Host = BatchSourceHost,
+            Port = BatchSourcePort,
+            UseSsl = BatchSourceUseSsl,
+            AllowInvalidCertificates = AllowInvalidCertificates
+        };
+
+        var dstEndpoint = new ServerEndpoint
+        {
+            Protocol = ServerProtocol.Imap,
+            Host = BatchDestHost,
+            Port = BatchDestPort,
+            UseSsl = BatchDestUseSsl,
+            AllowInvalidCertificates = AllowInvalidCertificates
+        };
+
+        AddLog(LogLevel.Info, $"Testing credentials for '{SelectedAccount.SourceUser}'...");
+        bool success = await _batchOrchestrator.TestSingleAccountAsync(srcEndpoint, dstEndpoint, SelectedAccount);
+        if (success)
+            AddLog(LogLevel.Success, $"Credentials verified for '{SelectedAccount.SourceUser}'.");
+        else
+            AddLog(LogLevel.Error, $"Credential test failed for '{SelectedAccount.SourceUser}': {SelectedAccount.StatusMessage}");
+    }
+
+    private void CopySourceEmail()
+    {
+        if (!string.IsNullOrWhiteSpace(SelectedAccount?.SourceUser))
+        {
+            Clipboard.SetText(SelectedAccount.SourceUser);
+            AddLog(LogLevel.Info, $"Copied source email '{SelectedAccount.SourceUser}' to clipboard.");
+        }
+    }
+
+    private void CopyDestEmail()
+    {
+        if (!string.IsNullOrWhiteSpace(SelectedAccount?.DestUser))
+        {
+            Clipboard.SetText(SelectedAccount.DestUser);
+            AddLog(LogLevel.Info, $"Copied destination email '{SelectedAccount.DestUser}' to clipboard.");
+        }
+    }
+
+    private void ClearCompletedAccounts()
+    {
+        var completedList = BatchAccounts.Where(a => a.Status == MigrationStatus.Completed).ToList();
+        if (completedList.Count == 0)
+        {
+            AddLog(LogLevel.Info, "No completed accounts to clear.");
+            return;
+        }
+
+        foreach (var acc in completedList)
+        {
+            BatchAccounts.Remove(acc);
+        }
+        AddLog(LogLevel.Info, $"Cleared {completedList.Count} completed account(s) from the batch table.");
     }
 
     private void RemoveAccount()
     {
         if (SelectedAccount != null)
+        {
+            if (SelectedAccount.Status == MigrationStatus.InProgress)
+            {
+                MessageBox.Show("Cannot delete an account while it is actively migrating.", "Account Busy", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
             BatchAccounts.Remove(SelectedAccount);
+        }
     }
 
     private enum BatchImportDecision
@@ -753,13 +893,32 @@ public class MainViewModel : INotifyPropertyChanged
 
     private void PasteFromClipboard()
     {
-        if (IsBatchRunning) return;
         if (!Clipboard.ContainsText()) return;
         string text = Clipboard.GetText();
         var accounts = CsvAccountParser.Parse(text);
         if (accounts.Count == 0)
         {
             AddLog(LogLevel.Warning, "No valid account rows found in clipboard text.");
+            return;
+        }
+
+        if (IsBatchRunning)
+        {
+            var res = MessageBox.Show(
+                $"A batch migration is currently in progress.\n\n" +
+                $"Do you want to append these {accounts.Count} account(s) and queue them directly into the running batch?",
+                "Queue into Running Batch?",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (res != MessageBoxResult.Yes) return;
+
+            foreach (var acc in accounts)
+            {
+                BatchAccounts.Add(acc);
+                _batchOrchestrator.EnqueueAccount(acc);
+            }
+            AddLog(LogLevel.Success, $"Appended and enqueued {accounts.Count} account(s) from clipboard into the active batch.");
             return;
         }
 
@@ -839,7 +998,6 @@ public class MainViewModel : INotifyPropertyChanged
 
     private void ImportCsvFile()
     {
-        if (IsBatchRunning) return;
         var dlg = new OpenFileDialog
         {
             Filter = "CSV / TSV Files (*.csv;*.tsv)|*.csv;*.tsv|Text Files (*.txt)|*.txt|All Files (*.*)|*.*",
@@ -855,6 +1013,26 @@ public class MainViewModel : INotifyPropertyChanged
             if (accounts.Count == 0)
             {
                 MessageBox.Show("No valid account rows found in the selected file.", "Empty File", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (IsBatchRunning)
+            {
+                var res = MessageBox.Show(
+                    $"A batch migration is currently in progress.\n\n" +
+                    $"Do you want to append these {accounts.Count} account(s) from '{fileName}' and queue them directly into the running batch?",
+                    "Queue into Running Batch?",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (res != MessageBoxResult.Yes) return;
+
+                foreach (var acc in accounts)
+                {
+                    BatchAccounts.Add(acc);
+                    _batchOrchestrator.EnqueueAccount(acc);
+                }
+                AddLog(LogLevel.Success, $"Appended and enqueued {accounts.Count} account(s) from '{fileName}' into the active batch.");
                 return;
             }
 

@@ -40,4 +40,13 @@ public partial class MainWindow : Window
         }
         catch { }
     }
+
+    private void OnDataGridRowPreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (sender is System.Windows.Controls.DataGridRow row)
+        {
+            row.IsSelected = true;
+            row.Focus();
+        }
+    }
 }

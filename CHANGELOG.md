@@ -22,11 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * **Dedicated UI Buttons:** Added `⚡ Auto-Detect` to Source and Destination cards on both Single and Batch tabs.
   * **Reactive Input:** Auto-discovery gently triggers when a valid email address is typed into an empty server field.
 
-* **🗑️ Batch Migration Row Management**:
-  * Added **`➖ Remove Selected`** button on the Batch Migration toolbar to delete selected rows without clearing the entire table.
-  * Added a dedicated **Action** column with a **`🗑`** button on every row for 1-click row deletion.
-  * Added native keyboard **`Delete`** key support on DataGrid rows.
-  * Added right-click **Context Menu** on the accounts table with *"Remove Selected Account"* and *"Clear Entire Batch"*.
+* **⚡ In-Flight Account Queueing & Dynamic Batch Execution**:
+  * Add new email accounts during an active batch migration without stopping or restarting the process.
+  * Added **`▶`** button directly on every row to immediately queue a newly typed account into the running stream.
+  * Added instant queueing when pasting accounts from clipboard or importing CSV while a migration is in progress.
+  * Converted batch processing engine to an unbounded multi-worker channel with automated completion debounce.
+
+* **🎨 Modernized Dark-Mode Context Menu & Row Actions**:
+  * Redesigned right-click menu with native dark styling (`#1E293B`), 8px rounded corners, elevation drop shadows, and blue highlight states.
+  * Fixed right-click behavior so the row under the cursor is automatically selected and targeted.
+  * Added context menu quick actions: **`▶ Start / Queue This Account`**, **`🔍 Test Account Credentials`**, **`📋 Copy Source/Dest Email`**, **`🗑 Remove Account`**, **`🧹 Clear Completed Accounts`**, and **`⚠️ Clear Entire Batch`**.
+  * Added dual-action column with side-by-side **`▶`** (Start/Queue) and **`🗑`** (Delete) buttons on each row.
   * Added interactive **Replace or Append** confirmation dialog when importing accounts into an existing batch list (via CSV/TSV, ImapCopy.cfg, or Clipboard).
 
 * **📦 Versioned Executable Distribution**:

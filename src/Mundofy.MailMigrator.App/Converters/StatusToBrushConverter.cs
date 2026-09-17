@@ -21,6 +21,7 @@ public class StatusToBrushConverter : IValueConverter
             {
                 MigrationStatus.Completed => Green,
                 MigrationStatus.Ready => Green,
+                MigrationStatus.Queued => Yellow,
                 MigrationStatus.InProgress => Blue,
                 MigrationStatus.Testing => Yellow,
                 MigrationStatus.Failed => Red,

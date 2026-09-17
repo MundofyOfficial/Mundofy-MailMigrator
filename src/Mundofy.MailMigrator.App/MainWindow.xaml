@@ -379,11 +379,32 @@
                                   RowHeight="36">
                             
                             <DataGrid.ContextMenu>
-                                <ContextMenu Background="#1E293B" BorderBrush="{StaticResource CardBorderBrush}">
-                                    <MenuItem Header="🗑 Remove Selected Account" Command="{Binding RemoveAccountCommand}" Foreground="{StaticResource TextPrimaryBrush}" />
-                                    <MenuItem Header="🗑 Clear Entire Batch" Command="{Binding ClearBatchCommand}" Foreground="{StaticResource TextPrimaryBrush}" />
+                                <ContextMenu>
+                                    <MenuItem Header="▶ Start / Queue This Account" Command="{Binding QueueSelectedAccountCommand}" ToolTip="Start migrating or queue into active batch" />
+                                    <MenuItem Header="🔍 Test Account Credentials" Command="{Binding TestSelectedAccountCommand}" ToolTip="Test IMAP connection for this account" />
+                                    <Separator />
+                                    <MenuItem Header="📋 Copy Source Email" Command="{Binding CopySourceEmailCommand}" />
+                                    <MenuItem Header="📋 Copy Destination Email" Command="{Binding CopyDestEmailCommand}" />
+                                    <Separator />
+                                    <MenuItem Header="🗑 Remove Account" Command="{Binding RemoveAccountCommand}" ToolTip="Remove selected account" />
+                                    <MenuItem Header="🧹 Clear Completed Accounts" Command="{Binding ClearCompletedAccountsCommand}" ToolTip="Remove finished accounts from list" />
+                                    <MenuItem Header="⚠️ Clear Entire Batch" Command="{Binding ClearBatchCommand}" ToolTip="Clear all accounts from batch" />
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
+
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <EventSetter Event="PreviewMouseRightButtonDown" Handler="OnDataGridRowPreviewMouseRightButtonDown" />
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#243247" />
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#1E3A5F" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
                             
                             <DataGrid.ColumnHeaderStyle>
                                 <Style TargetType="DataGridColumnHeader">
@@ -455,22 +476,33 @@
                                 <!-- Details -->
                                 <DataGridTextColumn Header="Details" Binding="{Binding StatusMessage, Mode=OneWay}" Width="2*" IsReadOnly="True" />
 
-                                <!-- Action / Delete Row -->
-                                <DataGridTemplateColumn Header="Action" Width="65">
+                                <!-- Action Buttons -->
+                                <DataGridTemplateColumn Header="Action" Width="75">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Content="🗑" 
-                                                    Command="{Binding DataContext.DeleteAccountRowCommand, ElementName=BatchGrid}"
-                                                    CommandParameter="{Binding}"
-                                                    Background="Transparent" 
-                                                    BorderThickness="0" 
-                                                    Foreground="#F87171" 
-                                                    FontSize="14" 
-                                                    Cursor="Hand"
-                                                    ToolTip="Delete this account"
-                                                    HorizontalAlignment="Center" 
-                                                    VerticalAlignment="Center" 
-                                                    Padding="6,2" />
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Button Content="▶" 
+                                                        Command="{Binding DataContext.StartSingleAccountInBatchCommand, ElementName=BatchGrid}"
+                                                        CommandParameter="{Binding}"
+                                                        Background="Transparent" 
+                                                        BorderThickness="0" 
+                                                        Foreground="#34D399" 
+                                                        FontSize="13" 
+                                                        Cursor="Hand"
+                                                        ToolTip="Start or Queue into running batch"
+                                                        Padding="4,2" 
+                                                        Margin="0,0,4,0" />
+                                                <Button Content="🗑" 
+                                                        Command="{Binding DataContext.DeleteAccountRowCommand, ElementName=BatchGrid}"
+                                                        CommandParameter="{Binding}"
+                                                        Background="Transparent" 
+                                                        BorderThickness="0" 
+                                                        Foreground="#F87171" 
+                                                        FontSize="13" 
+                                                        Cursor="Hand"
+                                                        ToolTip="Remove this account"
+                                                        Padding="4,2" />
+                                            </StackPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>

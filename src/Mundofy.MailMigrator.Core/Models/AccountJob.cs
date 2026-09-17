@@ -8,6 +8,7 @@ public enum MigrationStatus
     Pending,
     Testing,
     Ready,
+    Queued,
     InProgress,
     Completed,
     Failed,
