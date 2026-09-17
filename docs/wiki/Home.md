@@ -18,6 +18,7 @@ Patching an outdated utility was no longer the smartest way forward. So with an 
 
 That idea became **Mundofy MailMigrator**:
 * **Native TLS 1.3 & SSL out-of-the-box** — zero proxies or wrappers needed.
+* **⚡ Zero-Config Server Auto-Discovery** — automatically resolves IMAP host, port, and SSL from any email address.
 * **100% backward compatibility** with classic `ImapCopy.cfg` configuration files.
 * **POP3 source support** for migrating older mailboxes that don't have IMAP enabled.
 * **Concurrent multi-account batching** with an intuitive Desktop GUI alongside the CLI.

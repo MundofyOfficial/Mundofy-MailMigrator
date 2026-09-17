@@ -43,7 +43,7 @@
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="Mundofy MailMigrator" FontWeight="Bold" FontSize="20" Foreground="#FFFFFF" />
                             <Border Background="#1E3A8A" CornerRadius="4" Padding="7,2" Margin="10,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="v1.0.0" FontSize="11" FontWeight="Bold" Foreground="#93C5FD" />
+                                <TextBlock Text="v1.1.0" FontSize="11" FontWeight="Bold" Foreground="#93C5FD" />
                             </Border>
                         </StackPanel>
                         <TextBlock Text="Modern High-Speed IMAP &amp; POP3 Email Migration Suite | Free for Everyone" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
@@ -103,7 +103,10 @@
                                         </StackPanel>
                                     </Grid>
 
-                                    <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <Grid Margin="0,0,0,5">
+                                        <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                        <Button HorizontalAlignment="Right" Content="⚡ Auto-Detect" Command="{Binding AutoDetectSingleSourceCommand}" Cursor="Hand" Padding="8,2" FontSize="11" Height="22" Background="#1E293B" BorderBrush="#334155" Foreground="#60A5FA" ToolTip="Automatically detect IMAP server settings from email address" />
+                                    </Grid>
                                     <TextBox Text="{Binding SingleSourceHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
 
                                     <CheckBox Content="Use SSL/TLS Encryption" IsChecked="{Binding SingleSourceUseSsl}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,14" />
@@ -146,7 +149,10 @@
                                         </StackPanel>
                                     </Grid>
 
-                                    <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <Grid Margin="0,0,0,5">
+                                        <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                        <Button HorizontalAlignment="Right" Content="⚡ Auto-Detect" Command="{Binding AutoDetectSingleDestCommand}" Cursor="Hand" Padding="8,2" FontSize="11" Height="22" Background="#1E293B" BorderBrush="#334155" Foreground="#34D399" ToolTip="Automatically detect IMAP server settings from email address" />
+                                    </Grid>
                                     <TextBox Text="{Binding SingleDestHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
 
                                     <CheckBox Content="Use SSL/TLS Encryption" IsChecked="{Binding SingleDestUseSsl}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,14" />
@@ -279,7 +285,10 @@
 
                             <!-- DEFAULT SOURCE -->
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Default Source Server" FontWeight="SemiBold" FontSize="13" Foreground="#60A5FA" Margin="0,0,0,6" />
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="Default Source Server" FontWeight="SemiBold" FontSize="13" Foreground="#60A5FA" VerticalAlignment="Center" />
+                                    <Button HorizontalAlignment="Right" Content="⚡ Auto-Detect" Command="{Binding AutoDetectBatchSourceCommand}" Cursor="Hand" Padding="6,1" FontSize="10" Height="20" Background="#1E293B" BorderBrush="#334155" Foreground="#60A5FA" ToolTip="Auto-detect source server from domain or first account" />
+                                </Grid>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -293,7 +302,10 @@
 
                             <!-- DEFAULT DEST -->
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Default Destination Server" FontWeight="SemiBold" FontSize="13" Foreground="#34D399" Margin="0,0,0,6" />
+                                <Grid Margin="0,0,0,6">
+                                    <TextBlock Text="Default Destination Server" FontWeight="SemiBold" FontSize="13" Foreground="#34D399" VerticalAlignment="Center" />
+                                    <Button HorizontalAlignment="Right" Content="⚡ Auto-Detect" Command="{Binding AutoDetectBatchDestCommand}" Cursor="Hand" Padding="6,1" FontSize="10" Height="20" Background="#1E293B" BorderBrush="#334155" Foreground="#34D399" ToolTip="Auto-detect destination server from domain or first account" />
+                                </Grid>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -550,7 +562,7 @@
                             
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Mundofy MailMigrator" FontWeight="Bold" FontSize="24" Foreground="#FFFFFF" />
-                                <TextBlock Text="Version 1.0.0" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
+                                <TextBlock Text="Version 1.1.0" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
                             </StackPanel>
                         </StackPanel>
 
@@ -560,7 +572,7 @@
                                 <TextBlock Text="Why This Tool Was Created" FontWeight="Bold" FontSize="13" Foreground="#38BDF8" Margin="0,0,0,6" />
                                 <TextBlock Text="As a managed hosting provider, we routinely help customers migrate their mailboxes to our servers. Moving email can be technically intimidating, and most users lack the specialized knowledge or tools to do it themselves safely without risking lost messages or downtime. For years, Armin Diehl's classic 'imapcopy' tool was the go-to utility. But as modern servers enforced TLS 1.3 and dropped older protocols, imapcopy began failing on TLS handshakes."
                                            TextWrapping="Wrap" FontSize="12" LineHeight="19" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6" />
-                                <TextBlock Text="Patching an outdated utility was no longer the smartest way forward. With an open mind, we asked: What if we build a modern successor that does everything imapcopy did, but so much more? Native TLS 1.3, POP3 source support, multi-threading, smart Message-ID deduplication, and a clean GUI. We open-sourced it for everyone, and with the help of the community, our goal is to make this the modern, free go-to tool for email migration."
+                                <TextBlock Text="Patching an outdated utility was no longer the smartest way forward. With an open mind, we asked: What if we build a modern successor that does everything imapcopy did, but so much more? Native TLS 1.3, zero-config server auto-discovery, POP3 source support, multi-threading, smart Message-ID deduplication, and a clean GUI. We open-sourced it for everyone, and with the help of the community, our goal is to make this the modern, free go-to tool for email migration."
                                            TextWrapping="Wrap" FontSize="12" LineHeight="19" Foreground="{StaticResource TextSecondaryBrush}" />
                             </StackPanel>
                         </Border>

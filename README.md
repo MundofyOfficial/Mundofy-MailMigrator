@@ -1,11 +1,11 @@
-# Mundofy MailMigrator (v1.0.0)
+# Mundofy MailMigrator (v1.1.0)
 
 [![Download MundofyMailMigrator.exe](https://img.shields.io/badge/Download-MundofyMailMigrator.exe-2563EB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest/download/MundofyMailMigrator.exe)
-[![Latest Release](https://img.shields.io/badge/Release-v1.0.0-059669?style=for-the-badge)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
+[![Latest Release](https://img.shields.io/badge/Release-v1.1.0-059669?style=for-the-badge)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
 [![Wiki Documentation](https://img.shields.io/badge/Wiki-Documentation-purple?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/wiki)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-> 🚀 **[Click Here to Download MundofyMailMigrator.exe (Latest Release)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest/download/MundofyMailMigrator.exe)**  
+> 🚀 **[Click Here to Download MundofyMailMigrator.exe (Latest Release v1.1.0)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest/download/MundofyMailMigrator.exe)**  
 > *Single-file standalone Windows executable. Zero installation, zero runtime dependencies.*
 
 > 📚 **[Browse the Full Wiki Documentation](https://github.com/MundofyOfficial/Mundofy-MailMigrator/wiki)** for comprehensive guides on Single Account Migration, Concurrency Batching, CLI Automation, and Troubleshooting.
@@ -29,6 +29,7 @@ Patching an outdated utility was no longer the smartest way forward. So with an 
 
 That idea became **Mundofy MailMigrator**:
 * **Native TLS 1.3 & SSL out-of-the-box** — zero proxies or wrappers needed.
+* **⚡ Zero-Config Server Auto-Discovery** — automatically resolves IMAP host, port, and SSL from any email address.
 * **100% backward compatibility** with classic `ImapCopy.cfg` configuration files.
 * **POP3 source support** for migrating older mailboxes that don't have IMAP enabled.
 * **Concurrent multi-account batching** with an intuitive Desktop GUI alongside the CLI.
@@ -40,6 +41,8 @@ Rather than keeping this as an internal utility, we open-sourced it for everyone
 
 ## Key Features
 
+* **⚡ Zero-Config Server Auto-Discovery (New in v1.1.0)**:
+  * Simply enter your email address—Mundofy MailMigrator instantly detects your IMAP server host, port (993), and SSL encryption via a 5-tier discovery cascade (Major Providers, DNS MX Fingerprinting for Google Workspace / M365, Mozilla Thunderbird ISPDB, and cPanel/Plesk Autoconfig).
 * **Dual Mode**:
   * **Interactive Desktop GUI**: Double-click `MundofyMailMigrator.exe` to launch the modern WPF application.
   * **Headless CLI**: Run from terminal or scripts with `-c ImapCopy.cfg` for automated migrations.

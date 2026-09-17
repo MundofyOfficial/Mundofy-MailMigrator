@@ -14,12 +14,14 @@ public class MainViewModel : INotifyPropertyChanged
 {
     private readonly ImapMigrationService _migrationService;
     private readonly BatchOrchestrator _batchOrchestrator;
+    private readonly ServerAutoDiscoveryService _autoDiscoveryService;
     private CancellationTokenSource? _singleCts;
 
     public MainViewModel()
     {
         _migrationService = new ImapMigrationService();
         _batchOrchestrator = new BatchOrchestrator(_migrationService);
+        _autoDiscoveryService = new ServerAutoDiscoveryService();
 
         _migrationService.LogEmitted += OnLogEmitted;
         _batchOrchestrator.BatchProgressUpdated += OnBatchProgressUpdated;
@@ -29,6 +31,11 @@ public class MainViewModel : INotifyPropertyChanged
         TestSingleDestCommand = new RelayCommand(async () => await TestSingleDestAsync(), () => !IsSingleMigrating);
         StartSingleMigrationCommand = new RelayCommand(async () => await StartSingleMigrationAsync(), () => !IsSingleMigrating);
         CancelSingleMigrationCommand = new RelayCommand(() => CancelSingleMigration(), () => IsSingleMigrating);
+
+        AutoDetectSingleSourceCommand = new RelayCommand(async () => await AutoDetectSingleSourceAsync(), () => !IsSingleMigrating && !IsDetectingSource);
+        AutoDetectSingleDestCommand = new RelayCommand(async () => await AutoDetectSingleDestAsync(), () => !IsSingleMigrating && !IsDetectingDest);
+        AutoDetectBatchSourceCommand = new RelayCommand(async () => await AutoDetectBatchSourceAsync(), () => !IsBatchRunning && !IsDetectingBatchSource);
+        AutoDetectBatchDestCommand = new RelayCommand(async () => await AutoDetectBatchDestAsync(), () => !IsBatchRunning && !IsDetectingBatchDest);
 
         AddAccountCommand = new RelayCommand(AddAccount);
         RemoveAccountCommand = new RelayCommand(RemoveAccount, () => SelectedAccount != null);
@@ -53,7 +60,7 @@ public class MainViewModel : INotifyPropertyChanged
             StatusMessage = "Ready"
         });
 
-        AddLog(LogLevel.Info, "Mundofy MailMigrator v1.0.0 initialized.");
+        AddLog(LogLevel.Info, "Mundofy MailMigrator v1.1.0 initialized.");
     }
 
     #region Single Migration Properties
@@ -96,7 +103,16 @@ public class MainViewModel : INotifyPropertyChanged
     public string SingleSourceUser
     {
         get => _singleSourceUser;
-        set => SetField(ref _singleSourceUser, value);
+        set
+        {
+            if (SetField(ref _singleSourceUser, value))
+            {
+                if (string.IsNullOrWhiteSpace(SingleSourceHost) && value.Contains('@') && value.IndexOf('.', value.IndexOf('@')) > 0)
+                {
+                    _ = AutoDetectSingleSourceAsync();
+                }
+            }
+        }
     }
 
     private string _singleSourcePassword = "";
@@ -111,6 +127,19 @@ public class MainViewModel : INotifyPropertyChanged
     {
         get => _singleSourceStatus;
         set => SetField(ref _singleSourceStatus, value);
+    }
+
+    private bool _isDetectingSource;
+    public bool IsDetectingSource
+    {
+        get => _isDetectingSource;
+        set
+        {
+            if (SetField(ref _isDetectingSource, value))
+            {
+                AutoDetectSingleSourceCommand?.RaiseCanExecuteChanged();
+            }
+        }
     }
 
     private string _singleDestHost = "";
@@ -138,7 +167,16 @@ public class MainViewModel : INotifyPropertyChanged
     public string SingleDestUser
     {
         get => _singleDestUser;
-        set => SetField(ref _singleDestUser, value);
+        set
+        {
+            if (SetField(ref _singleDestUser, value))
+            {
+                if (string.IsNullOrWhiteSpace(SingleDestHost) && value.Contains('@') && value.IndexOf('.', value.IndexOf('@')) > 0)
+                {
+                    _ = AutoDetectSingleDestAsync();
+                }
+            }
+        }
     }
 
     private string _singleDestPassword = "";
@@ -153,6 +191,45 @@ public class MainViewModel : INotifyPropertyChanged
     {
         get => _singleDestStatus;
         set => SetField(ref _singleDestStatus, value);
+    }
+
+    private bool _isDetectingDest;
+    public bool IsDetectingDest
+    {
+        get => _isDetectingDest;
+        set
+        {
+            if (SetField(ref _isDetectingDest, value))
+            {
+                AutoDetectSingleDestCommand?.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    private bool _isDetectingBatchSource;
+    public bool IsDetectingBatchSource
+    {
+        get => _isDetectingBatchSource;
+        set
+        {
+            if (SetField(ref _isDetectingBatchSource, value))
+            {
+                AutoDetectBatchSourceCommand?.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    private bool _isDetectingBatchDest;
+    public bool IsDetectingBatchDest
+    {
+        get => _isDetectingBatchDest;
+        set
+        {
+            if (SetField(ref _isDetectingBatchDest, value))
+            {
+                AutoDetectBatchDestCommand?.RaiseCanExecuteChanged();
+            }
+        }
     }
 
     private AccountJob _singleJob = new();
@@ -342,6 +419,11 @@ public class MainViewModel : INotifyPropertyChanged
     public RelayCommand StartSingleMigrationCommand { get; }
     public RelayCommand CancelSingleMigrationCommand { get; }
 
+    public RelayCommand AutoDetectSingleSourceCommand { get; }
+    public RelayCommand AutoDetectSingleDestCommand { get; }
+    public RelayCommand AutoDetectBatchSourceCommand { get; }
+    public RelayCommand AutoDetectBatchDestCommand { get; }
+
     public RelayCommand AddAccountCommand { get; }
     public RelayCommand RemoveAccountCommand { get; }
     public RelayCommand PasteFromClipboardCommand { get; }
@@ -357,6 +439,160 @@ public class MainViewModel : INotifyPropertyChanged
     #endregion
 
     #region Action Methods
+
+    private async Task AutoDetectSingleSourceAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SingleSourceUser))
+        {
+            SingleSourceStatus = "Enter email address first";
+            AddLog(LogLevel.Warning, "Auto-Detect Source: Please enter a username/email address first.");
+            return;
+        }
+
+        try
+        {
+            IsDetectingSource = true;
+            SingleSourceStatus = "⚡ Auto-detecting server...";
+            AddLog(LogLevel.Info, $"⚡ Probing auto-discovery for '{SingleSourceUser}'...");
+
+            var result = await _autoDiscoveryService.DiscoverAsync(SingleSourceUser);
+            if (result.Success)
+            {
+                SingleSourceHost = result.Host;
+                SingleSourcePort = result.Port;
+                SingleSourceUseSsl = result.UseSsl;
+                SingleSourceStatus = $"⚡ Discovered: {result.Host}";
+                AddLog(LogLevel.Success, $"⚡ Auto-Discovery succeeded: {result.Host}:{result.Port} (SSL: {result.UseSsl}) via {result.DetectionSource}");
+            }
+            else
+            {
+                SingleSourceStatus = "Could not detect server";
+                AddLog(LogLevel.Warning, $"Auto-discovery failed: {result.ErrorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            SingleSourceStatus = "Auto-detect error";
+            AddLog(LogLevel.Error, $"Auto-discovery error: {ex.Message}");
+        }
+        finally
+        {
+            IsDetectingSource = false;
+        }
+    }
+
+    private async Task AutoDetectSingleDestAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SingleDestUser))
+        {
+            SingleDestStatus = "Enter email address first";
+            AddLog(LogLevel.Warning, "Auto-Detect Destination: Please enter a username/email address first.");
+            return;
+        }
+
+        try
+        {
+            IsDetectingDest = true;
+            SingleDestStatus = "⚡ Auto-detecting server...";
+            AddLog(LogLevel.Info, $"⚡ Probing auto-discovery for '{SingleDestUser}'...");
+
+            var result = await _autoDiscoveryService.DiscoverAsync(SingleDestUser);
+            if (result.Success)
+            {
+                SingleDestHost = result.Host;
+                SingleDestPort = result.Port;
+                SingleDestUseSsl = result.UseSsl;
+                SingleDestStatus = $"⚡ Discovered: {result.Host}";
+                AddLog(LogLevel.Success, $"⚡ Auto-Discovery succeeded: {result.Host}:{result.Port} (SSL: {result.UseSsl}) via {result.DetectionSource}");
+            }
+            else
+            {
+                SingleDestStatus = "Could not detect server";
+                AddLog(LogLevel.Warning, $"Auto-discovery failed: {result.ErrorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            SingleDestStatus = "Auto-detect error";
+            AddLog(LogLevel.Error, $"Auto-discovery error: {ex.Message}");
+        }
+        finally
+        {
+            IsDetectingDest = false;
+        }
+    }
+
+    private async Task AutoDetectBatchSourceAsync()
+    {
+        string query = BatchSourceHost;
+        if (string.IsNullOrWhiteSpace(query) && BatchAccounts.Count > 0)
+        {
+            query = BatchAccounts[0].SourceUser;
+        }
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            AddLog(LogLevel.Warning, "Auto-Detect Batch Source: Please enter a domain or add an account first.");
+            return;
+        }
+
+        try
+        {
+            IsDetectingBatchSource = true;
+            AddLog(LogLevel.Info, $"⚡ Probing batch source auto-discovery for '{query}'...");
+            var result = await _autoDiscoveryService.DiscoverAsync(query);
+            if (result.Success)
+            {
+                BatchSourceHost = result.Host;
+                BatchSourcePort = result.Port;
+                AddLog(LogLevel.Success, $"⚡ Discovered Batch Source: {result.Host}:{result.Port} via {result.DetectionSource}");
+            }
+            else
+            {
+                AddLog(LogLevel.Warning, $"Batch source auto-discovery failed: {result.ErrorMessage}");
+            }
+        }
+        finally
+        {
+            IsDetectingBatchSource = false;
+        }
+    }
+
+    private async Task AutoDetectBatchDestAsync()
+    {
+        string query = BatchDestHost;
+        if (string.IsNullOrWhiteSpace(query) && BatchAccounts.Count > 0)
+        {
+            query = BatchAccounts[0].DestUser;
+        }
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            AddLog(LogLevel.Warning, "Auto-Detect Batch Destination: Please enter a domain or add an account first.");
+            return;
+        }
+
+        try
+        {
+            IsDetectingBatchDest = true;
+            AddLog(LogLevel.Info, $"⚡ Probing batch destination auto-discovery for '{query}'...");
+            var result = await _autoDiscoveryService.DiscoverAsync(query);
+            if (result.Success)
+            {
+                BatchDestHost = result.Host;
+                BatchDestPort = result.Port;
+                AddLog(LogLevel.Success, $"⚡ Discovered Batch Destination: {result.Host}:{result.Port} via {result.DetectionSource}");
+            }
+            else
+            {
+                AddLog(LogLevel.Warning, $"Batch destination auto-discovery failed: {result.ErrorMessage}");
+            }
+        }
+        finally
+        {
+            IsDetectingBatchDest = false;
+        }
+    }
 
     private async Task TestSingleSourceAsync()
     {

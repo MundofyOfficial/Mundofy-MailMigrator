@@ -1,4 +1,4 @@
-﻿# Single Account Migration Guide
+# Single Account Migration Guide
 
 The **Single Account Migration** tab is designed for quick, ad-hoc migrations of individual mailboxes without needing to edit configuration files or spreadsheets.
 
@@ -7,24 +7,26 @@ The **Single Account Migration** tab is designed for quick, ad-hoc migrations of
 ## 📋 Step-by-Step Instructions
 
 ### Step 1: Configure the Source Server
-1. **Protocol:** Select either:
+1. **Username / Email:** Enter the full email address or login name.
+   * ⚡ **Zero-Config Auto-Discovery (New in v1.1.0):** As soon as you enter a valid email address or click the **⚡ Auto-Detect** button, Mundofy MailMigrator automatically queries provider registries, DNS MX records, and autoconfig endpoints to fill in the Server Host, Port, and SSL settings automatically!
+2. **Protocol:** Select either:
    * **IMAP** (Default): Migrates all folders (Inbox, Sent, Drafts, Archives, Custom Folders).
    * **POP3**: Migrates only the primary Inbox (POP3 protocol does not support remote subfolders).
-2. **Server:** Enter the hostname or IP address of the source email server (e.g. mail.oldserver.com or imap.gmail.com).
-3. **Port:** Standard ports:
+3. **Server:** Enter the hostname or IP address of the source email server (auto-detected, or e.g. mail.oldserver.com / imap.gmail.com).
+4. **Port:** Standard ports (auto-filled):
    * 993 for IMAP with SSL/TLS.
    * 143 for IMAP with STARTTLS / Plain.
    * 995 for POP3 with SSL/TLS.
    * 110 for POP3 with Plain / STARTTLS.
-4. **SSL / TLS Checkbox:** Keep checked for modern encrypted connections (recommended).
-5. **Username / Email:** The full email address or login name on the source server.
+5. **SSL / TLS Checkbox:** Keep checked for modern encrypted connections (recommended).
 6. **Password:** Account password or App-Specific Password (required for Gmail and Microsoft 365).
 
 ### Step 2: Configure the Destination Server
-1. **Server:** Hostname of the target IMAP server (e.g. mail.newserver.com).
-2. **Port:** Typically 993 (SSL/TLS) or 143.
-3. **SSL / TLS Checkbox:** Kept checked for end-to-end encryption.
-4. **Username / Email:** The full email address on the new server.
+1. **Username / Email:** The full email address on the new server.
+   * ⚡ Click **⚡ Auto-Detect** to instantly discover target server host and port settings.
+2. **Server:** Hostname of the target IMAP server (e.g. mail.newserver.com).
+3. **Port:** Typically 993 (SSL/TLS) or 143.
+4. **SSL / TLS Checkbox:** Kept checked for end-to-end encryption.
 5. **Password:** Destination account password.
 
 ---
