@@ -140,7 +140,7 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="Protocol" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                            <ComboBox SelectedValue="{Binding SingleSourceProtocol, Mode=TwoWay}" SelectedValuePath="Tag" Height="38">
+                                            <ComboBox SelectedValue="{Binding SingleSourceProtocol, Mode=TwoWay}" SelectedValuePath="Tag" Height="38" IsEnabled="{Binding IsNotSingleMigrating}">
                                                 <ComboBoxItem Content="IMAP (Recommended)" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
                                                 <ComboBoxItem Content="POP3" Tag="{x:Static models:ServerProtocol.Pop3}" />
                                                 <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Modern OAuth2 &amp; Microsoft Graph API authentication is under construction." />
@@ -149,7 +149,7 @@
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="Port" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                            <TextBox Text="{Binding SingleSourcePort, UpdateSourceTrigger=PropertyChanged}" Height="38" />
+                                            <TextBox Text="{Binding SingleSourcePort, UpdateSourceTrigger=PropertyChanged}" Height="38" IsEnabled="{Binding IsNotSingleMigrating}" />
                                         </StackPanel>
                                     </Grid>
 
@@ -157,15 +157,15 @@
                                         <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
                                         <Button HorizontalAlignment="Right" Content="⚡ Auto-Detect" Command="{Binding AutoDetectSingleSourceCommand}" Cursor="Hand" Padding="8,2" FontSize="11" Height="22" Background="#1E293B" BorderBrush="#334155" Foreground="#60A5FA" ToolTip="Automatically detect IMAP server settings from email address" />
                                     </Grid>
-                                    <TextBox Text="{Binding SingleSourceHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+                                    <TextBox Text="{Binding SingleSourceHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" IsEnabled="{Binding IsNotSingleMigrating}" />
 
-                                    <CheckBox Content="Use SSL/TLS Encryption" IsChecked="{Binding SingleSourceUseSsl}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,14" />
+                                    <CheckBox Content="Use SSL/TLS Encryption" IsChecked="{Binding SingleSourceUseSsl}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,14" IsEnabled="{Binding IsNotSingleMigrating}" />
 
                                     <TextBlock Text="Username / Email Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                    <TextBox Text="{Binding SingleSourceUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+                                    <TextBox Text="{Binding SingleSourceUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" IsEnabled="{Binding IsNotSingleMigrating}" />
 
                                     <TextBlock Text="Password / App Password" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                    <TextBox Text="{Binding SingleSourcePassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" />
+                                    <TextBox Text="{Binding SingleSourcePassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" IsEnabled="{Binding IsNotSingleMigrating}" />
 
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -191,7 +191,7 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="Protocol" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                            <ComboBox SelectedValue="{Binding SingleDestProtocol, Mode=TwoWay}" SelectedValuePath="Tag" Height="38">
+                                            <ComboBox SelectedValue="{Binding SingleDestProtocol, Mode=TwoWay}" SelectedValuePath="Tag" Height="38" IsEnabled="{Binding IsNotSingleMigrating}">
                                                 <ComboBoxItem Content="IMAP (Standard / cPanel)" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
                                                 <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Direct Microsoft Graph mailbox injection without user passwords is under construction." />
                                                 <ComboBoxItem Content="Google Workspace (Gmail API) — Coming Soon" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" IsEnabled="False" ToolTip="Google Domain-Wide Delegation &amp; Gmail API migration without user passwords is under construction." />
@@ -199,7 +199,7 @@
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="Port" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                            <TextBox Text="{Binding SingleDestPort, UpdateSourceTrigger=PropertyChanged}" Height="38" />
+                                            <TextBox Text="{Binding SingleDestPort, UpdateSourceTrigger=PropertyChanged}" Height="38" IsEnabled="{Binding IsNotSingleMigrating}" />
                                         </StackPanel>
                                     </Grid>
 
@@ -207,15 +207,15 @@
                                         <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
                                         <Button HorizontalAlignment="Right" Content="⚡ Auto-Detect" Command="{Binding AutoDetectSingleDestCommand}" Cursor="Hand" Padding="8,2" FontSize="11" Height="22" Background="#1E293B" BorderBrush="#334155" Foreground="#34D399" ToolTip="Automatically detect IMAP server settings from email address" />
                                     </Grid>
-                                    <TextBox Text="{Binding SingleDestHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+                                    <TextBox Text="{Binding SingleDestHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" IsEnabled="{Binding IsNotSingleMigrating}" />
 
-                                    <CheckBox Content="Use SSL/TLS Encryption" IsChecked="{Binding SingleDestUseSsl}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,14" />
+                                    <CheckBox Content="Use SSL/TLS Encryption" IsChecked="{Binding SingleDestUseSsl}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,14" IsEnabled="{Binding IsNotSingleMigrating}" />
 
                                     <TextBlock Text="Username / Email Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                    <TextBox Text="{Binding SingleDestUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+                                    <TextBox Text="{Binding SingleDestUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" IsEnabled="{Binding IsNotSingleMigrating}" />
 
                                     <TextBlock Text="Password / App Password" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                    <TextBox Text="{Binding SingleDestPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" />
+                                    <TextBox Text="{Binding SingleDestPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" IsEnabled="{Binding IsNotSingleMigrating}" />
 
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -351,14 +351,14 @@
                                         <ColumnDefinition Width="8" />
                                         <ColumnDefinition Width="64" />
                                     </Grid.ColumnDefinitions>
-                                    <ComboBox Grid.Column="0" SelectedValue="{Binding BatchSourceProtocol, Mode=TwoWay}" SelectedValuePath="Tag" ToolTip="Source Protocol / Provider">
+                                    <ComboBox Grid.Column="0" SelectedValue="{Binding BatchSourceProtocol, Mode=TwoWay}" SelectedValuePath="Tag" ToolTip="Source Protocol / Provider" IsEnabled="{Binding IsNotBatchRunning}">
                                         <ComboBoxItem Content="IMAP" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
                                         <ComboBoxItem Content="POP3" Tag="{x:Static models:ServerProtocol.Pop3}" />
                                         <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Modern OAuth2 &amp; Microsoft Graph API authentication is under construction." />
                                         <ComboBoxItem Content="Google Workspace (Gmail API) — Coming Soon" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" IsEnabled="False" ToolTip="Google Service Account &amp; Gmail API authentication is under construction." />
                                     </ComboBox>
-                                    <TextBox Grid.Column="2" Text="{Binding BatchSourceHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Source Host (e.g. mail.oldserver.com)" />
-                                    <TextBox Grid.Column="4" Text="{Binding BatchSourcePort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993 for IMAP, 995 for POP3)" />
+                                    <TextBox Grid.Column="2" Text="{Binding BatchSourceHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Source Host (e.g. mail.oldserver.com)" IsEnabled="{Binding IsNotBatchRunning}" />
+                                    <TextBox Grid.Column="4" Text="{Binding BatchSourcePort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993 for IMAP, 995 for POP3)" IsEnabled="{Binding IsNotBatchRunning}" />
                                 </Grid>
                             </StackPanel>
 
@@ -376,13 +376,13 @@
                                         <ColumnDefinition Width="8" />
                                         <ColumnDefinition Width="64" />
                                     </Grid.ColumnDefinitions>
-                                    <ComboBox Grid.Column="0" SelectedValue="{Binding BatchDestProtocol, Mode=TwoWay}" SelectedValuePath="Tag" ToolTip="Destination Protocol / Provider">
+                                    <ComboBox Grid.Column="0" SelectedValue="{Binding BatchDestProtocol, Mode=TwoWay}" SelectedValuePath="Tag" ToolTip="Destination Protocol / Provider" IsEnabled="{Binding IsNotBatchRunning}">
                                         <ComboBoxItem Content="IMAP" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
                                         <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Direct Microsoft Graph mailbox injection without user passwords is under construction." />
                                         <ComboBoxItem Content="Google Workspace (Gmail API) — Coming Soon" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" IsEnabled="False" ToolTip="Google Domain-Wide Delegation &amp; Gmail API migration without user passwords is under construction." />
                                     </ComboBox>
-                                    <TextBox Grid.Column="2" Text="{Binding BatchDestHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Dest Host (e.g. imap.newserver.com)" />
-                                    <TextBox Grid.Column="4" Text="{Binding BatchDestPort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993)" />
+                                    <TextBox Grid.Column="2" Text="{Binding BatchDestHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Dest Host (e.g. imap.newserver.com)" IsEnabled="{Binding IsNotBatchRunning}" />
+                                    <TextBox Grid.Column="4" Text="{Binding BatchDestPort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993)" IsEnabled="{Binding IsNotBatchRunning}" />
                                 </Grid>
                             </StackPanel>
 
@@ -398,7 +398,7 @@
                                         <TextBlock Text="{Binding Concurrency}" FontWeight="Bold" FontSize="12" Foreground="#FBBF24" />
                                     </Border>
                                 </Grid>
-                                <Slider Minimum="1" Maximum="16" Value="{Binding Concurrency}" TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,6,0,0" />
+                                <Slider Minimum="1" Maximum="16" Value="{Binding Concurrency}" TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,6,0,0" IsEnabled="{Binding IsNotBatchRunning}" />
                                 <TextBlock Text="How many accounts migrate at once" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
                             </StackPanel>
                         </Grid>

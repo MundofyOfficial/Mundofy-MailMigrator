@@ -319,8 +319,16 @@ public class MainViewModel : INotifyPropertyChanged
     public bool IsSingleMigrating
     {
         get => _isSingleMigrating;
-        set => SetField(ref _isSingleMigrating, value);
+        set
+        {
+            if (SetField(ref _isSingleMigrating, value))
+            {
+                OnPropertyChanged(nameof(IsNotSingleMigrating));
+            }
+        }
     }
+
+    public bool IsNotSingleMigrating => !_isSingleMigrating;
 
     #endregion
 
@@ -420,8 +428,16 @@ public class MainViewModel : INotifyPropertyChanged
     public bool IsBatchRunning
     {
         get => _isBatchRunning;
-        set => SetField(ref _isBatchRunning, value);
+        set
+        {
+            if (SetField(ref _isBatchRunning, value))
+            {
+                OnPropertyChanged(nameof(IsNotBatchRunning));
+            }
+        }
     }
+
+    public bool IsNotBatchRunning => !_isBatchRunning;
 
     private double _batchOverallProgress;
     public double BatchOverallProgress
