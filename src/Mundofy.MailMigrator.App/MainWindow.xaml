@@ -66,9 +66,9 @@
                                     </Style>
                                 </Button.Style>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="⚡ Update Available: " FontSize="11" FontWeight="Bold" Foreground="#6EE7B7" />
+                                    <TextBlock Text="Update Available: " FontSize="11" FontWeight="Bold" Foreground="#6EE7B7" />
                                     <TextBlock Text="{Binding LatestVersion, StringFormat={}v{0}}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
-                                    <TextBlock Text=" (Update Now)" FontSize="10" Foreground="#A7F3D0" Margin="5,0,0,0" VerticalAlignment="Center" />
+                                    <TextBlock Text=" (Click to Update)" FontSize="10" Foreground="#A7F3D0" Margin="5,0,0,0" VerticalAlignment="Center" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -131,7 +131,7 @@
 
                                     <Grid Margin="0,0,0,5">
                                         <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
-                                        <Button HorizontalAlignment="Right" Content="⚡ Auto-Detect" Command="{Binding AutoDetectSingleSourceCommand}" Cursor="Hand" Padding="8,2" FontSize="11" Height="22" Background="#1E293B" BorderBrush="#334155" Foreground="#60A5FA" ToolTip="Automatically detect IMAP server settings from email address" />
+                                        <Button HorizontalAlignment="Right" Content="Auto-Detect" Command="{Binding AutoDetectSingleSourceCommand}" Cursor="Hand" Padding="8,2" FontSize="11" Height="22" Background="#1E293B" BorderBrush="#334155" Foreground="#60A5FA" ToolTip="Automatically detect IMAP server settings from email address" />
                                     </Grid>
                                     <TextBox Text="{Binding SingleSourceHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
 
@@ -177,7 +177,7 @@
 
                                     <Grid Margin="0,0,0,5">
                                         <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
-                                        <Button HorizontalAlignment="Right" Content="⚡ Auto-Detect" Command="{Binding AutoDetectSingleDestCommand}" Cursor="Hand" Padding="8,2" FontSize="11" Height="22" Background="#1E293B" BorderBrush="#334155" Foreground="#34D399" ToolTip="Automatically detect IMAP server settings from email address" />
+                                        <Button HorizontalAlignment="Right" Content="Auto-Detect" Command="{Binding AutoDetectSingleDestCommand}" Cursor="Hand" Padding="8,2" FontSize="11" Height="22" Background="#1E293B" BorderBrush="#334155" Foreground="#34D399" ToolTip="Automatically detect IMAP server settings from email address" />
                                     </Grid>
                                     <TextBox Text="{Binding SingleDestHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
 
@@ -313,7 +313,7 @@
                             <StackPanel Grid.Column="0">
                                 <Grid Margin="0,0,0,6">
                                     <TextBlock Text="Default Source Server" FontWeight="SemiBold" FontSize="13" Foreground="#60A5FA" VerticalAlignment="Center" />
-                                    <Button HorizontalAlignment="Right" Content="⚡ Auto-Detect" Command="{Binding AutoDetectBatchSourceCommand}" Cursor="Hand" Padding="6,1" FontSize="10" Height="20" Background="#1E293B" BorderBrush="#334155" Foreground="#60A5FA" ToolTip="Auto-detect source server from domain or first account" />
+                                    <Button HorizontalAlignment="Right" Content="Auto-Detect" Command="{Binding AutoDetectBatchSourceCommand}" Cursor="Hand" Padding="6,1" FontSize="10" Height="20" Background="#1E293B" BorderBrush="#334155" Foreground="#60A5FA" ToolTip="Auto-detect source server from domain or first account" />
                                 </Grid>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -330,7 +330,7 @@
                             <StackPanel Grid.Column="2">
                                 <Grid Margin="0,0,0,6">
                                     <TextBlock Text="Default Destination Server" FontWeight="SemiBold" FontSize="13" Foreground="#34D399" VerticalAlignment="Center" />
-                                    <Button HorizontalAlignment="Right" Content="⚡ Auto-Detect" Command="{Binding AutoDetectBatchDestCommand}" Cursor="Hand" Padding="6,1" FontSize="10" Height="20" Background="#1E293B" BorderBrush="#334155" Foreground="#34D399" ToolTip="Auto-detect destination server from domain or first account" />
+                                    <Button HorizontalAlignment="Right" Content="Auto-Detect" Command="{Binding AutoDetectBatchDestCommand}" Cursor="Hand" Padding="6,1" FontSize="10" Height="20" Background="#1E293B" BorderBrush="#334155" Foreground="#34D399" ToolTip="Auto-detect destination server from domain or first account" />
                                 </Grid>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -370,17 +370,17 @@
                             </Grid.ColumnDefinitions>
 
                             <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                                <Button Content="➕ Add Account" Command="{Binding AddAccountCommand}" Margin="0,0,8,0" Padding="14,8" />
-                                <Button Content="➖ Remove Selected" Command="{Binding RemoveAccountCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Delete the currently selected account row (or press Delete key)" />
-                                <Button Content="📋 Paste Clipboard" Command="{Binding PasteFromClipboardCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Paste TSV/CSV rows directly from clipboard" />
-                                <Button Content="📂 Load ImapCopy.cfg" Command="{Binding LoadCfgCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Import accounts and servers from legacy ImapCopy.cfg" />
-                                <Button Content="📄 Import CSV" Command="{Binding ImportCsvCommand}" Margin="0,0,8,0" Padding="14,8" />
-                                <Button Content="💾 Export CSV" Command="{Binding ExportCsvCommand}" Margin="0,0,8,0" Padding="14,8" />
-                                <Button Content="🗑 Clear All" Command="{Binding ClearBatchCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Clear entire accounts table" />
+                                <Button Content="Add Account" Command="{Binding AddAccountCommand}" Margin="0,0,8,0" Padding="14,8" />
+                                <Button Content="Remove Selected" Command="{Binding RemoveAccountCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Delete the currently selected account row (or press Delete key)" />
+                                <Button Content="Paste Clipboard" Command="{Binding PasteFromClipboardCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Paste TSV/CSV rows directly from clipboard" />
+                                <Button Content="Load ImapCopy.cfg" Command="{Binding LoadCfgCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Import accounts and servers from legacy ImapCopy.cfg" />
+                                <Button Content="Import CSV" Command="{Binding ImportCsvCommand}" Margin="0,0,8,0" Padding="14,8" />
+                                <Button Content="Export CSV" Command="{Binding ExportCsvCommand}" Margin="0,0,8,0" Padding="14,8" />
+                                <Button Content="Clear All" Command="{Binding ClearBatchCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Clear entire accounts table" />
                             </WrapPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Content="🔍 Test All Credentials" Command="{Binding TestAllBatchCommand}" Padding="16,8" />
+                                <Button Content="Test All Credentials" Command="{Binding TestAllBatchCommand}" Padding="16,8" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -421,15 +421,15 @@
                             
                             <DataGrid.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="▶ Start / Queue This Account" Command="{Binding QueueSelectedAccountCommand}" ToolTip="Start migrating or queue into active batch" />
-                                    <MenuItem Header="🔍 Test Account Credentials" Command="{Binding TestSelectedAccountCommand}" ToolTip="Test IMAP connection for this account" />
+                                    <MenuItem Header="Start / Queue Account" Command="{Binding QueueSelectedAccountCommand}" ToolTip="Start migrating or queue into active batch" />
+                                    <MenuItem Header="Test Credentials" Command="{Binding TestSelectedAccountCommand}" ToolTip="Test IMAP connection for this account" />
                                     <Separator />
-                                    <MenuItem Header="📋 Copy Source Email" Command="{Binding CopySourceEmailCommand}" />
-                                    <MenuItem Header="📋 Copy Destination Email" Command="{Binding CopyDestEmailCommand}" />
+                                    <MenuItem Header="Copy Source Email" Command="{Binding CopySourceEmailCommand}" />
+                                    <MenuItem Header="Copy Destination Email" Command="{Binding CopyDestEmailCommand}" />
                                     <Separator />
-                                    <MenuItem Header="🗑 Remove Account" Command="{Binding RemoveAccountCommand}" ToolTip="Remove selected account" />
-                                    <MenuItem Header="🧹 Clear Completed Accounts" Command="{Binding ClearCompletedAccountsCommand}" ToolTip="Remove finished accounts from list" />
-                                    <MenuItem Header="⚠️ Clear Entire Batch" Command="{Binding ClearBatchCommand}" ToolTip="Clear all accounts from batch" />
+                                    <MenuItem Header="Remove Account" Command="{Binding RemoveAccountCommand}" ToolTip="Remove selected account" />
+                                    <MenuItem Header="Clear Completed Accounts" Command="{Binding ClearCompletedAccountsCommand}" ToolTip="Remove finished accounts from list" />
+                                    <MenuItem Header="Clear Entire Batch" Command="{Binding ClearBatchCommand}" ToolTip="Clear all accounts from batch" />
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
 
@@ -566,28 +566,30 @@
                                 <DataGridTextColumn Header="Details" Binding="{Binding StatusMessage, Mode=OneWay}" ElementStyle="{StaticResource DataGridTextStyle}" Width="2*" IsReadOnly="True" />
 
                                 <!-- Action Buttons -->
-                                <DataGridTemplateColumn Header="Action" Width="75">
+                                <DataGridTemplateColumn Header="Action" Width="110">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Button Content="▶" 
+                                                <Button Content="Start" 
                                                         Command="{Binding DataContext.StartSingleAccountInBatchCommand, ElementName=BatchGrid}"
                                                         CommandParameter="{Binding}"
                                                         Background="Transparent" 
                                                         BorderThickness="0" 
                                                         Foreground="#34D399" 
-                                                        FontSize="13" 
+                                                        FontWeight="SemiBold"
+                                                        FontSize="11" 
                                                         Cursor="Hand"
-                                                        ToolTip="Start or Queue into running batch"
+                                                        ToolTip="Start or Queue this account into active batch"
                                                         Padding="4,2" 
-                                                        Margin="0,0,4,0" />
-                                                <Button Content="🗑" 
+                                                        Margin="0,0,6,0" />
+                                                <Button Content="Delete" 
                                                         Command="{Binding DataContext.DeleteAccountRowCommand, ElementName=BatchGrid}"
                                                         CommandParameter="{Binding}"
                                                         Background="Transparent" 
                                                         BorderThickness="0" 
                                                         Foreground="#F87171" 
-                                                        FontSize="13" 
+                                                        FontWeight="SemiBold"
+                                                        FontSize="11" 
                                                         Cursor="Hand"
                                                         ToolTip="Remove this account"
                                                         Padding="4,2" />
@@ -613,18 +615,8 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="18,0,0,0">
-                                <Button Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartBatchCommand}" Margin="0,0,12,0">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="▶" Margin="0,0,10,0" FontSize="12" VerticalAlignment="Center" />
-                                        <TextBlock Text="Start Batch Migration" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </Button>
-                                <Button Style="{StaticResource DangerButtonStyle}" Command="{Binding StopBatchCommand}">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="⏹" Margin="0,0,10,0" FontSize="12" VerticalAlignment="Center" />
-                                        <TextBlock Text="Stop All" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </Button>
+                                <Button Style="{StaticResource PrimaryButtonStyle}" Command="{Binding StartBatchCommand}" Content="Start Batch Migration" Margin="0,0,12,0" />
+                                <Button Style="{StaticResource DangerButtonStyle}" Command="{Binding StopBatchCommand}" Content="Stop All" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -733,12 +725,7 @@
                                             <TextBlock Text="Software Updates" FontWeight="SemiBold" FontSize="13" Foreground="#FFFFFF" />
                                             <TextBlock Text="Check GitHub for newer versions of Mundofy MailMigrator with seamless 1-click in-place update." FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
                                         </StackPanel>
-                                        <Button Grid.Column="1" Command="{Binding CheckForUpdatesCommand}" Padding="14,6" FontSize="12" VerticalAlignment="Center">
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <TextBlock Text="🔄" Margin="0,0,6,0" FontSize="11" VerticalAlignment="Center" />
-                                                <TextBlock Text="Check for Updates" VerticalAlignment="Center" />
-                                            </StackPanel>
-                                        </Button>
+                                        <Button Grid.Column="1" Command="{Binding CheckForUpdatesCommand}" Content="Check for Updates" Padding="16,6" FontSize="12" VerticalAlignment="Center" />
                                     </Grid>
                                 </Border>
                             </StackPanel>

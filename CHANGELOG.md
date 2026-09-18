@@ -1,75 +1,70 @@
 # Changelog
 
-All notable changes to **Mundofy MailMigrator** will be documented in this file.
+All notable changes to **Mundofy MailMigrator** are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+---
+
 ## [1.2.0] - 2026-09-18
 
 ### Added
-* **📅 Date Range Filtering (`DD-MM-YYYY`)**:
-  * Filter migrated emails by date window (since a starting date, before an ending date, or both).
-  * High-efficiency early filtering: inspects envelope metadata during initial folder scan and skips excluded messages before downloading message bodies.
-  * Convenient UI presets: *All Emails (No date limit)*, *Last 6 Months*, *Last 1 Year*, *Last 2 Years*, and *Custom Date Range*.
-  * European `DD-MM-YYYY` format support with live input validation and descriptive status feedback.
+* **Date Range Filtering (DD-MM-YYYY)**:
+  * Restrict message transfers by date envelope (since a specified start date, before an end date, or within a bounded date window).
+  * High-efficiency early filtering: inspects envelope metadata during the initial folder scan and skips excluded messages before downloading message bodies.
+  * Standard presets: All Emails (No date limit), Last 6 Months, Last 1 Year, Last 2 Years, and Custom Date Range.
+  * European DD-MM-YYYY format support with input validation and inline diagnostic feedback.
   * Unified support across both IMAP-to-IMAP and POP3-to-IMAP migration engines.
-* **⚡ In-App GitHub Update Checker & 1-Click In-Place Self-Updater**:
-  * Automatic non-blocking check for new releases on startup.
-  * Interactive `Check for Updates` button in the Settings tab.
-  * Top navigation badge alerting users when a new release is available on GitHub.
-  * Rich dark update modal displaying the new version number, release date, and full markdown changelog.
-  * Seamless 1-click in-place executable replacement and restart wherever `MundofyMailMigrator.exe` is located (Desktop, Downloads, etc.) without requiring an installer.
+* **In-App Update Checker and In-Place Self-Updater**:
+  * Non-blocking background verification of new GitHub releases on application startup.
+  * Interactive "Check for Updates" control in the Settings panel.
+  * Header notification badge indicating available updates.
+  * Modal dialog detailing the latest version number, release date, and changelog.
+  * One-click in-place executable replacement and restart via detached process, maintaining existing filesystem paths and shortcuts without requiring an external installer.
 
 ### Changed
-* **📦 Streamlined Single Executable Distribution**:
-  * Removed duplicate versioned executable file generation. All future releases package and distribute exclusively `MundofyMailMigrator.exe` to ensure existing desktop shortcuts, taskbar pins, and scripts remain intact across updates.
+* **Single Executable Distribution**:
+  * Discontinued duplicate versioned executable generation. Releases package and distribute exclusively `MundofyMailMigrator.exe` to ensure stable shortcut targets and automated deployment compatibility.
 
 ---
 
 ## [1.1.0] - 2026-09-17
 
 ### Added
-* **⚡ Zero-Config Server Auto-Discovery**:
-  * Automatically detects incoming IMAP host, port (993), and SSL encryption from any email address or domain.
-  * **5-Tier Discovery Cascade**:
-    1. *Major Provider Directory:* Instant 0ms mapping for Gmail, Google Workspace, Microsoft 365, Outlook, Yahoo, iCloud, Fastmail, Zoho, GMX, Web.de, and Yandex.
-    2. *RFC 6186 DNS SRV Records:* Resolves `_imaps._tcp` (port 993) and `_imap._tcp` (port 143) to identify custom corporate email hosts.
-    3. *DNS MX Fingerprinting & Socket Handshakes:* Identifies Google Workspace / Microsoft 365 on custom domains, or actively probes custom MX mail hosts via SSL handshake.
-    4. *Mozilla Thunderbird ISPDB:* Queries `autoconfig.thunderbird.net` for global ISP profiles.
-    5. *Domain Autoconfig XML:* Probes cPanel, Plesk, and DirectAdmin endpoints.
-  * **Strict Verification:** Eliminates false assumptions; unverified domains are left blank for manual input with clear feedback.
-  * **Dedicated UI Buttons:** Added `⚡ Auto-Detect` to Source and Destination cards on both Single and Batch tabs.
-  * **Reactive Input:** Auto-discovery gently triggers when a valid email address is typed into an empty server field.
-
-* **⚡ In-Flight Account Queueing & Dynamic Batch Execution**:
-  * Add new email accounts during an active batch migration without stopping or restarting the process.
-  * Added **`▶`** button directly on every row to immediately queue a newly typed account into the running stream.
-  * Added instant queueing when pasting accounts from clipboard or importing CSV while a migration is in progress.
-  * Converted batch processing engine to an unbounded multi-worker channel with automated completion debounce.
-
-* **🎨 Modernized Dark-Mode Context Menu & Row Actions**:
-  * Redesigned right-click menu with native dark styling (`#1E293B`), 8px rounded corners, elevation drop shadows, and blue highlight states.
-  * Fixed right-click behavior so the row under the cursor is automatically selected and targeted.
-  * Added context menu quick actions: **`▶ Start / Queue This Account`**, **`🔍 Test Account Credentials`**, **`📋 Copy Source/Dest Email`**, **`🗑 Remove Account`**, **`🧹 Clear Completed Accounts`**, and **`⚠️ Clear Entire Batch`**.
-  * Added dual-action column with side-by-side **`▶`** (Start/Queue) and **`🗑`** (Delete) buttons on each row.
-
-* **✨ Custom Dark Modal Dialogs & Fixed DataGrid Selection**:
-  * **Eliminated the "White Line" Selection Bug:** Replaced default Win32/Aero system selection brushes with custom transparent cell templates and rich deep navy (`#1E3A5F`) row selection highlighting. Text columns and cells now maintain a unified, dark slate look without white backgrounds.
-  * **Custom Dark Import Dialog:** Replaced native Win32 `MessageBox` with a custom `ImportAccountsDialog` matching the app's aesthetic: dark slate card with drop shadows, live account count comparison badges, clear descriptions, and custom buttons (**`🔄 Replace List`**, **`➕ Append to List`**, and **`Cancel`**).
-  * **Universal Dark Alerts:** Added `DarkMessageBox` across the entire app for warnings, errors, and queue confirmations, completely removing all standard white Windows message boxes.
-
-* **📦 Versioned Executable Distribution**:
-  * Added explicitly named standalone binary: `MundofyMailMigrator-v1.1.0.exe` alongside `MundofyMailMigrator.exe` to prevent browser caching conflicts.
-
-* **🛡️ Multi-Tier Robust Deduplication Engine**:
-  * Eliminates duplicate email transfers on incremental runs, even when IMAP servers format headers differently or omit standard RFC `Message-ID` fields.
-  * **3-Tier Protection Hierarchy**:
-    1. *Normalized RFC 5322 Message-ID:* Trims enclosing angle brackets (`<`, `>`), strips whitespace, and compares case-insensitively to prevent cross-server envelope formatting mismatches.
-    2. *Composite Fallback Fingerprinting:* Fallback for messages lacking a `Message-ID` header (or where the server returns `NIL` in `FETCH ENVELOPE`). Constructs a deterministic composite signature combining UTC Timestamp (to the minute), Sender (`From`), and Subject line.
-    3. *Synthetic Message-ID Injection:* When copying an email without an RFC `Message-ID`, dynamically injects a deterministic synthetic header (`<synth-{hash}@mundofy.migrated>`) into the destination message so subsequent sync passes identify it as an existing message immediately.
-  * **Unified Pipelines:** Applied across both IMAP-to-IMAP and POP3-to-IMAP migration engines.
-  * **Live Diagnostic Logging:** Logs exact message subject, date, and assigned Message-ID/fingerprint for all copied messages.
+* **Zero-Config Server Auto-Discovery**:
+  * Automatically resolves incoming IMAP host, port (993), and SSL encryption from any email address or domain.
+  * Five-tier discovery cascade:
+    1. Major Provider Directory: Instant mapping for Google Workspace, Microsoft 365, Outlook, Yahoo, iCloud, Fastmail, Zoho, GMX, Web.de, and Yandex.
+    2. RFC 6186 DNS SRV Records: Queries `_imaps._tcp` (port 993) and `_imap._tcp` (port 143) to resolve corporate email endpoints.
+    3. DNS MX Fingerprinting and Socket Handshakes: Identifies hosted enterprise services or probes custom mail exchange hosts via direct SSL handshakes.
+    4. Mozilla Thunderbird ISPDB: Queries autoconfig.thunderbird.net for global ISP connection profiles.
+    5. Domain Autoconfig XML: Probes standard hosting control panel endpoints (cPanel, Plesk, DirectAdmin).
+  * Strict Verification: Prevents unwarranted assumptions; unverified domains remain blank for explicit manual configuration.
+  * Interactive UI controls: Added Auto-Detect buttons for source and destination hosts across Single and Batch tabs.
+  * Reactive input: Initiates discovery when a valid email address is entered into an empty server field.
+* **In-Flight Account Queueing and Dynamic Batch Execution**:
+  * Allows adding accounts to an active batch migration without stopping or restarting the running process.
+  * Individual row controls to immediately queue newly added accounts into the running execution stream.
+  * Dynamic queueing support for clipboard paste and CSV file imports during an active run.
+  * Re-architected batch processing engine using unbounded multi-worker channels with automated completion debouncing.
+* **Redesigned Context Menu and Row Actions**:
+  * Native dark styling with custom border radiuses, elevation drop shadows, and high-contrast highlight states.
+  * Context menu auto-selection ensures right-clicking anywhere on a row immediately selects the target account.
+  * Quick actions: Start / Queue Account, Test Account Credentials, Copy Source/Dest Email, Remove Account, Clear Completed Accounts, and Clear Entire Batch.
+  * Dual-action column providing dedicated inline buttons for individual account execution and removal.
+* **Modal Dialog Architecture and DataGrid Styling**:
+  * Eliminated system selection artifacts: Replaced default Win32/Aero selection brushes with custom transparent cell templates and dark navy row selection highlighting.
+  * Custom Dark Import Dialog: Replaced standard Win32 alert with `ImportAccountsDialog`, featuring structured account statistics, operational descriptions, and explicit selection controls (Replace List, Append to List, Cancel).
+  * Universal dark alert dialogs: Integrated `DarkMessageBox` across the application, removing standard Win32 prompt dialogs.
+* **Multi-Tier Message Deduplication Engine**:
+  * Prevents duplicate message transfers during incremental runs when headers differ across IMAP implementations.
+  * Three-tier identification hierarchy:
+    1. Normalized RFC 5322 Message-ID: Trims enclosing brackets, strips whitespace, and performs case-insensitive comparisons.
+    2. Composite Fallback Fingerprinting: Generates a deterministic signature using UTC timestamp, sender address, and subject line when Message-ID is missing or returned as NIL.
+    3. Synthetic Message-ID Injection: Generates and embeds a deterministic synthetic header (`<synth-{hash}@mundofy.migrated>`) into the destination message when transferring messages that lack RFC Message-IDs, ensuring subsequent synchronization passes detect existing items immediately.
+  * Unified across IMAP and POP3 migration engines.
+  * Diagnostic logging of message subject, timestamp, and identifier per transferred item.
 
 ---
 
@@ -77,11 +72,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Initial Release
 * High-speed IMAP and POP3 email migration suite for Windows (.NET 8).
-* Native TLS 1.3 encryption out-of-the-box (no `stunnel` required).
-* Dual interface: Interactive Dark-Mode WPF Desktop GUI & Headless CLI (`-c ImapCopy.cfg`).
-* Full backward compatibility with classic `ImapCopy.cfg` directives and files.
-* Concurrent multi-worker batch processing (1 to 16 parallel threads).
-* Lossless RFC 822 `Message-ID` deduplication with live resume capability.
-* Real-time metrics: transfer speed in MB/s, folder progress, error counters.
-* CSV and TSV spreadsheet import, export, and clipboard pasting.
-* Standalone single-file executable (`publish\win-x64\MundofyMailMigrator.exe`).
+* Native TLS 1.3 encryption support without external proxy dependencies.
+* Dual interface: Interactive Dark-Mode WPF Desktop GUI and Headless CLI (`-c ImapCopy.cfg`).
+* Full backward compatibility with classic `ImapCopy.cfg` directives and configurations.
+* Concurrent multi-worker batch processing (configurable from 1 to 16 parallel threads).
+* Lossless RFC 822 `Message-ID` deduplication with incremental resume capability.
+* Real-time metrics: transfer speed in MB/s, folder progress, and error counters.
+* CSV and TSV spreadsheet import, export, and clipboard parsing.
+* Standalone single-file executable distribution.

@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -19,22 +19,22 @@ public partial class DarkMessageBox : Window
         switch (icon)
         {
             case MessageBoxImage.Warning:
-                IconGlyph.Text = "⚠️";
+                IconGlyph.Text = "!";
                 IconBadge.Background = new SolidColorBrush(Color.FromRgb(0x45, 0x1A, 0x03)); // Amber/Dark
                 IconBadge.BorderBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0x77, 0x06));
                 break;
             case MessageBoxImage.Error:
-                IconGlyph.Text = "⛔";
+                IconGlyph.Text = "✕";
                 IconBadge.Background = new SolidColorBrush(Color.FromRgb(0x45, 0x0A, 0x0A)); // Red/Dark
                 IconBadge.BorderBrush = new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26));
                 break;
             case MessageBoxImage.Question:
-                IconGlyph.Text = "❓";
+                IconGlyph.Text = "?";
                 IconBadge.Background = new SolidColorBrush(Color.FromRgb(0x1E, 0x3A, 0x8A)); // Blue
                 IconBadge.BorderBrush = new SolidColorBrush(Color.FromRgb(0x3B, 0x82, 0xF6));
                 break;
             default:
-                IconGlyph.Text = "ℹ";
+                IconGlyph.Text = "i";
                 IconBadge.Background = new SolidColorBrush(Color.FromRgb(0x1E, 0x3A, 0x8A));
                 IconBadge.BorderBrush = new SolidColorBrush(Color.FromRgb(0x3B, 0x82, 0xF6));
                 break;
