@@ -93,6 +93,15 @@ public class MainViewModel : INotifyPropertyChanged
                 UpdateDialog.ShowDialog(Application.Current?.MainWindow, UpdateInfo);
         });
 
+        TogglePasswordMaskCommand = new RelayCommand(() =>
+        {
+            MaskPasswords = !MaskPasswords;
+            SaveCurrentSettings();
+        });
+
+        // Load persisted user settings
+        LoadSavedSettings();
+
         // Populate sample initial row in batch table
         BatchAccounts.Add(new AccountJob
         {
@@ -104,7 +113,7 @@ public class MainViewModel : INotifyPropertyChanged
             StatusMessage = "Ready"
         });
 
-        AddLog(LogLevel.Info, "Mundofy MailMigrator v1.2.0 initialized.");
+        AddLog(LogLevel.Info, "Mundofy MailMigrator v1.2.1 initialized.");
 
         // Non-blocking background check for updates on startup
         _ = CheckForUpdatesSilentlyAsync();
@@ -400,6 +409,13 @@ public class MainViewModel : INotifyPropertyChanged
     {
         get => _activeWorkersCount;
         set => SetField(ref _activeWorkersCount, value);
+    }
+
+    private bool _maskPasswords = true;
+    public bool MaskPasswords
+    {
+        get => _maskPasswords;
+        set => SetField(ref _maskPasswords, value);
     }
 
     #endregion
@@ -728,6 +744,7 @@ public class MainViewModel : INotifyPropertyChanged
     public RelayCommand StopBatchCommand { get; }
     public RelayCommand ClearBatchCommand { get; }
     public RelayCommand ClearLogsCommand { get; }
+    public RelayCommand TogglePasswordMaskCommand { get; }
 
     #endregion
 
@@ -921,11 +938,31 @@ public class MainViewModel : INotifyPropertyChanged
         AddLog(result.Success ? LogLevel.Success : LogLevel.Error, $"Destination Test: {SingleDestStatus}");
     }
 
+    private bool ConfirmInvalidCertificatesIfEnabled()
+    {
+        if (!AllowInvalidCertificates) return true;
+
+        var result = DarkMessageBox.Show(
+            "Security Warning: 'Permit Self-Signed / Invalid SSL Certificates' is currently enabled in Settings.\n\n" +
+            "This bypasses SSL/TLS certificate verification. On untrusted networks, this could allow an attacker to intercept email credentials or message contents (Man-in-the-Middle risk).\n\n" +
+            "Do you want to proceed with this migration anyway?",
+            "Security Warning: Invalid SSL Allowed",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        return result == MessageBoxResult.Yes;
+    }
+
     private async Task StartSingleMigrationAsync()
     {
         if (string.IsNullOrWhiteSpace(SingleSourceHost) || string.IsNullOrWhiteSpace(SingleDestHost))
         {
             DarkMessageBox.Show("Please specify both Source and Destination server hosts.", "Missing Host", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (!ConfirmInvalidCertificatesIfEnabled())
+        {
             return;
         }
 
@@ -1352,6 +1389,11 @@ public class MainViewModel : INotifyPropertyChanged
             return;
         }
 
+        if (!ConfirmInvalidCertificatesIfEnabled())
+        {
+            return;
+        }
+
         IsBatchRunning = true;
 
         var srcEndpoint = new ServerEndpoint
@@ -1442,6 +1484,88 @@ public class MainViewModel : INotifyPropertyChanged
         }
 
         return options;
+    }
+
+    #endregion
+
+    #region Settings Persistence
+
+    public void SaveCurrentSettings()
+    {
+        var s = new AppSettings
+        {
+            SingleSourceHost = SingleSourceHost,
+            SingleSourcePort = SingleSourcePort,
+            SingleSourceProtocol = SingleSourceProtocol.ToString(),
+            SingleSourceUseSsl = SingleSourceUseSsl,
+            SingleSourceUser = SingleSourceUser,
+
+            SingleDestHost = SingleDestHost,
+            SingleDestPort = SingleDestPort,
+            SingleDestUseSsl = SingleDestUseSsl,
+            SingleDestUser = SingleDestUser,
+
+            BatchSourceHost = BatchSourceHost,
+            BatchSourcePort = BatchSourcePort,
+            BatchDestHost = BatchDestHost,
+            BatchDestPort = BatchDestPort,
+            Concurrency = Concurrency,
+
+            Deduplicate = Deduplicate,
+            AllowInvalidCertificates = AllowInvalidCertificates,
+            DstRootFolder = DstRootFolder,
+            SkipFolders = SkipFolders,
+            DenyFlags = DenyFlags,
+
+            EnableDateFilter = EnableDateFilter,
+            SelectedDatePreset = SelectedDatePreset,
+            SinceDateText = SinceDateText,
+            BeforeDateText = BeforeDateText,
+
+            MaskPasswords = MaskPasswords
+        };
+        SettingsService.Save(s);
+    }
+
+    private void LoadSavedSettings()
+    {
+        var s = SettingsService.Load();
+
+        if (!string.IsNullOrWhiteSpace(s.SingleSourceHost)) _singleSourceHost = s.SingleSourceHost;
+        if (s.SingleSourcePort > 0) _singleSourcePort = s.SingleSourcePort;
+        if (Enum.TryParse<ServerProtocol>(s.SingleSourceProtocol, true, out var proto))
+            _singleSourceProtocol = proto;
+        _singleSourceUseSsl = s.SingleSourceUseSsl;
+        if (!string.IsNullOrWhiteSpace(s.SingleSourceUser)) _singleSourceUser = s.SingleSourceUser;
+
+        if (!string.IsNullOrWhiteSpace(s.SingleDestHost)) _singleDestHost = s.SingleDestHost;
+        if (s.SingleDestPort > 0) _singleDestPort = s.SingleDestPort;
+        _singleDestUseSsl = s.SingleDestUseSsl;
+        if (!string.IsNullOrWhiteSpace(s.SingleDestUser)) _singleDestUser = s.SingleDestUser;
+
+        if (!string.IsNullOrWhiteSpace(s.BatchSourceHost)) _batchSourceHost = s.BatchSourceHost;
+        if (s.BatchSourcePort > 0) _batchSourcePort = s.BatchSourcePort;
+        if (!string.IsNullOrWhiteSpace(s.BatchDestHost)) _batchDestHost = s.BatchDestHost;
+        if (s.BatchDestPort > 0) _batchDestPort = s.BatchDestPort;
+        if (s.Concurrency >= 1 && s.Concurrency <= 16) _concurrency = s.Concurrency;
+
+        _deduplicate = s.Deduplicate;
+        _allowInvalidCertificates = s.AllowInvalidCertificates;
+        if (!string.IsNullOrWhiteSpace(s.DstRootFolder)) _dstRootFolder = s.DstRootFolder;
+        if (!string.IsNullOrWhiteSpace(s.SkipFolders)) _skipFolders = s.SkipFolders;
+        if (!string.IsNullOrWhiteSpace(s.DenyFlags)) _denyFlags = s.DenyFlags;
+
+        _enableDateFilter = s.EnableDateFilter;
+        if (!string.IsNullOrWhiteSpace(s.SelectedDatePreset)) _selectedDatePreset = s.SelectedDatePreset;
+        if (!string.IsNullOrWhiteSpace(s.SinceDateText)) _sinceDateText = s.SinceDateText;
+        if (!string.IsNullOrWhiteSpace(s.BeforeDateText)) _beforeDateText = s.BeforeDateText;
+
+        _maskPasswords = s.MaskPasswords;
+
+        if (_enableDateFilter)
+        {
+            ValidateDateFilter();
+        }
     }
 
     #endregion

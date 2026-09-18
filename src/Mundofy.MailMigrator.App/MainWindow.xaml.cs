@@ -49,4 +49,13 @@ public partial class MainWindow : Window
             row.Focus();
         }
     }
+
+    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        if (DataContext is ViewModels.MainViewModel vm)
+        {
+            vm.SaveCurrentSettings();
+        }
+    }
 }

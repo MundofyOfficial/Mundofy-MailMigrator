@@ -5,6 +5,7 @@
              xmlns:converters="clr-namespace:Mundofy.MailMigrator.App.Converters">
     <Application.Resources>
         <converters:StatusToBrushConverter x:Key="StatusToBrushConverter" />
+        <converters:PasswordMaskConverter x:Key="PasswordMaskConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
         <!-- Color Palette -->

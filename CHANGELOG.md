@@ -5,6 +5,20 @@ All notable changes to **Mundofy MailMigrator** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-09-18
+
+### Added
+* **Input and Session State Persistence**:
+  * Automatically saves and restores last-used server hostnames, ports, protocols, SSL configurations, and usernames across application restarts in `%APPDATA%\Mundofy\MailMigrator\settings.json`.
+  * Persists advanced migration preferences (deduplication, certificate allowances, folder exclusions, and date filter configurations).
+  * Explicitly excludes passwords and batch account lists from disk storage to maintain credential security.
+* **Password Privacy Masking Toggle**:
+  * Added password visibility toggle in the batch migration toolbar (`Show Passwords` / `Hide Passwords`).
+  * Masks source and destination passwords with bullets in the batch accounts table by default.
+  * Supports full inline cell editing and clipboard pasting while maintaining on-screen privacy.
+* **Invalid SSL Certificate Warning**:
+  * Added interactive security confirmation modal before initiating single or batch migrations when "Permit Self-Signed / Invalid SSL Certificates" is enabled, warning users of Man-in-the-Middle (MitM) credential interception risks.
+
 ---
 
 ## [1.2.0] - 2026-09-18
