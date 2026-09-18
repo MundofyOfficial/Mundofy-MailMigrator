@@ -5,6 +5,8 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using Microsoft.Win32;
 using System.Globalization;
+using System.Text;
+using System.Windows.Data;
 using Mundofy.MailMigrator.Core.Models;
 using Mundofy.MailMigrator.Core.Parsers;
 using Mundofy.MailMigrator.Core.Services;
@@ -85,6 +87,11 @@ public class MainViewModel : INotifyPropertyChanged
         StopBatchCommand = new RelayCommand(StopBatch, () => IsBatchRunning);
         ClearBatchCommand = new RelayCommand(ClearBatch, () => !IsBatchRunning);
         ClearLogsCommand = new RelayCommand(ClearLogs);
+        ExportLogsCommand = new RelayCommand(ExportLogs, () => Logs.Count > 0);
+        ClearLogSearchCommand = new RelayCommand(() => LogSearchText = "");
+
+        _filteredLogsView = CollectionViewSource.GetDefaultView(Logs);
+        _filteredLogsView.Filter = FilterLogEntry;
 
         CheckForUpdatesCommand = new RelayCommand(async () => await CheckForUpdatesExplicitAsync());
         OpenUpdateDialogCommand = new RelayCommand(() =>
@@ -113,7 +120,7 @@ public class MainViewModel : INotifyPropertyChanged
             StatusMessage = "Ready"
         });
 
-        AddLog(LogLevel.Info, "Mundofy MailMigrator v1.2.1 initialized.");
+        AddLog(LogLevel.Info, "Mundofy MailMigrator v1.2.2 initialized.");
 
         // Non-blocking background check for updates on startup
         _ = CheckForUpdatesSilentlyAsync();
@@ -696,12 +703,59 @@ public class MainViewModel : INotifyPropertyChanged
 
     public ObservableCollection<LogEntry> Logs { get; } = new();
 
+    private readonly ICollectionView _filteredLogsView;
+    public ICollectionView FilteredLogs => _filteredLogsView;
+
+    private string _logSearchText = "";
+    public string LogSearchText
+    {
+        get => _logSearchText;
+        set
+        {
+            if (SetField(ref _logSearchText, value))
+            {
+                _filteredLogsView.Refresh();
+                OnPropertyChanged(nameof(LogCountStatusText));
+                OnPropertyChanged(nameof(HasLogSearch));
+            }
+        }
+    }
+
+    public bool HasLogSearch => !string.IsNullOrWhiteSpace(LogSearchText);
+
+    public string LogCountStatusText
+    {
+        get
+        {
+            int total = Logs.Count;
+            if (string.IsNullOrWhiteSpace(LogSearchText))
+                return $"{total} entries";
+
+            int matching = _filteredLogsView.Cast<object>().Count();
+            return $"{matching} of {total} entries";
+        }
+    }
+
+    private bool FilterLogEntry(object obj)
+    {
+        if (string.IsNullOrWhiteSpace(LogSearchText)) return true;
+        if (obj is LogEntry entry)
+        {
+            return (entry.Message != null && entry.Message.Contains(LogSearchText, StringComparison.OrdinalIgnoreCase)) ||
+                   entry.Level.ToString().Contains(LogSearchText, StringComparison.OrdinalIgnoreCase) ||
+                   entry.Timestamp.ToString("HH:mm:ss").Contains(LogSearchText, StringComparison.OrdinalIgnoreCase);
+        }
+        return true;
+    }
+
     public void AddLog(LogLevel level, string message)
     {
         Application.Current?.Dispatcher?.Invoke(() =>
         {
             if (Logs.Count > 1000) Logs.RemoveAt(0);
             Logs.Add(new LogEntry { Level = level, Message = message });
+            OnPropertyChanged(nameof(LogCountStatusText));
+            ExportLogsCommand?.RaiseCanExecuteChanged();
         });
     }
 
@@ -710,7 +764,79 @@ public class MainViewModel : INotifyPropertyChanged
         AddLog(entry.Level, entry.Message);
     }
 
-    private void ClearLogs() => Logs.Clear();
+    private void ClearLogs()
+    {
+        Logs.Clear();
+        OnPropertyChanged(nameof(LogCountStatusText));
+        ExportLogsCommand?.RaiseCanExecuteChanged();
+    }
+
+    private void ExportLogs()
+    {
+        if (Logs.Count == 0) return;
+
+        var sfd = new SaveFileDialog
+        {
+            Title = "Export Activity Logs",
+            Filter = "Text Log File (*.txt)|*.txt|CSV Spreadsheet (*.csv)|*.csv|All Files (*.*)|*.*",
+            FileName = $"mailmigrator_logs_{DateTime.Now:yyyyMMdd_HHmmss}.txt",
+            DefaultExt = ".txt"
+        };
+
+        if (sfd.ShowDialog() != true) return;
+
+        try
+        {
+            var entriesToExport = _filteredLogsView.Cast<LogEntry>().ToList();
+            if (entriesToExport.Count == 0 && Logs.Count > 0)
+            {
+                var askAll = DarkMessageBox.Show(
+                    "No log entries match the current search filter.\n\nDo you want to export all logs instead?",
+                    "Export All Logs?",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (askAll == MessageBoxResult.Yes)
+                {
+                    entriesToExport = Logs.ToList();
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            var ext = Path.GetExtension(sfd.FileName).ToLowerInvariant();
+
+            if (ext == ".csv")
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine("Timestamp,Level,Message");
+                foreach (var entry in entriesToExport)
+                {
+                    var msg = entry.Message.Replace("\"", "\"\"");
+                    sb.AppendLine($"\"{entry.Timestamp:yyyy-MM-dd HH:mm:ss}\",\"{entry.Level}\",\"{msg}\"");
+                }
+                File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
+            }
+            else
+            {
+                var sb = new StringBuilder();
+                foreach (var entry in entriesToExport)
+                {
+                    sb.AppendLine(entry.ToString());
+                }
+                File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
+            }
+
+            AddLog(LogLevel.Success, $"Exported {entriesToExport.Count} log entries to '{Path.GetFileName(sfd.FileName)}'.");
+            DarkMessageBox.Show($"Successfully exported {entriesToExport.Count} log entries to:\n{sfd.FileName}", "Logs Exported", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            DarkMessageBox.Show($"Failed to export logs: {ex.Message}", "Export Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 
     #endregion
 
@@ -744,6 +870,8 @@ public class MainViewModel : INotifyPropertyChanged
     public RelayCommand StopBatchCommand { get; }
     public RelayCommand ClearBatchCommand { get; }
     public RelayCommand ClearLogsCommand { get; }
+    public RelayCommand ExportLogsCommand { get; }
+    public RelayCommand ClearLogSearchCommand { get; }
     public RelayCommand TogglePasswordMaskCommand { get; }
 
     #endregion

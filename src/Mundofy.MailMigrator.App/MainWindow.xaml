@@ -43,21 +43,48 @@
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="Mundofy MailMigrator" FontWeight="Bold" FontSize="20" Foreground="#FFFFFF" />
                             <Border Background="#1E3A8A" CornerRadius="4" Padding="7,2" Margin="10,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="v1.2.1" FontSize="11" FontWeight="Bold" Foreground="#93C5FD" />
+                                <TextBlock Text="v1.2.2" FontSize="11" FontWeight="Bold" Foreground="#93C5FD" />
                             </Border>
 
                             <!-- In-App Update Notification Badge -->
                             <Button Command="{Binding OpenUpdateDialogCommand}"
                                     Cursor="Hand"
                                     Margin="12,0,0,0"
-                                    Padding="10,3"
-                                    Background="#065F46"
-                                    BorderBrush="#10B981"
-                                    BorderThickness="1"
                                     ToolTip="A newer version of Mundofy MailMigrator is available on GitHub. Click to update now.">
                                 <Button.Style>
                                     <Style TargetType="Button">
                                         <Setter Property="Visibility" Value="Collapsed" />
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="badgeBorder"
+                                                            Background="#065F46"
+                                                            BorderBrush="#10B981"
+                                                            BorderThickness="1"
+                                                            CornerRadius="5"
+                                                            Padding="10,3"
+                                                            SnapsToDevicePixels="True">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <TextBlock x:Name="badgeIcon" Text="⚡ Update Available: " FontSize="11" FontWeight="Bold" Foreground="#6EE7B7" />
+                                                            <TextBlock Text="{Binding LatestVersion, StringFormat={}v{0}}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                            <TextBlock x:Name="badgeAction" Text=" (Update Now)" FontSize="10" Foreground="#A7F3D0" Margin="5,0,0,0" VerticalAlignment="Center" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="badgeBorder" Property="Background" Value="#047857" />
+                                                            <Setter TargetName="badgeBorder" Property="BorderBrush" Value="#34D399" />
+                                                            <Setter TargetName="badgeIcon" Property="Foreground" Value="#A7F3D0" />
+                                                            <Setter TargetName="badgeAction" Property="Foreground" Value="#FFFFFF" />
+                                                        </Trigger>
+                                                        <Trigger Property="IsPressed" Value="True">
+                                                            <Setter TargetName="badgeBorder" Property="Background" Value="#064E3B" />
+                                                            <Setter TargetName="badgeBorder" Property="BorderBrush" Value="#059669" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="True">
                                                 <Setter Property="Visibility" Value="Visible" />
@@ -65,11 +92,6 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="⚡ Update Available: " FontSize="11" FontWeight="Bold" Foreground="#6EE7B7" />
-                                    <TextBlock Text="{Binding LatestVersion, StringFormat={}v{0}}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
-                                    <TextBlock Text=" (Update Now)" FontSize="10" Foreground="#A7F3D0" Margin="5,0,0,0" VerticalAlignment="Center" />
-                                </StackPanel>
                             </Button>
                         </StackPanel>
                         <TextBlock Text="Modern High-Speed IMAP &amp; POP3 Email Migration Suite | Free for Everyone" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
@@ -699,13 +721,8 @@
 
             <!-- TAB 3: SETTINGS & LOGS -->
             <TabItem Header="Settings &amp; Logs">
-                <Grid Margin="0,14,0,0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
+                    <StackPanel Margin="0,14,0,0">
                         <!-- DATE RANGE FILTER CARD -->
                         <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,12">
                             <StackPanel>
@@ -716,53 +733,45 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0">
                                         <TextBlock Text="Date Range Filter (DD-MM-YYYY)" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" />
-                                        <TextBlock Text="Optionally limit migration to emails within a specific date window. Messages outside this range are skipped instantly." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
+                                        <TextBlock Text="Filter emails by sent/received date envelope (early scan skip, avoids unnecessary downloads)." FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
                                     </StackPanel>
-                                    <CheckBox Grid.Column="1" Content="Enable Date Filter" IsChecked="{Binding EnableDateFilter}" FontWeight="SemiBold" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                    <CheckBox Grid.Column="1" Content="Enable Date Filter" IsChecked="{Binding EnableDateFilter}" VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" />
                                 </Grid>
 
-                                <Grid IsEnabled="{Binding EnableDateFilter}">
+                                <Grid Margin="0,0,0,10">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="220" />
-                                        <ColumnDefinition Width="16" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="14" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="14" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Preset Selector -->
                                     <StackPanel Grid.Column="0">
-                                        <TextBlock Text="Preset Range" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                        <TextBlock Text="Quick Preset" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
                                         <ComboBox ItemsSource="{Binding DatePresets}" SelectedItem="{Binding SelectedDatePreset}" />
                                     </StackPanel>
 
-                                    <!-- Since Date (DD-MM-YYYY) -->
                                     <StackPanel Grid.Column="2">
-                                        <TextBlock Text="Since Date (DD-MM-YYYY)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                        <TextBlock Text="Start Date (DD-MM-YYYY)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
                                         <TextBox Text="{Binding SinceDateText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Migrate emails received on or after this date. Format: DD-MM-YYYY (e.g. 01-01-2025)" />
                                     </StackPanel>
 
-                                    <!-- Before Date (DD-MM-YYYY) -->
                                     <StackPanel Grid.Column="4">
-                                        <TextBlock Text="Until Date (DD-MM-YYYY)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                        <TextBlock Text="End Date (DD-MM-YYYY)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
                                         <TextBox Text="{Binding BeforeDateText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Migrate emails received on or before this date (leave blank for no end date). Format: DD-MM-YYYY (e.g. 31-12-2025)" />
                                     </StackPanel>
                                 </Grid>
 
-                                <!-- Validation message -->
-                                <TextBlock Text="{Binding DateFilterValidationMessage}" 
-                                           FontSize="12" 
-                                           FontWeight="SemiBold"
-                                           Foreground="#38BDF8" 
-                                           Margin="0,10,0,0" 
-                                           Visibility="{Binding EnableDateFilter, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                <!-- Validation Hint -->
+                                <TextBlock Text="{Binding DateFilterValidationMessage}" FontSize="12" Foreground="#38BDF8" FontWeight="SemiBold" TextWrapping="Wrap" />
                             </StackPanel>
                         </Border>
 
                         <!-- ADVANCED SETTINGS CARD -->
-                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18">
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,12">
                             <StackPanel>
-                                <TextBlock Text="Advanced Migration Options" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" Margin="0,0,0,14" />
+                                <TextBlock Text="Advanced Migration Preferences" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" Margin="0,0,0,12" />
                                 
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -809,122 +818,164 @@
                                 </Border>
                             </StackPanel>
                         </Border>
-                    </StackPanel>
 
-                    <!-- LIVE LOGS VIEWER -->
-                    <Border Grid.Row="1" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
+                        <!-- LIVE LOGS VIEWER -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
 
-                            <Grid Grid.Row="0" Margin="0,0,0,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Live Activity Log" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" VerticalAlignment="Center" />
-                                <Button Grid.Column="1" Content="Clear Logs" Command="{Binding ClearLogsCommand}" Padding="14,6" FontSize="12" />
+                                <Grid Grid.Row="0" Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="Live Activity Log" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" VerticalAlignment="Center" />
+
+                                    <Border Grid.Column="1" Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="4" Padding="7,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding LogCountStatusText}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </Border>
+
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <!-- Log Search Filter Box -->
+                                        <Grid Width="220" Margin="0,0,8,0">
+                                            <TextBox Text="{Binding LogSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="12"
+                                                     Padding="26,5,22,5"
+                                                     ToolTip="Search &amp; filter logs by message, status level, or time" />
+                                            <TextBlock Text="🔍" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                                                       VerticalAlignment="Center" HorizontalAlignment="Left" Margin="8,0,0,0" IsHitTestVisible="False" />
+                                            <Button Command="{Binding ClearLogSearchCommand}"
+                                                    Content="✕" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" Background="Transparent" BorderThickness="0"
+                                                    HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" Cursor="Hand" Padding="3,1"
+                                                    Visibility="{Binding HasLogSearch, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                    ToolTip="Clear search filter" />
+                                        </Grid>
+
+                                        <!-- Export Logs Button -->
+                                        <Button Content="💾 Export Logs" Command="{Binding ExportLogsCommand}" Margin="0,0,8,0" Padding="12,6" FontSize="12"
+                                                ToolTip="Export logs to a .TXT file or .CSV spreadsheet" />
+
+                                        <!-- Clear Logs Button -->
+                                        <Button Content="🗑 Clear Logs" Command="{Binding ClearLogsCommand}" Padding="12,6" FontSize="12"
+                                                ToolTip="Clear activity logs" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <ListBox Grid.Row="1" 
+                                         ItemsSource="{Binding FilteredLogs}" 
+                                         Height="460"
+                                         Background="#0F172A" 
+                                         BorderBrush="{StaticResource CardBorderBrush}" 
+                                         BorderThickness="1" 
+                                         Padding="8,8,14,8"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         PreviewMouseWheel="LogListBox_PreviewMouseWheel">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" FontFamily="Consolas, monospace" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,2" />
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
                             </Grid>
-
-                            <ListBox Grid.Row="1" ItemsSource="{Binding Logs}" Background="#0F172A" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" Padding="8,8,14,8">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding}" FontFamily="Consolas, monospace" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,2" />
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </Grid>
-                    </Border>
-                </Grid>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
             <!-- TAB 4: ABOUT -->
             <TabItem Header="About">
-                <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="32" Margin="0,14,0,0">
-                    <StackPanel MaxWidth="720" HorizontalAlignment="Left">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
-                            <!-- OFFICIAL MUNDOFY LOGO MARK ON ABOUT SCREEN -->
-                            <Image Source="pack://application:,,,/Assets/mundofy_mark_color.png" 
-                                   RenderOptions.BitmapScalingMode="HighQuality"
-                                   Width="56" Height="56" 
-                                   Margin="0,0,20,0" 
-                                   VerticalAlignment="Center" />
-                            
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Mundofy MailMigrator" FontWeight="Bold" FontSize="24" Foreground="#FFFFFF" />
-                                <TextBlock Text="Version 1.2.1" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- ORIGIN STORY CARD -->
-                        <Border Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,16">
-                            <StackPanel>
-                                <TextBlock Text="Why This Tool Was Created" FontWeight="Bold" FontSize="13" Foreground="#38BDF8" Margin="0,0,0,6" />
-                                <TextBlock Text="As a managed hosting provider, we routinely help customers migrate their mailboxes to our servers. Moving email can be technically intimidating, and most users lack the specialized knowledge or tools to do it themselves safely without risking lost messages or downtime. For years, Armin Diehl's classic 'imapcopy' tool was the go-to utility. But as modern servers enforced TLS 1.3 and dropped older protocols, imapcopy began failing on TLS handshakes."
-                                           TextWrapping="Wrap" FontSize="12" LineHeight="19" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6" />
-                                <TextBlock Text="Patching an outdated utility was no longer the smartest way forward. With an open mind, we asked: What if we build a modern successor that does everything imapcopy did, but so much more? Native TLS 1.3, zero-config server auto-discovery, POP3 source support, multi-threading, smart Message-ID deduplication, and a clean GUI. We open-sourced it for everyone, and with the help of the community, our goal is to make this the modern, free go-to tool for email migration."
-                                           TextWrapping="Wrap" FontSize="12" LineHeight="19" Foreground="{StaticResource TextSecondaryBrush}" />
-                            </StackPanel>
-                        </Border>
-
-                        <Border Background="#0F172A" CornerRadius="8" Padding="18" Margin="0,0,0,20">
-                            <StackPanel>
-                                <TextBlock Text="Credits &amp; Authorship" FontWeight="Bold" FontSize="13" Foreground="#60A5FA" Margin="0,0,0,8" />
-                                <TextBlock Text="• Author: Danny Schuller" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,3" />
-                                <TextBlock Text="• Company: Mundofy" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,3" />
-                                <TextBlock FontSize="13" Margin="0,3">
-                                    <Run Text="• Website: " Foreground="{StaticResource TextPrimaryBrush}" />
-                                    <Hyperlink NavigateUri="https://mundofy.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#60A5FA">
-                                        https://mundofy.com
-                                    </Hyperlink>
-                                </TextBlock>
-                                <TextBlock FontSize="13" Margin="0,3">
-                                    <Run Text="• Source Code: " Foreground="{StaticResource TextPrimaryBrush}" />
-                                    <Hyperlink NavigateUri="https://github.com/MundofyOfficial/Mundofy-MailMigrator" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#60A5FA">
-                                        github.com/MundofyOfficial/Mundofy-MailMigrator
-                                    </Hyperlink>
-                                </TextBlock>
-                                <TextBlock FontSize="13" Margin="0,3">
-                                    <Run Text="• Issue Tracker: " Foreground="{StaticResource TextPrimaryBrush}" />
-                                    <Hyperlink NavigateUri="https://github.com/MundofyOfficial/Mundofy-MailMigrator/issues" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#60A5FA">
-                                        github.com/MundofyOfficial/Mundofy-MailMigrator/issues
-                                    </Hyperlink>
-                                </TextBlock>
-                                <TextBlock Text="• Inspired by: The classic 'imapcopy' tool originally created by Armin Diehl (2001-2009)" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3" />
-                                <TextBlock Text="• IMAP / POP3 Engine: Powered by MailKit (Jeffrey Stedfast)" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3" />
-                            </StackPanel>
-                        </Border>
-
-                        <!-- FEEDBACK & ISSUES CARD -->
-                        <Border Background="#1E293B" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,20">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
+                    <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="32" Margin="0,14,0,0">
+                        <StackPanel MaxWidth="720" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                                <!-- OFFICIAL MUNDOFY LOGO MARK ON ABOUT SCREEN -->
+                                <Image Source="pack://application:,,,/Assets/mundofy_mark_color.png" 
+                                       RenderOptions.BitmapScalingMode="HighQuality"
+                                       Width="56" Height="56" 
+                                       Margin="0,0,20,0" 
+                                       VerticalAlignment="Center" />
+                                
                                 <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="Found a Bug or Have a Feature Request?" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" />
-                                    <TextBlock Text="We welcome community feedback! Report issues, ask questions, or contribute directly on GitHub."
-                                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                    <TextBlock Text="Mundofy MailMigrator" FontWeight="Bold" FontSize="24" Foreground="#FFFFFF" />
+                                    <TextBlock Text="Version 1.2.2" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
                                 </StackPanel>
-                                <Button Grid.Column="1" Click="OpenGitHubIssues_Click" Cursor="Hand" Margin="20,0,0,0" VerticalAlignment="Center"
-                                        Padding="16,8" Background="#2563EB" BorderThickness="0" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13">
-                                    <Button.Resources>
-                                        <Style TargetType="Border">
-                                            <Setter Property="CornerRadius" Value="6" />
-                                        </Style>
-                                    </Button.Resources>
-                                    <TextBlock Text="Report an Issue" />
-                                </Button>
-                            </Grid>
-                        </Border>
+                            </StackPanel>
 
-                        <TextBlock Text="Free and open for everyone. Distributed as a standalone portable Windows executable."
-                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
-                    </StackPanel>
-                </Border>
+                            <!-- ORIGIN STORY CARD -->
+                            <Border Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <TextBlock Text="Why This Tool Was Created" FontWeight="Bold" FontSize="13" Foreground="#38BDF8" Margin="0,0,0,6" />
+                                    <TextBlock Text="As a managed hosting provider, we routinely help customers migrate their mailboxes to our servers. Moving email can be technically intimidating, and most users lack the specialized knowledge or tools to do it themselves safely without risking lost messages or downtime. For years, Armin Diehl's classic 'imapcopy' tool was the go-to utility. But as modern servers enforced TLS 1.3 and dropped older protocols, imapcopy began failing on TLS handshakes."
+                                               TextWrapping="Wrap" FontSize="12" LineHeight="19" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,6" />
+                                    <TextBlock Text="Patching an outdated utility was no longer the smartest way forward. With an open mind, we asked: What if we build a modern successor that does everything imapcopy did, but so much more? Native TLS 1.3, zero-config server auto-discovery, POP3 source support, multi-threading, smart Message-ID deduplication, and a clean GUI. We open-sourced it for everyone, and with the help of the community, our goal is to make this the modern, free go-to tool for email migration."
+                                               TextWrapping="Wrap" FontSize="12" LineHeight="19" Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#0F172A" CornerRadius="8" Padding="18" Margin="0,0,0,20">
+                                <StackPanel>
+                                    <TextBlock Text="Credits &amp; Authorship" FontWeight="Bold" FontSize="13" Foreground="#60A5FA" Margin="0,0,0,8" />
+                                    <TextBlock Text="• Author: Danny Schuller" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,3" />
+                                    <TextBlock Text="• Company: Mundofy" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,3" />
+                                    <TextBlock FontSize="13" Margin="0,3">
+                                        <Run Text="• Website: " Foreground="{StaticResource TextPrimaryBrush}" />
+                                        <Hyperlink NavigateUri="https://mundofy.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#60A5FA">
+                                            https://mundofy.com
+                                        </Hyperlink>
+                                    </TextBlock>
+                                    <TextBlock FontSize="13" Margin="0,3">
+                                        <Run Text="• Source Code: " Foreground="{StaticResource TextPrimaryBrush}" />
+                                        <Hyperlink NavigateUri="https://github.com/MundofyOfficial/Mundofy-MailMigrator" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#60A5FA">
+                                            github.com/MundofyOfficial/Mundofy-MailMigrator
+                                        </Hyperlink>
+                                    </TextBlock>
+                                    <TextBlock FontSize="13" Margin="0,3">
+                                        <Run Text="• Issue Tracker: " Foreground="{StaticResource TextPrimaryBrush}" />
+                                        <Hyperlink NavigateUri="https://github.com/MundofyOfficial/Mundofy-MailMigrator/issues" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#60A5FA">
+                                            github.com/MundofyOfficial/Mundofy-MailMigrator/issues
+                                        </Hyperlink>
+                                    </TextBlock>
+                                    <TextBlock Text="• Inspired by: The classic 'imapcopy' tool originally created by Armin Diehl (2001-2009)" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3" />
+                                    <TextBlock Text="• IMAP / POP3 Engine: Powered by MailKit (Jeffrey Stedfast)" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- FEEDBACK & ISSUES CARD -->
+                            <Border Background="#1E293B" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,20">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Found a Bug or Have a Feature Request?" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" />
+                                        <TextBlock Text="We welcome community feedback! Report issues, ask questions, or contribute directly on GitHub."
+                                                   FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Click="OpenGitHubIssues_Click" Cursor="Hand" Margin="20,0,0,0" VerticalAlignment="Center"
+                                            Padding="16,8" Background="#2563EB" BorderThickness="0" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="6" />
+                                            </Style>
+                                        </Button.Resources>
+                                        <TextBlock Text="Report an Issue" />
+                                    </Button>
+                                </Grid>
+                            </Border>
+
+                            <TextBlock Text="Free and open for everyone. Distributed as a standalone portable Windows executable."
+                                       FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </Border>
+                </ScrollViewer>
             </TabItem>
 
         </TabControl>

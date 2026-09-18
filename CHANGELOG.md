@@ -5,23 +5,7 @@ All notable changes to **Mundofy MailMigrator** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.1] - 2026-09-18
-
-### Added
-* **Input and Session State Persistence**:
-  * Automatically saves and restores last-used server hostnames, ports, protocols, SSL configurations, and usernames across application restarts in `%APPDATA%\Mundofy\MailMigrator\settings.json`.
-  * Persists advanced migration preferences (deduplication, certificate allowances, folder exclusions, and date filter configurations).
-  * Explicitly excludes passwords and batch account lists from disk storage to maintain credential security.
-* **Password Privacy Masking Toggle**:
-  * Added password visibility toggle in the batch migration toolbar (`Show Passwords` / `Hide Passwords`).
-  * Masks source and destination passwords with bullets in the batch accounts table by default.
-  * Supports full inline cell editing and clipboard pasting while maintaining on-screen privacy.
-* **Invalid SSL Certificate Warning**:
-  * Added interactive security confirmation modal before initiating single or batch migrations when "Permit Self-Signed / Invalid SSL Certificates" is enabled, warning users of Man-in-the-Middle (MitM) credential interception risks.
-
----
-
-## [1.2.0] - 2026-09-18
+## [1.2.2] - 2026-09-18
 
 ### Added
 * **Date Range Filtering (DD-MM-YYYY)**:
@@ -36,10 +20,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Header notification badge indicating available updates.
   * Modal dialog detailing the latest version number, release date, and changelog.
   * One-click in-place executable replacement and restart via detached process, maintaining existing filesystem paths and shortcuts without requiring an external installer.
+* **Input and Session State Persistence**:
+  * Automatically saves and restores last-used server hostnames, ports, protocols, SSL configurations, and usernames across application restarts in `%APPDATA%\Mundofy\MailMigrator\settings.json`.
+  * Persists advanced migration preferences (deduplication, certificate allowances, folder exclusions, and date filter configurations).
+  * Explicitly excludes passwords and batch account lists from disk storage to maintain credential security.
+* **Password Privacy Masking Toggle**:
+  * Added password visibility toggle in the batch migration toolbar (`Show Passwords` / `Hide Passwords`).
+  * Masks source and destination passwords with bullets in the batch accounts table by default.
+  * Supports full inline cell editing and clipboard pasting while maintaining on-screen privacy.
+* **Invalid SSL Certificate Warning**:
+  * Added interactive security confirmation modal before initiating single or batch migrations when "Permit Self-Signed / Invalid SSL Certificates" is enabled, warning users of Man-in-the-Middle (MitM) credential interception risks.
+* **Live Activity Log Search and Real-Time Filtering**:
+  * Added dynamic search filtering to the Live Activity Log toolbar, matching log messages, status levels, or timestamps in real time.
+  * Added entry counter displaying matching and total record counts.
+  * Added quick-clear search button.
+* **Dual-Format Log Export (.TXT and .CSV)**:
+  * Export activity logs to standard plaintext log files (`.txt`) or structured comma-separated values (`.csv`) with automatic header generation and RFC-compliant escaping.
+  * Supports exporting filtered log results (e.g., exporting only errors or warnings).
 
 ### Changed
 * **Single Executable Distribution**:
   * Discontinued duplicate versioned executable generation. Releases package and distribute exclusively `MundofyMailMigrator.exe` to ensure stable shortcut targets and automated deployment compatibility.
+* **Enlarged Activity Log Interface and Smooth Vertical Scrolling**:
+  * Expanded the log view height to 460px with automatic vertical scrolling across Settings & Logs and About screens.
+  * Implemented smooth mouse wheel event bubbling between log list and outer page container.
+
+### Fixed
+* **Application-Wide Dark ToolTip Styling**:
+  * Added global dark theme ToolTip style in `App.xaml`, eliminating Windows Aero white/light-gray tooltips in favor of rounded dark slate containers with high-contrast text.
+* **Update Notification Button Mouseover**:
+  * Implemented custom ControlTemplate with defined dark emerald hover and pressed states, preventing default Windows Aero light-cyan wash and preserving text legibility.
+* **ScrollViewer Intersection Corner**:
+  * Replaced default Windows white corner square where horizontal and vertical scrollbars intersect with a transparent container and dark background override.
 
 ---
 
