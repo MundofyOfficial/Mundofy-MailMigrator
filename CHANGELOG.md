@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.2] - 2026-09-18
 
 ### Added
+* **Per-Account Pause & Resume in Multi-Batch Migration**:
+  * Direct row-level pause and resume controls in the active batch table.
+  * Pausing an individual account immediately cancels its active transfer, releases its worker slot, and leaves other concurrently migrating accounts completely unaffected.
+  * One-click resume re-queues the account into the active batch without resetting total batch counts.
+* **Protocol Selection on Batch Migration Tab**:
+  * Added source protocol selection supporting both IMAP and POP3 engines for batch accounts.
+  * Added "Coming Soon" indicators for Microsoft 365 (Graph API) and Google Workspace (Gmail API) with informative tooltips and custom disabled item styling.
+* **Precision Vector Dialog Icons**:
+  * Replaced DirectWrite emoji glyphs in notification dialogs with mathematically centered vector icons (`Warning`, `Error`, `Question`, `Info`), eliminating font baseline shifts and Windows 11 emoji palette color mismatches.
 * **Date Range Filtering (DD-MM-YYYY)**:
   * Restrict message transfers by date envelope (since a specified start date, before an end date, or within a bounded date window).
   * High-efficiency early filtering: inspects envelope metadata during the initial folder scan and skips excluded messages before downloading message bodies.

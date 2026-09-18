@@ -138,6 +138,10 @@
                                               VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="itemBorder" Property="Opacity" Value="0.45" />
+                                <Setter Property="Foreground" Value="#64748B" />
+                            </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="itemBorder" Property="Background" Value="#334155" />
                                 <Setter Property="Foreground" Value="#FFFFFF" />

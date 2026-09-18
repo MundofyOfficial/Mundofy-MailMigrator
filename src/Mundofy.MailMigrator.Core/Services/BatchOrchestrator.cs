@@ -25,6 +25,7 @@ public class BatchOrchestrator
     private Channel<AccountJob>? _queue;
     private readonly object _finishLock = new();
     private CancellationTokenSource? _debounceCts;
+    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _activeAccountCts = new();
 
     private int _totalAccounts;
     private int _completedAccounts;
@@ -59,6 +60,19 @@ public class BatchOrchestrator
             _debounceCts?.Cancel();
         }
 
+        bool wasPaused = account.Status == MigrationStatus.Paused;
+        bool wasFailed = account.Status == MigrationStatus.Failed;
+
+        if (wasFailed)
+        {
+            Interlocked.Decrement(ref _failedAccounts);
+        }
+
+        if (!wasPaused && !wasFailed)
+        {
+            Interlocked.Increment(ref _totalAccounts);
+        }
+
         account.Status = MigrationStatus.Queued;
         account.StatusMessage = "Queued in active batch...";
         account.TotalMessages = 0;
@@ -67,14 +81,15 @@ public class BatchOrchestrator
         account.FailedMessages = 0;
         account.BytesTransferred = 0;
 
-        Interlocked.Increment(ref _totalAccounts);
         _queue.Writer.TryWrite(account);
         NotifyProgress();
 
         LogEmitted?.Invoke(this, new LogEntry
         {
             Level = LogLevel.Success,
-            Message = $"⚡ Dynamically added '{account.SourceUser}' to active running batch (batch total: {_totalAccounts})."
+            Message = wasPaused || wasFailed
+                ? $"⚡ Resumed/Re-queued '{account.SourceUser}' into active running batch."
+                : $"⚡ Dynamically added '{account.SourceUser}' to active running batch (batch total: {_totalAccounts})."
         });
 
         return true;
@@ -90,6 +105,7 @@ public class BatchOrchestrator
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
         IsRunning = true;
+        _activeAccountCts.Clear();
 
         _queue = Channel.CreateUnbounded<AccountJob>(new UnboundedChannelOptions
         {
@@ -167,13 +183,16 @@ public class BatchOrchestrator
                             Interlocked.Increment(ref _activeWorkers);
                             NotifyProgress();
 
+                            using var accountCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                            _activeAccountCts[account.Id] = accountCts;
+
                             try
                             {
-                                await _migrationService.MigrateAccountAsync(source, dest, account, options, accountProgress, ct);
+                                await _migrationService.MigrateAccountAsync(source, dest, account, options, accountProgress, accountCts.Token);
 
                                 if (account.Status == MigrationStatus.Completed)
                                     Interlocked.Increment(ref _completedAccounts);
-                                else
+                                else if (account.Status != MigrationStatus.Paused)
                                     Interlocked.Increment(ref _failedAccounts);
 
                                 Interlocked.Add(ref _totalCopiedMessages, account.CopiedMessages);
@@ -182,6 +201,7 @@ public class BatchOrchestrator
                             }
                             finally
                             {
+                                _activeAccountCts.TryRemove(account.Id, out _);
                                 Interlocked.Decrement(ref _activeWorkers);
                                 NotifyProgress();
                                 ScheduleCompletionCheck();
@@ -214,6 +234,7 @@ public class BatchOrchestrator
         {
             IsRunning = false;
             _queue = null;
+            _activeAccountCts.Clear();
         }
 
         _stopwatch.Stop();
@@ -312,5 +333,29 @@ public class BatchOrchestrator
             _queue?.Writer.TryComplete();
             IsRunning = false;
         }
+    }
+
+    /// <summary>
+    /// Pauses an actively migrating account row without stopping the overall batch.
+    /// </summary>
+    public bool PauseAccount(AccountJob account)
+    {
+        if (_activeAccountCts.TryGetValue(account.Id, out var accountCts))
+        {
+            account.StatusMessage = "Pausing...";
+            try
+            {
+                accountCts.Cancel();
+            }
+            catch (ObjectDisposedException) { }
+
+            LogEmitted?.Invoke(this, new LogEntry
+            {
+                Level = LogLevel.Warning,
+                Message = $"[{account.SourceUser}] Pausing account migration..."
+            });
+            return true;
+        }
+        return false;
     }
 }

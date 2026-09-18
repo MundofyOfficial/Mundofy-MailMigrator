@@ -3,7 +3,9 @@ namespace Mundofy.MailMigrator.Core.Models;
 public enum ServerProtocol
 {
     Imap,
-    Pop3
+    Pop3,
+    Microsoft365,
+    GoogleWorkspace
 }
 
 public class ServerEndpoint

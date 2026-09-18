@@ -72,7 +72,7 @@ public class MainViewModel : INotifyPropertyChanged
         QueueSelectedAccountCommand = new RelayCommand(() =>
         {
             if (SelectedAccount != null) StartOrQueueAccount(SelectedAccount);
-        }, () => SelectedAccount != null && SelectedAccount.Status != MigrationStatus.InProgress);
+        }, () => SelectedAccount != null);
         TestSelectedAccountCommand = new RelayCommand(async () => await TestSelectedAccountAsync(), () => SelectedAccount != null && !IsBatchRunning);
         CopySourceEmailCommand = new RelayCommand(CopySourceEmail, () => SelectedAccount != null);
         CopyDestEmailCommand = new RelayCommand(CopyDestEmail, () => SelectedAccount != null);
@@ -136,7 +136,7 @@ public class MainViewModel : INotifyPropertyChanged
         {
             if (SetField(ref _singleSourceProtocol, value))
             {
-                SingleSourcePort = value == ServerProtocol.Pop3 ? 995 : 993;
+                OnSourceProtocolChanged(value, isBatch: false);
             }
         }
     }
@@ -201,6 +201,19 @@ public class MainViewModel : INotifyPropertyChanged
             if (SetField(ref _isDetectingSource, value))
             {
                 AutoDetectSingleSourceCommand?.RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    private ServerProtocol _singleDestProtocol = ServerProtocol.Imap;
+    public ServerProtocol SingleDestProtocol
+    {
+        get => _singleDestProtocol;
+        set
+        {
+            if (SetField(ref _singleDestProtocol, value))
+            {
+                OnDestProtocolChanged(value, isBatch: false);
             }
         }
     }
@@ -321,7 +334,7 @@ public class MainViewModel : INotifyPropertyChanged
         {
             if (SetField(ref _batchSourceProtocol, value))
             {
-                BatchSourcePort = value == ServerProtocol.Pop3 ? 995 : 993;
+                OnSourceProtocolChanged(value, isBatch: true);
             }
         }
     }
@@ -345,6 +358,19 @@ public class MainViewModel : INotifyPropertyChanged
     {
         get => _batchSourceUseSsl;
         set => SetField(ref _batchSourceUseSsl, value);
+    }
+
+    private ServerProtocol _batchDestProtocol = ServerProtocol.Imap;
+    public ServerProtocol BatchDestProtocol
+    {
+        get => _batchDestProtocol;
+        set
+        {
+            if (SetField(ref _batchDestProtocol, value))
+            {
+                OnDestProtocolChanged(value, isBatch: true);
+            }
+        }
     }
 
     private string _batchDestHost = "";
@@ -981,9 +1007,10 @@ public class MainViewModel : INotifyPropertyChanged
             var result = await _autoDiscoveryService.DiscoverAsync(query);
             if (result.Success)
             {
+                BatchSourceProtocol = result.Protocol;
                 BatchSourceHost = result.Host;
                 BatchSourcePort = result.Port;
-                AddLog(LogLevel.Success, $"⚡ Discovered Batch Source: {result.Host}:{result.Port} via {result.DetectionSource}");
+                AddLog(LogLevel.Success, $"⚡ Discovered Batch Source: {result.Host}:{result.Port} ({result.Protocol}) via {result.DetectionSource}");
             }
             else
             {
@@ -1032,6 +1059,91 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    private void OnSourceProtocolChanged(ServerProtocol proto, bool isBatch)
+    {
+        switch (proto)
+        {
+            case ServerProtocol.Pop3:
+                if (isBatch) BatchSourcePort = 995;
+                else SingleSourcePort = 995;
+                break;
+
+            case ServerProtocol.Microsoft365:
+                if (isBatch)
+                {
+                    if (string.IsNullOrWhiteSpace(BatchSourceHost)) BatchSourceHost = "outlook.office365.com";
+                    BatchSourcePort = 993;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(SingleSourceHost)) SingleSourceHost = "outlook.office365.com";
+                    SingleSourcePort = 993;
+                }
+                AddLog(LogLevel.Info, "Selected Microsoft 365 source. Native Graph API connector is in preparation; for IMAP migration today, use 'outlook.office365.com' with App Password / OAuth2.");
+                break;
+
+            case ServerProtocol.GoogleWorkspace:
+                if (isBatch)
+                {
+                    if (string.IsNullOrWhiteSpace(BatchSourceHost)) BatchSourceHost = "imap.gmail.com";
+                    BatchSourcePort = 993;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(SingleSourceHost)) SingleSourceHost = "imap.gmail.com";
+                    SingleSourcePort = 993;
+                }
+                AddLog(LogLevel.Info, "Selected Google Workspace source. Native Gmail API connector is in preparation; for IMAP migration today, use 'imap.gmail.com' with Google App Password.");
+                break;
+
+            case ServerProtocol.Imap:
+            default:
+                if (isBatch) BatchSourcePort = 993;
+                else SingleSourcePort = 993;
+                break;
+        }
+    }
+
+    private void OnDestProtocolChanged(ServerProtocol proto, bool isBatch)
+    {
+        switch (proto)
+        {
+            case ServerProtocol.Microsoft365:
+                if (isBatch)
+                {
+                    if (string.IsNullOrWhiteSpace(BatchDestHost)) BatchDestHost = "outlook.office365.com";
+                    BatchDestPort = 993;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(SingleDestHost)) SingleDestHost = "outlook.office365.com";
+                    SingleDestPort = 993;
+                }
+                AddLog(LogLevel.Info, "Selected Microsoft 365 destination. Native Graph API connector is in preparation; for IMAP migration today, use 'outlook.office365.com' with App Password / OAuth2.");
+                break;
+
+            case ServerProtocol.GoogleWorkspace:
+                if (isBatch)
+                {
+                    if (string.IsNullOrWhiteSpace(BatchDestHost)) BatchDestHost = "imap.gmail.com";
+                    BatchDestPort = 993;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(SingleDestHost)) SingleDestHost = "imap.gmail.com";
+                    SingleDestPort = 993;
+                }
+                AddLog(LogLevel.Info, "Selected Google Workspace destination. Native Gmail API connector is in preparation; for IMAP migration today, use 'imap.gmail.com' with Google App Password.");
+                break;
+
+            case ServerProtocol.Imap:
+            default:
+                if (isBatch) BatchDestPort = 993;
+                else SingleDestPort = 993;
+                break;
+        }
+    }
+
     private async Task TestSingleSourceAsync()
     {
         SingleSourceStatus = "Testing...";
@@ -1054,7 +1166,7 @@ public class MainViewModel : INotifyPropertyChanged
         SingleDestStatus = "Testing...";
         var endpoint = new ServerEndpoint
         {
-            Protocol = ServerProtocol.Imap,
+            Protocol = SingleDestProtocol,
             Host = SingleDestHost,
             Port = SingleDestPort,
             UseSsl = SingleDestUseSsl,
@@ -1108,7 +1220,7 @@ public class MainViewModel : INotifyPropertyChanged
 
         var dstEndpoint = new ServerEndpoint
         {
-            Protocol = ServerProtocol.Imap,
+            Protocol = SingleDestProtocol,
             Host = SingleDestHost,
             Port = SingleDestPort,
             UseSsl = SingleDestUseSsl,
@@ -1174,7 +1286,11 @@ public class MainViewModel : INotifyPropertyChanged
         {
             if (account.Status == MigrationStatus.InProgress)
             {
-                AddLog(LogLevel.Warning, $"Account '{account.SourceUser}' is already actively migrating.");
+                bool paused = _batchOrchestrator.PauseAccount(account);
+                if (paused)
+                {
+                    AddLog(LogLevel.Warning, $"⏸ Pausing migration for '{account.SourceUser}'...");
+                }
                 return;
             }
 
@@ -1217,7 +1333,7 @@ public class MainViewModel : INotifyPropertyChanged
 
         var dstEndpoint = new ServerEndpoint
         {
-            Protocol = ServerProtocol.Imap,
+            Protocol = BatchDestProtocol,
             Host = BatchDestHost,
             Port = BatchDestPort,
             UseSsl = BatchDestUseSsl,
@@ -1491,7 +1607,7 @@ public class MainViewModel : INotifyPropertyChanged
 
         var dstEndpoint = new ServerEndpoint
         {
-            Protocol = ServerProtocol.Imap,
+            Protocol = BatchDestProtocol,
             Host = BatchDestHost,
             Port = BatchDestPort,
             UseSsl = BatchDestUseSsl,
@@ -1535,7 +1651,7 @@ public class MainViewModel : INotifyPropertyChanged
 
         var dstEndpoint = new ServerEndpoint
         {
-            Protocol = ServerProtocol.Imap,
+            Protocol = BatchDestProtocol,
             Host = BatchDestHost,
             Port = BatchDestPort,
             UseSsl = BatchDestUseSsl,
@@ -1630,11 +1746,14 @@ public class MainViewModel : INotifyPropertyChanged
 
             SingleDestHost = SingleDestHost,
             SingleDestPort = SingleDestPort,
+            SingleDestProtocol = SingleDestProtocol.ToString(),
             SingleDestUseSsl = SingleDestUseSsl,
             SingleDestUser = SingleDestUser,
 
+            BatchSourceProtocol = BatchSourceProtocol.ToString(),
             BatchSourceHost = BatchSourceHost,
             BatchSourcePort = BatchSourcePort,
+            BatchDestProtocol = BatchDestProtocol.ToString(),
             BatchDestHost = BatchDestHost,
             BatchDestPort = BatchDestPort,
             Concurrency = Concurrency,
@@ -1662,17 +1781,23 @@ public class MainViewModel : INotifyPropertyChanged
         if (!string.IsNullOrWhiteSpace(s.SingleSourceHost)) _singleSourceHost = s.SingleSourceHost;
         if (s.SingleSourcePort > 0) _singleSourcePort = s.SingleSourcePort;
         if (Enum.TryParse<ServerProtocol>(s.SingleSourceProtocol, true, out var proto))
-            _singleSourceProtocol = proto;
+            _singleSourceProtocol = (proto == ServerProtocol.Microsoft365 || proto == ServerProtocol.GoogleWorkspace) ? ServerProtocol.Imap : proto;
         _singleSourceUseSsl = s.SingleSourceUseSsl;
         if (!string.IsNullOrWhiteSpace(s.SingleSourceUser)) _singleSourceUser = s.SingleSourceUser;
 
+        if (Enum.TryParse<ServerProtocol>(s.SingleDestProtocol, true, out var singleDstProto))
+            _singleDestProtocol = (singleDstProto == ServerProtocol.Microsoft365 || singleDstProto == ServerProtocol.GoogleWorkspace) ? ServerProtocol.Imap : singleDstProto;
         if (!string.IsNullOrWhiteSpace(s.SingleDestHost)) _singleDestHost = s.SingleDestHost;
         if (s.SingleDestPort > 0) _singleDestPort = s.SingleDestPort;
         _singleDestUseSsl = s.SingleDestUseSsl;
         if (!string.IsNullOrWhiteSpace(s.SingleDestUser)) _singleDestUser = s.SingleDestUser;
 
+        if (Enum.TryParse<ServerProtocol>(s.BatchSourceProtocol, true, out var batchProto))
+            _batchSourceProtocol = (batchProto == ServerProtocol.Microsoft365 || batchProto == ServerProtocol.GoogleWorkspace) ? ServerProtocol.Imap : batchProto;
         if (!string.IsNullOrWhiteSpace(s.BatchSourceHost)) _batchSourceHost = s.BatchSourceHost;
         if (s.BatchSourcePort > 0) _batchSourcePort = s.BatchSourcePort;
+        if (Enum.TryParse<ServerProtocol>(s.BatchDestProtocol, true, out var batchDstProto))
+            _batchDestProtocol = (batchDstProto == ServerProtocol.Microsoft365 || batchDstProto == ServerProtocol.GoogleWorkspace) ? ServerProtocol.Imap : batchDstProto;
         if (!string.IsNullOrWhiteSpace(s.BatchDestHost)) _batchDestHost = s.BatchDestHost;
         if (s.BatchDestPort > 0) _batchDestPort = s.BatchDestPort;
         if (s.Concurrency >= 1 && s.Concurrency <= 16) _concurrency = s.Concurrency;

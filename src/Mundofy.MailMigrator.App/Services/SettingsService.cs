@@ -14,12 +14,15 @@ public class AppSettings
 
     public string SingleDestHost { get; set; } = "";
     public int SingleDestPort { get; set; } = 993;
+    public string SingleDestProtocol { get; set; } = "Imap";
     public bool SingleDestUseSsl { get; set; } = true;
     public string SingleDestUser { get; set; } = "";
 
     // Batch Migration Defaults
+    public string BatchSourceProtocol { get; set; } = "Imap";
     public string BatchSourceHost { get; set; } = "";
     public int BatchSourcePort { get; set; } = 993;
+    public string BatchDestProtocol { get; set; } = "Imap";
     public string BatchDestHost { get; set; } = "";
     public int BatchDestPort { get; set; } = 993;
     public int Concurrency { get; set; } = 4;

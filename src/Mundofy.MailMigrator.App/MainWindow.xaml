@@ -143,6 +143,8 @@
                                             <ComboBox SelectedValue="{Binding SingleSourceProtocol, Mode=TwoWay}" SelectedValuePath="Tag" Height="38">
                                                 <ComboBoxItem Content="IMAP (Recommended)" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
                                                 <ComboBoxItem Content="POP3" Tag="{x:Static models:ServerProtocol.Pop3}" />
+                                                <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Modern OAuth2 &amp; Microsoft Graph API authentication is under construction." />
+                                                <ComboBoxItem Content="Google Workspace (Gmail API) — Coming Soon" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" IsEnabled="False" ToolTip="Google Service Account &amp; Gmail API authentication is under construction." />
                                             </ComboBox>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
@@ -189,7 +191,11 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="Protocol" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                            <TextBox Text="IMAP" IsReadOnly="True" Background="#1E293B" Foreground="{StaticResource TextSecondaryBrush}" Height="38" />
+                                            <ComboBox SelectedValue="{Binding SingleDestProtocol, Mode=TwoWay}" SelectedValuePath="Tag" Height="38">
+                                                <ComboBoxItem Content="IMAP (Standard / cPanel)" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
+                                                <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Direct Microsoft Graph mailbox injection without user passwords is under construction." />
+                                                <ComboBoxItem Content="Google Workspace (Gmail API) — Coming Soon" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" IsEnabled="False" ToolTip="Google Domain-Wide Delegation &amp; Gmail API migration without user passwords is under construction." />
+                                            </ComboBox>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="Port" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
@@ -328,7 +334,7 @@
                                 <ColumnDefinition Width="16" />
                                 <ColumnDefinition Width="2.5*" />
                                 <ColumnDefinition Width="16" />
-                                <ColumnDefinition Width="2.2*" />
+                                <ColumnDefinition Width="2.0*" />
                             </Grid.ColumnDefinitions>
 
                             <!-- DEFAULT SOURCE -->
@@ -339,12 +345,20 @@
                                 </Grid>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90" />
+                                        <ColumnDefinition Width="8" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="8" />
-                                        <ColumnDefinition Width="74" />
+                                        <ColumnDefinition Width="64" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0" Text="{Binding BatchSourceHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Source Host (e.g. mail.oldserver.com)" />
-                                    <TextBox Grid.Column="2" Text="{Binding BatchSourcePort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993)" />
+                                    <ComboBox Grid.Column="0" SelectedValue="{Binding BatchSourceProtocol, Mode=TwoWay}" SelectedValuePath="Tag" ToolTip="Source Protocol / Provider">
+                                        <ComboBoxItem Content="IMAP" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
+                                        <ComboBoxItem Content="POP3" Tag="{x:Static models:ServerProtocol.Pop3}" />
+                                        <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Modern OAuth2 &amp; Microsoft Graph API authentication is under construction." />
+                                        <ComboBoxItem Content="Google Workspace (Gmail API) — Coming Soon" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" IsEnabled="False" ToolTip="Google Service Account &amp; Gmail API authentication is under construction." />
+                                    </ComboBox>
+                                    <TextBox Grid.Column="2" Text="{Binding BatchSourceHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Source Host (e.g. mail.oldserver.com)" />
+                                    <TextBox Grid.Column="4" Text="{Binding BatchSourcePort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993 for IMAP, 995 for POP3)" />
                                 </Grid>
                             </StackPanel>
 
@@ -356,12 +370,19 @@
                                 </Grid>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="90" />
+                                        <ColumnDefinition Width="8" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="8" />
-                                        <ColumnDefinition Width="74" />
+                                        <ColumnDefinition Width="64" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Grid.Column="0" Text="{Binding BatchDestHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Dest Host (e.g. imap.newserver.com)" />
-                                    <TextBox Grid.Column="2" Text="{Binding BatchDestPort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993)" />
+                                    <ComboBox Grid.Column="0" SelectedValue="{Binding BatchDestProtocol, Mode=TwoWay}" SelectedValuePath="Tag" ToolTip="Destination Protocol / Provider">
+                                        <ComboBoxItem Content="IMAP" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
+                                        <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Direct Microsoft Graph mailbox injection without user passwords is under construction." />
+                                        <ComboBoxItem Content="Google Workspace (Gmail API) — Coming Soon" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" IsEnabled="False" ToolTip="Google Domain-Wide Delegation &amp; Gmail API migration without user passwords is under construction." />
+                                    </ComboBox>
+                                    <TextBox Grid.Column="2" Text="{Binding BatchDestHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Dest Host (e.g. imap.newserver.com)" />
+                                    <TextBox Grid.Column="4" Text="{Binding BatchDestPort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993)" />
                                 </Grid>
                             </StackPanel>
 
@@ -463,7 +484,7 @@
                             
                             <DataGrid.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="▶ Start / Queue This Account" Command="{Binding QueueSelectedAccountCommand}" ToolTip="Start migrating or queue into active batch" />
+                                    <MenuItem Header="▶ Start / Queue / Pause Account" Command="{Binding QueueSelectedAccountCommand}" ToolTip="Start migrating, pause active, or queue into running batch" />
                                     <MenuItem Header="🔍 Test Account Credentials" Command="{Binding TestSelectedAccountCommand}" ToolTip="Test IMAP connection for this account" />
                                     <Separator />
                                     <MenuItem Header="📋 Copy Source Email" Command="{Binding CopySourceEmailCommand}" />
@@ -653,22 +674,39 @@
                                 <!-- Details -->
                                 <DataGridTextColumn Header="Details" Binding="{Binding StatusMessage, Mode=OneWay}" ElementStyle="{StaticResource DataGridTextStyle}" Width="2*" IsReadOnly="True" />
 
-                                <!-- Action Buttons -->
+                                 <!-- Action Buttons -->
                                 <DataGridTemplateColumn Header="Action" Width="75">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Button Content="▶" 
-                                                        Command="{Binding DataContext.StartSingleAccountInBatchCommand, ElementName=BatchGrid}"
+                                                <Button Command="{Binding DataContext.StartSingleAccountInBatchCommand, ElementName=BatchGrid}"
                                                         CommandParameter="{Binding}"
                                                         Background="Transparent" 
                                                         BorderThickness="0" 
-                                                        Foreground="#34D399" 
                                                         FontSize="13" 
                                                         Cursor="Hand"
-                                                        ToolTip="Start or Queue into running batch"
                                                         Padding="4,2" 
-                                                        Margin="0,0,4,0" />
+                                                        Margin="0,0,4,0">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Setter Property="Content" Value="▶" />
+                                                            <Setter Property="Foreground" Value="#34D399" />
+                                                            <Setter Property="ToolTip" Value="Start or Queue into running batch" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:MigrationStatus.InProgress}">
+                                                                    <Setter Property="Content" Value="⏸" />
+                                                                    <Setter Property="Foreground" Value="#FBBF24" />
+                                                                    <Setter Property="ToolTip" Value="Pause this migration" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Status}" Value="{x:Static models:MigrationStatus.Paused}">
+                                                                    <Setter Property="Content" Value="▶" />
+                                                                    <Setter Property="Foreground" Value="#34D399" />
+                                                                    <Setter Property="ToolTip" Value="Resume migration" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
                                                 <Button Content="🗑" 
                                                         Command="{Binding DataContext.DeleteAccountRowCommand, ElementName=BatchGrid}"
                                                         CommandParameter="{Binding}"
