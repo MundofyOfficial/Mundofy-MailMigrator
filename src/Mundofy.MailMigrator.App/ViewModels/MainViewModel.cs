@@ -4,10 +4,12 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Microsoft.Win32;
+using System.Globalization;
 using Mundofy.MailMigrator.Core.Models;
 using Mundofy.MailMigrator.Core.Parsers;
 using Mundofy.MailMigrator.Core.Services;
 using Mundofy.MailMigrator.App.Dialogs;
+using Mundofy.MailMigrator.App.Services;
 
 namespace Mundofy.MailMigrator.App.ViewModels;
 
@@ -84,6 +86,13 @@ public class MainViewModel : INotifyPropertyChanged
         ClearBatchCommand = new RelayCommand(ClearBatch, () => !IsBatchRunning);
         ClearLogsCommand = new RelayCommand(ClearLogs);
 
+        CheckForUpdatesCommand = new RelayCommand(async () => await CheckForUpdatesExplicitAsync());
+        OpenUpdateDialogCommand = new RelayCommand(() =>
+        {
+            if (UpdateInfo != null)
+                UpdateDialog.ShowDialog(Application.Current?.MainWindow, UpdateInfo);
+        });
+
         // Populate sample initial row in batch table
         BatchAccounts.Add(new AccountJob
         {
@@ -95,7 +104,10 @@ public class MainViewModel : INotifyPropertyChanged
             StatusMessage = "Ready"
         });
 
-        AddLog(LogLevel.Info, "Mundofy MailMigrator v1.1.0 initialized.");
+        AddLog(LogLevel.Info, "Mundofy MailMigrator v1.2.0 initialized.");
+
+        // Non-blocking background check for updates on startup
+        _ = CheckForUpdatesSilentlyAsync();
     }
 
     #region Single Migration Properties
@@ -427,6 +439,239 @@ public class MainViewModel : INotifyPropertyChanged
     {
         get => _dstRootFolder;
         set => SetField(ref _dstRootFolder, value);
+    }
+
+    #endregion
+
+    #region Date Filtering (DD-MM-YYYY)
+
+    private bool _enableDateFilter = false;
+    public bool EnableDateFilter
+    {
+        get => _enableDateFilter;
+        set
+        {
+            if (SetField(ref _enableDateFilter, value))
+            {
+                ValidateDateFilter();
+            }
+        }
+    }
+
+    private string _sinceDateText = "";
+    public string SinceDateText
+    {
+        get => _sinceDateText;
+        set
+        {
+            if (SetField(ref _sinceDateText, value))
+            {
+                ValidateDateFilter();
+            }
+        }
+    }
+
+    private string _beforeDateText = "";
+    public string BeforeDateText
+    {
+        get => _beforeDateText;
+        set
+        {
+            if (SetField(ref _beforeDateText, value))
+            {
+                ValidateDateFilter();
+            }
+        }
+    }
+
+    private string _selectedDatePreset = "All Emails (No date limit)";
+    public string SelectedDatePreset
+    {
+        get => _selectedDatePreset;
+        set
+        {
+            if (SetField(ref _selectedDatePreset, value))
+            {
+                ApplyDatePreset(value);
+            }
+        }
+    }
+
+    public List<string> DatePresets { get; } = new()
+    {
+        "All Emails (No date limit)",
+        "Last 6 Months",
+        "Last 1 Year",
+        "Last 2 Years",
+        "Custom Date Range"
+    };
+
+    private string _dateFilterValidationMessage = "";
+    public string DateFilterValidationMessage
+    {
+        get => _dateFilterValidationMessage;
+        set => SetField(ref _dateFilterValidationMessage, value);
+    }
+
+    private void ApplyDatePreset(string preset)
+    {
+        if (preset.StartsWith("All Emails", StringComparison.OrdinalIgnoreCase))
+        {
+            EnableDateFilter = false;
+            SinceDateText = "";
+            BeforeDateText = "";
+        }
+        else if (preset.StartsWith("Last 6 Months", StringComparison.OrdinalIgnoreCase))
+        {
+            EnableDateFilter = true;
+            SinceDateText = DateTime.Today.AddMonths(-6).ToString("dd-MM-yyyy");
+            BeforeDateText = "";
+        }
+        else if (preset.StartsWith("Last 1 Year", StringComparison.OrdinalIgnoreCase))
+        {
+            EnableDateFilter = true;
+            SinceDateText = DateTime.Today.AddYears(-1).ToString("dd-MM-yyyy");
+            BeforeDateText = "";
+        }
+        else if (preset.StartsWith("Last 2 Years", StringComparison.OrdinalIgnoreCase))
+        {
+            EnableDateFilter = true;
+            SinceDateText = DateTime.Today.AddYears(-2).ToString("dd-MM-yyyy");
+            BeforeDateText = "";
+        }
+        else if (preset.StartsWith("Custom", StringComparison.OrdinalIgnoreCase))
+        {
+            EnableDateFilter = true;
+        }
+    }
+
+    private void ValidateDateFilter()
+    {
+        if (!EnableDateFilter)
+        {
+            DateFilterValidationMessage = "";
+            return;
+        }
+
+        bool sinceValid = true;
+        DateTime? since = null;
+        if (!string.IsNullOrWhiteSpace(SinceDateText))
+        {
+            if (TryParseDate(SinceDateText, out var dt))
+                since = dt;
+            else
+                sinceValid = false;
+        }
+
+        bool beforeValid = true;
+        DateTime? before = null;
+        if (!string.IsNullOrWhiteSpace(BeforeDateText))
+        {
+            if (TryParseDate(BeforeDateText, out var dt))
+                before = dt;
+            else
+                beforeValid = false;
+        }
+
+        if (!sinceValid && !beforeValid)
+        {
+            DateFilterValidationMessage = "⚠️ Invalid start and end dates. Use DD-MM-YYYY format (e.g. 01-01-2025).";
+        }
+        else if (!sinceValid)
+        {
+            DateFilterValidationMessage = "⚠️ Invalid start date. Use DD-MM-YYYY format (e.g. 01-01-2025).";
+        }
+        else if (!beforeValid)
+        {
+            DateFilterValidationMessage = "⚠️ Invalid end date. Use DD-MM-YYYY format (e.g. 01-01-2025).";
+        }
+        else if (since.HasValue && before.HasValue && since.Value > before.Value)
+        {
+            DateFilterValidationMessage = "⚠️ Start date cannot be after end date.";
+        }
+        else if (since.HasValue && before.HasValue)
+        {
+            DateFilterValidationMessage = $"✓ Migrating emails between {since:dd-MM-yyyy} and {before:dd-MM-yyyy}.";
+        }
+        else if (since.HasValue)
+        {
+            DateFilterValidationMessage = $"✓ Migrating emails received on or after {since:dd-MM-yyyy}.";
+        }
+        else if (before.HasValue)
+        {
+            DateFilterValidationMessage = $"✓ Migrating emails received on or before {before:dd-MM-yyyy}.";
+        }
+        else
+        {
+            DateFilterValidationMessage = "ℹ Enter a Start Date (DD-MM-YYYY) to filter emails.";
+        }
+    }
+
+    public static bool TryParseDate(string input, out DateTime dt)
+    {
+        string[] formats = { "dd-MM-yyyy", "d-M-yyyy", "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd" };
+        return DateTime.TryParseExact(input.Trim(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt);
+    }
+
+    #endregion
+
+    #region Software Updates
+
+    private bool _isUpdateAvailable;
+    public bool IsUpdateAvailable
+    {
+        get => _isUpdateAvailable;
+        set => SetField(ref _isUpdateAvailable, value);
+    }
+
+    private string _latestVersion = "";
+    public string LatestVersion
+    {
+        get => _latestVersion;
+        set => SetField(ref _latestVersion, value);
+    }
+
+    private UpdateInfo? _updateInfo;
+    public UpdateInfo? UpdateInfo
+    {
+        get => _updateInfo;
+        set => SetField(ref _updateInfo, value);
+    }
+
+    public RelayCommand CheckForUpdatesCommand { get; }
+    public RelayCommand OpenUpdateDialogCommand { get; }
+
+    private async Task CheckForUpdatesSilentlyAsync()
+    {
+        try
+        {
+            var info = await UpdateService.CheckForUpdateAsync();
+            if (info.HasUpdate)
+            {
+                UpdateInfo = info;
+                LatestVersion = info.LatestVersion;
+                IsUpdateAvailable = true;
+                AddLog(LogLevel.Info, $"⚡ Software update v{info.LatestVersion} is available on GitHub (current: v{info.CurrentVersion}).");
+            }
+        }
+        catch { }
+    }
+
+    private async Task CheckForUpdatesExplicitAsync()
+    {
+        AddLog(LogLevel.Info, "Checking GitHub for latest release...");
+        var info = await UpdateService.CheckForUpdateAsync();
+        UpdateInfo = info;
+        if (info.HasUpdate)
+        {
+            LatestVersion = info.LatestVersion;
+            IsUpdateAvailable = true;
+            UpdateDialog.ShowDialog(Application.Current?.MainWindow, info);
+        }
+        else
+        {
+            DarkMessageBox.Show($"You are running the latest version of Mundofy MailMigrator (v{info.CurrentVersion}).", "Up to Date", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
     }
 
     #endregion
@@ -1182,6 +1427,18 @@ public class MainViewModel : INotifyPropertyChanged
         if (!string.IsNullOrWhiteSpace(DenyFlags))
         {
             options.DenyFlags = DenyFlags.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+        }
+
+        if (EnableDateFilter)
+        {
+            if (!string.IsNullOrWhiteSpace(SinceDateText) && TryParseDate(SinceDateText, out var since))
+            {
+                options.SinceDate = since;
+            }
+            if (!string.IsNullOrWhiteSpace(BeforeDateText) && TryParseDate(BeforeDateText, out var before))
+            {
+                options.BeforeDate = before;
+            }
         }
 
         return options;

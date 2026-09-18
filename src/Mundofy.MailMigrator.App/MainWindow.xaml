@@ -43,8 +43,34 @@
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="Mundofy MailMigrator" FontWeight="Bold" FontSize="20" Foreground="#FFFFFF" />
                             <Border Background="#1E3A8A" CornerRadius="4" Padding="7,2" Margin="10,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="v1.1.0" FontSize="11" FontWeight="Bold" Foreground="#93C5FD" />
+                                <TextBlock Text="v1.2.0" FontSize="11" FontWeight="Bold" Foreground="#93C5FD" />
                             </Border>
+
+                            <!-- In-App Update Notification Badge -->
+                            <Button Command="{Binding OpenUpdateDialogCommand}"
+                                    Cursor="Hand"
+                                    Margin="12,0,0,0"
+                                    Padding="10,3"
+                                    Background="#065F46"
+                                    BorderBrush="#10B981"
+                                    BorderThickness="1"
+                                    ToolTip="A newer version of Mundofy MailMigrator is available on GitHub. Click to update now.">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsUpdateAvailable}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="⚡ Update Available: " FontSize="11" FontWeight="Bold" Foreground="#6EE7B7" />
+                                    <TextBlock Text="{Binding LatestVersion, StringFormat={}v{0}}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+                                    <TextBlock Text=" (Update Now)" FontSize="10" Foreground="#A7F3D0" Margin="5,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                         <TextBlock Text="Modern High-Speed IMAP &amp; POP3 Email Migration Suite | Free for Everyone" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
                     </StackPanel>
@@ -613,36 +639,111 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- ADVANCED SETTINGS CARD -->
-                    <Border Grid.Row="0" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,12">
-                        <StackPanel>
-                            <TextBlock Text="Advanced Migration Options" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" Margin="0,0,0,14" />
-                            
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="18" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Row="0" Margin="0,0,0,12">
+                        <!-- DATE RANGE FILTER CARD -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,12">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Date Range Filter (DD-MM-YYYY)" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" />
+                                        <TextBlock Text="Optionally limit migration to emails within a specific date window. Messages outside this range are skipped instantly." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
+                                    </StackPanel>
+                                    <CheckBox Grid.Column="1" Content="Enable Date Filter" IsChecked="{Binding EnableDateFilter}" FontWeight="SemiBold" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                </Grid>
 
-                                <StackPanel Grid.Column="0">
-                                    <CheckBox Content="Deduplicate Messages (Skip existing Message-IDs)" IsChecked="{Binding Deduplicate}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12" />
-                                    <CheckBox Content="Permit Self-Signed / Invalid SSL Certificates" IsChecked="{Binding AllowInvalidCertificates}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12" />
-                                    
-                                    <TextBlock Text="Destination Root Folder (Optional prefix)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                    <TextBox Text="{Binding DstRootFolder, UpdateSourceTrigger=PropertyChanged}" ToolTip="Copies under this folder instead of root (e.g. 'OldMails')" />
-                                </StackPanel>
+                                <Grid IsEnabled="{Binding EnableDateFilter}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="220" />
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
 
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Folders to Skip (comma separated)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                    <TextBox Text="{Binding SkipFolders, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+                                    <!-- Preset Selector -->
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Preset Range" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                        <ComboBox ItemsSource="{Binding DatePresets}" SelectedItem="{Binding SelectedDatePreset}" />
+                                    </StackPanel>
 
-                                    <TextBlock Text="Deny Flags (space separated, e.g. \Recent)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
-                                    <TextBox Text="{Binding DenyFlags, UpdateSourceTrigger=PropertyChanged}" />
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
+                                    <!-- Since Date (DD-MM-YYYY) -->
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Since Date (DD-MM-YYYY)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                        <TextBox Text="{Binding SinceDateText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Migrate emails received on or after this date. Format: DD-MM-YYYY (e.g. 01-01-2025)" />
+                                    </StackPanel>
+
+                                    <!-- Before Date (DD-MM-YYYY) -->
+                                    <StackPanel Grid.Column="4">
+                                        <TextBlock Text="Until Date (DD-MM-YYYY)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                        <TextBox Text="{Binding BeforeDateText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Migrate emails received on or before this date (leave blank for no end date). Format: DD-MM-YYYY (e.g. 31-12-2025)" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Validation message -->
+                                <TextBlock Text="{Binding DateFilterValidationMessage}" 
+                                           FontSize="12" 
+                                           FontWeight="SemiBold"
+                                           Foreground="#38BDF8" 
+                                           Margin="0,10,0,0" 
+                                           Visibility="{Binding EnableDateFilter, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- ADVANCED SETTINGS CARD -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18">
+                            <StackPanel>
+                                <TextBlock Text="Advanced Migration Options" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" Margin="0,0,0,14" />
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="18" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <CheckBox Content="Deduplicate Messages (Skip existing Message-IDs)" IsChecked="{Binding Deduplicate}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                                        <CheckBox Content="Permit Self-Signed / Invalid SSL Certificates" IsChecked="{Binding AllowInvalidCertificates}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                                        
+                                        <TextBlock Text="Destination Root Folder (Optional prefix)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                        <TextBox Text="{Binding DstRootFolder, UpdateSourceTrigger=PropertyChanged}" ToolTip="Copies under this folder instead of root (e.g. 'OldMails')" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Folders to Skip (comma separated)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                        <TextBox Text="{Binding SkipFolders, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+
+                                        <TextBlock Text="Deny Flags (space separated, e.g. \Recent)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                        <TextBox Text="{Binding DenyFlags, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- IN-APP UPDATES & RELEASES ROW -->
+                                <Border BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,1,0,0" Margin="0,16,0,0" Padding="0,14,0,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Software Updates" FontWeight="SemiBold" FontSize="13" Foreground="#FFFFFF" />
+                                            <TextBlock Text="Check GitHub for newer versions of Mundofy MailMigrator with seamless 1-click in-place update." FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Command="{Binding CheckForUpdatesCommand}" Padding="14,6" FontSize="12" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="🔄" Margin="0,0,6,0" FontSize="11" VerticalAlignment="Center" />
+                                                <TextBlock Text="Check for Updates" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
 
                     <!-- LIVE LOGS VIEWER -->
                     <Border Grid.Row="1" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16">
@@ -687,7 +788,7 @@
                             
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Mundofy MailMigrator" FontWeight="Bold" FontSize="24" Foreground="#FFFFFF" />
-                                <TextBlock Text="Version 1.1.0" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
+                                <TextBlock Text="Version 1.2.0" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
                             </StackPanel>
                         </StackPanel>
 

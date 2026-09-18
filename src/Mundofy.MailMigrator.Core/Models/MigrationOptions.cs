@@ -20,6 +20,18 @@ public class MigrationOptions
     public bool Deduplicate { get; set; } = true;
     public string DstRootFolder { get; set; } = string.Empty;
 
+    public DateTime? SinceDate { get; set; }
+    public DateTime? BeforeDate { get; set; }
+
+    public bool IsDateAllowed(DateTimeOffset? date)
+    {
+        if (!date.HasValue) return true;
+        var dt = date.Value.Date;
+        if (SinceDate.HasValue && dt < SinceDate.Value.Date) return false;
+        if (BeforeDate.HasValue && dt > BeforeDate.Value.Date) return false;
+        return true;
+    }
+
     public bool ShouldCopyFolder(string folderName)
     {
         if (CopyFolders.Count > 0 && !CopyFolders.Any(f => f.Equals(folderName, StringComparison.OrdinalIgnoreCase)))

@@ -5,6 +5,26 @@ All notable changes to **Mundofy MailMigrator** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-09-18
+
+### Added
+* **📅 Date Range Filtering (`DD-MM-YYYY`)**:
+  * Filter migrated emails by date window (since a starting date, before an ending date, or both).
+  * High-efficiency early filtering: inspects envelope metadata during initial folder scan and skips excluded messages before downloading message bodies.
+  * Convenient UI presets: *All Emails (No date limit)*, *Last 6 Months*, *Last 1 Year*, *Last 2 Years*, and *Custom Date Range*.
+  * European `DD-MM-YYYY` format support with live input validation and descriptive status feedback.
+  * Unified support across both IMAP-to-IMAP and POP3-to-IMAP migration engines.
+* **⚡ In-App GitHub Update Checker & 1-Click In-Place Self-Updater**:
+  * Automatic non-blocking check for new releases on startup.
+  * Interactive `Check for Updates` button in the Settings tab.
+  * Top navigation badge alerting users when a new release is available on GitHub.
+  * Rich dark update modal displaying the new version number, release date, and full markdown changelog.
+  * Seamless 1-click in-place executable replacement and restart wherever `MundofyMailMigrator.exe` is located (Desktop, Downloads, etc.) without requiring an installer.
+
+### Changed
+* **📦 Streamlined Single Executable Distribution**:
+  * Removed duplicate versioned executable file generation. All future releases package and distribute exclusively `MundofyMailMigrator.exe` to ensure existing desktop shortcuts, taskbar pins, and scripts remain intact across updates.
+
 ---
 
 ## [1.1.0] - 2026-09-17

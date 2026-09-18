@@ -268,6 +268,15 @@ public class ImapMigrationService
                         var rawMsgId = summary.Envelope?.MessageId;
                         var normMsgId = NormalizeMessageId(rawMsgId);
                         var msgDate = summary.Envelope?.Date ?? summary.InternalDate;
+
+                        // Date range filter check (SinceDate / BeforeDate)
+                        if (!options.IsDateAllowed(msgDate))
+                        {
+                            job.SkippedMessages++;
+                            progress?.Report(job);
+                            continue;
+                        }
+
                         var fp = BuildFingerprint(msgDate, summary.Envelope?.Subject, summary.Envelope?.From?.ToString());
                         var syntheticId = GenerateSyntheticMessageId(msgDate, summary.Envelope?.Subject, summary.Envelope?.From?.ToString());
 
@@ -431,6 +440,15 @@ public class ImapMigrationService
             try
             {
                 var message = await popClient.GetMessageAsync(i, ct);
+
+                // Date range filter check (SinceDate / BeforeDate)
+                if (!options.IsDateAllowed(message.Date))
+                {
+                    job.SkippedMessages++;
+                    progress?.Report(job);
+                    continue;
+                }
+
                 var normMsgId = NormalizeMessageId(message.MessageId);
                 var fp = BuildFingerprint(message.Date, message.Subject, message.From?.ToString());
                 var syntheticId = GenerateSyntheticMessageId(message.Date, message.Subject, message.From?.ToString());
