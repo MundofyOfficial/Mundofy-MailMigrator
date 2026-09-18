@@ -33,7 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Fixed right-click behavior so the row under the cursor is automatically selected and targeted.
   * Added context menu quick actions: **`▶ Start / Queue This Account`**, **`🔍 Test Account Credentials`**, **`📋 Copy Source/Dest Email`**, **`🗑 Remove Account`**, **`🧹 Clear Completed Accounts`**, and **`⚠️ Clear Entire Batch`**.
   * Added dual-action column with side-by-side **`▶`** (Start/Queue) and **`🗑`** (Delete) buttons on each row.
-  * Added interactive **Replace or Append** confirmation dialog when importing accounts into an existing batch list (via CSV/TSV, ImapCopy.cfg, or Clipboard).
+
+* **✨ Custom Dark Modal Dialogs & Fixed DataGrid Selection**:
+  * **Eliminated the "White Line" Selection Bug:** Replaced default Win32/Aero system selection brushes with custom transparent cell templates and rich deep navy (`#1E3A5F`) row selection highlighting. Text columns and cells now maintain a unified, dark slate look without white backgrounds.
+  * **Custom Dark Import Dialog:** Replaced native Win32 `MessageBox` with a custom `ImportAccountsDialog` matching the app's aesthetic: dark slate card with drop shadows, live account count comparison badges, clear descriptions, and custom buttons (**`🔄 Replace List`**, **`➕ Append to List`**, and **`Cancel`**).
+  * **Universal Dark Alerts:** Added `DarkMessageBox` across the entire app for warnings, errors, and queue confirmations, completely removing all standard white Windows message boxes.
 
 * **📦 Versioned Executable Distribution**:
   * Added explicitly named standalone binary: `MundofyMailMigrator-v1.1.0.exe` alongside `MundofyMailMigrator.exe` to prevent browser caching conflicts.

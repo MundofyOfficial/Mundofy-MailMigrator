@@ -7,8 +7,16 @@ using Microsoft.Win32;
 using Mundofy.MailMigrator.Core.Models;
 using Mundofy.MailMigrator.Core.Parsers;
 using Mundofy.MailMigrator.Core.Services;
+using Mundofy.MailMigrator.App.Dialogs;
 
 namespace Mundofy.MailMigrator.App.ViewModels;
+
+public enum BatchImportDecision
+{
+    Cancel,
+    Replace,
+    Append
+}
 
 public class MainViewModel : INotifyPropertyChanged
 {
@@ -46,7 +54,7 @@ public class MainViewModel : INotifyPropertyChanged
             {
                 if (job.Status == MigrationStatus.InProgress)
                 {
-                    MessageBox.Show("Cannot delete an account while it is actively migrating.", "Account Busy", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    DarkMessageBox.Show("Cannot delete an account while it is actively migrating.", "Account Busy", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
                 BatchAccounts.Remove(job);
@@ -672,7 +680,7 @@ public class MainViewModel : INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(SingleSourceHost) || string.IsNullOrWhiteSpace(SingleDestHost))
         {
-            MessageBox.Show("Please specify both Source and Destination server hosts.", "Missing Host", MessageBoxButton.OK, MessageBoxImage.Warning);
+            DarkMessageBox.Show("Please specify both Source and Destination server hosts.", "Missing Host", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -748,7 +756,7 @@ public class MainViewModel : INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(account.SourceUser) || string.IsNullOrWhiteSpace(account.DestUser))
         {
-            MessageBox.Show("Please enter valid Source and Destination email addresses for this account.", "Missing Details", MessageBoxButton.OK, MessageBoxImage.Warning);
+            DarkMessageBox.Show("Please enter valid Source and Destination email addresses for this account.", "Missing Details", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -784,7 +792,7 @@ public class MainViewModel : INotifyPropertyChanged
 
         if (string.IsNullOrWhiteSpace(BatchSourceHost) || string.IsNullOrWhiteSpace(BatchDestHost))
         {
-            MessageBox.Show("Please specify both Source and Destination server hosts in the Batch setup card.", "Missing Host", MessageBoxButton.OK, MessageBoxImage.Warning);
+            DarkMessageBox.Show("Please specify both Source and Destination server hosts in the Batch setup card.", "Missing Host", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -854,18 +862,11 @@ public class MainViewModel : INotifyPropertyChanged
         {
             if (SelectedAccount.Status == MigrationStatus.InProgress)
             {
-                MessageBox.Show("Cannot delete an account while it is actively migrating.", "Account Busy", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DarkMessageBox.Show("Cannot delete an account while it is actively migrating.", "Account Busy", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
             BatchAccounts.Remove(SelectedAccount);
         }
-    }
-
-    private enum BatchImportDecision
-    {
-        Cancel,
-        Replace,
-        Append
     }
 
     private BatchImportDecision PromptBatchImportMode(int newAccountCount, string sourceDescription)
@@ -873,22 +874,7 @@ public class MainViewModel : INotifyPropertyChanged
         if (BatchAccounts.Count == 0)
             return BatchImportDecision.Append;
 
-        var result = MessageBox.Show(
-            $"The batch accounts list currently contains {BatchAccounts.Count} account(s).\n\n" +
-            $"You are importing {newAccountCount} account(s) from {sourceDescription}.\n\n" +
-            "• Click 'Yes' to REPLACE the existing list.\n" +
-            "• Click 'No' to APPEND (add) to the existing list.\n" +
-            "• Click 'Cancel' to abort the import.",
-            "Import Accounts - Replace or Append?",
-            MessageBoxButton.YesNoCancel,
-            MessageBoxImage.Question);
-
-        return result switch
-        {
-            MessageBoxResult.Yes => BatchImportDecision.Replace,
-            MessageBoxResult.No => BatchImportDecision.Append,
-            _ => BatchImportDecision.Cancel
-        };
+        return ImportAccountsDialog.Show(Application.Current?.MainWindow, BatchAccounts.Count, newAccountCount, sourceDescription);
     }
 
     private void PasteFromClipboard()
@@ -904,9 +890,8 @@ public class MainViewModel : INotifyPropertyChanged
 
         if (IsBatchRunning)
         {
-            var res = MessageBox.Show(
-                $"A batch migration is currently in progress.\n\n" +
-                $"Do you want to append these {accounts.Count} account(s) and queue them directly into the running batch?",
+            var res = DarkMessageBox.Show(
+                $"A batch migration is currently in progress.\n\nDo you want to append these {accounts.Count} account(s) and queue them directly into the running batch?",
                 "Queue into Running Batch?",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
@@ -958,7 +943,7 @@ public class MainViewModel : INotifyPropertyChanged
 
             if (result.Accounts.Count == 0)
             {
-                MessageBox.Show("No account directives found in the selected configuration file.", "Empty Configuration", MessageBoxButton.OK, MessageBoxImage.Information);
+                DarkMessageBox.Show("No account directives found in the selected configuration file.", "Empty Configuration", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -1012,15 +997,14 @@ public class MainViewModel : INotifyPropertyChanged
 
             if (accounts.Count == 0)
             {
-                MessageBox.Show("No valid account rows found in the selected file.", "Empty File", MessageBoxButton.OK, MessageBoxImage.Information);
+                DarkMessageBox.Show("No valid account rows found in the selected file.", "Empty File", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             if (IsBatchRunning)
             {
-                var res = MessageBox.Show(
-                    $"A batch migration is currently in progress.\n\n" +
-                    $"Do you want to append these {accounts.Count} account(s) from '{fileName}' and queue them directly into the running batch?",
+                var res = DarkMessageBox.Show(
+                    $"A batch migration is currently in progress.\n\nDo you want to append these {accounts.Count} account(s) from '{fileName}' and queue them directly into the running batch?",
                     "Queue into Running Batch?",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
@@ -1048,7 +1032,8 @@ public class MainViewModel : INotifyPropertyChanged
                 BatchAccounts.Clear();
             }
 
-            foreach (var acc in accounts) BatchAccounts.Add(acc);
+            foreach (var acc in accounts)
+                BatchAccounts.Add(acc);
 
             if (decision == BatchImportDecision.Replace)
                 AddLog(LogLevel.Success, $"Replaced batch list with {accounts.Count} accounts from '{fileName}'");
@@ -1076,8 +1061,14 @@ public class MainViewModel : INotifyPropertyChanged
 
     private async Task TestAllBatchAsync()
     {
+        if (string.IsNullOrWhiteSpace(BatchSourceHost) || string.IsNullOrWhiteSpace(BatchDestHost))
+        {
+            DarkMessageBox.Show("Please specify both Source and Destination server hosts in the Batch setup card.", "Missing Host", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
         IsBatchRunning = true;
-        BatchStatusText = "Testing credentials in parallel...";
+        BatchStatusText = "Testing credentials...";
 
         var srcEndpoint = new ServerEndpoint
         {
@@ -1112,7 +1103,7 @@ public class MainViewModel : INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(BatchSourceHost) || string.IsNullOrWhiteSpace(BatchDestHost))
         {
-            MessageBox.Show("Please specify both Source and Destination server hosts in the Batch setup card.", "Missing Host", MessageBoxButton.OK, MessageBoxImage.Warning);
+            DarkMessageBox.Show("Please specify both Source and Destination server hosts in the Batch setup card.", "Missing Host", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 

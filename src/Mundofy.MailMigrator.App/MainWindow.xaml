@@ -367,9 +367,10 @@
                                   AutoGenerateColumns="False" 
                                   CanUserAddRows="False"
                                   CanUserDeleteRows="True"
+                                  SelectionUnit="FullRow"
+                                  SelectionMode="Single"
+                                  AlternationCount="2"
                                   Background="Transparent"
-                                  RowBackground="#1E293B"
-                                  AlternatingRowBackground="#182234"
                                   Foreground="{StaticResource TextPrimaryBrush}"
                                   GridLinesVisibility="Horizontal"
                                   HorizontalGridLinesBrush="#334155"
@@ -377,6 +378,20 @@
                                   HeadersVisibility="Column"
                                   ColumnHeaderHeight="38"
                                   RowHeight="36">
+
+                            <DataGrid.Resources>
+                                <!-- Override system highlight brushes so WPF never paints native Win32/Aero white highlights -->
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
+                                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="#FFFFFF" />
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent" />
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}" Color="#FFFFFF" />
+
+                                <Style x:Key="DataGridTextStyle" TargetType="TextBlock">
+                                    <Setter Property="VerticalAlignment" Value="Center" />
+                                    <Setter Property="Padding" Value="4,0" />
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                                </Style>
+                            </DataGrid.Resources>
                             
                             <DataGrid.ContextMenu>
                                 <ContextMenu>
@@ -392,16 +407,64 @@
                                 </ContextMenu>
                             </DataGrid.ContextMenu>
 
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="Padding" Value="8,0" />
+                                    <Setter Property="VerticalContentAlignment" Value="Center" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="DataGridCell">
+                                                <Border Background="Transparent"
+                                                        BorderBrush="Transparent"
+                                                        BorderThickness="0"
+                                                        Padding="{TemplateBinding Padding}"
+                                                        SnapsToDevicePixels="True">
+                                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                                                      VerticalAlignment="Center" />
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Setter Property="Foreground" Value="#FFFFFF" />
+                                        </Trigger>
+                                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                            <Setter Property="BorderThickness" Value="0" />
+                                            <Setter Property="Background" Value="Transparent" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.CellStyle>
+
                             <DataGrid.RowStyle>
                                 <Style TargetType="DataGridRow">
                                     <EventSetter Event="PreviewMouseRightButtonDown" Handler="OnDataGridRowPreviewMouseRightButtonDown" />
+                                    <Setter Property="Background" Value="#1E293B" />
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+                                    <Setter Property="BorderThickness" Value="0" />
                                     <Style.Triggers>
+                                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                            <Setter Property="Background" Value="#182234" />
+                                        </Trigger>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#243247" />
+                                            <Setter Property="Background" Value="#25354C" />
                                         </Trigger>
                                         <Trigger Property="IsSelected" Value="True">
                                             <Setter Property="Background" Value="#1E3A5F" />
+                                            <Setter Property="Foreground" Value="#FFFFFF" />
                                         </Trigger>
+                                        <MultiTrigger>
+                                            <MultiTrigger.Conditions>
+                                                <Condition Property="IsSelected" Value="True" />
+                                                <Condition Property="IsMouseOver" Value="True" />
+                                            </MultiTrigger.Conditions>
+                                            <Setter Property="Background" Value="#23456F" />
+                                        </MultiTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </DataGrid.RowStyle>
@@ -420,16 +483,16 @@
 
                             <DataGrid.Columns>
                                 <!-- Source User -->
-                                <DataGridTextColumn Header="Source User / Email" Binding="{Binding SourceUser, UpdateSourceTrigger=PropertyChanged}" Width="1.8*" />
+                                <DataGridTextColumn Header="Source User / Email" Binding="{Binding SourceUser, UpdateSourceTrigger=PropertyChanged}" ElementStyle="{StaticResource DataGridTextStyle}" Width="1.8*" />
 
                                 <!-- Source Password -->
-                                <DataGridTextColumn Header="Source Password" Binding="{Binding SourcePassword, UpdateSourceTrigger=PropertyChanged}" Width="1.4*" />
+                                <DataGridTextColumn Header="Source Password" Binding="{Binding SourcePassword, UpdateSourceTrigger=PropertyChanged}" ElementStyle="{StaticResource DataGridTextStyle}" Width="1.4*" />
 
                                 <!-- Dest User -->
-                                <DataGridTextColumn Header="Dest User / Email" Binding="{Binding DestUser, UpdateSourceTrigger=PropertyChanged}" Width="1.8*" />
+                                <DataGridTextColumn Header="Dest User / Email" Binding="{Binding DestUser, UpdateSourceTrigger=PropertyChanged}" ElementStyle="{StaticResource DataGridTextStyle}" Width="1.8*" />
 
                                 <!-- Dest Password -->
-                                <DataGridTextColumn Header="Dest Password" Binding="{Binding DestPassword, UpdateSourceTrigger=PropertyChanged}" Width="1.4*" />
+                                <DataGridTextColumn Header="Dest Password" Binding="{Binding DestPassword, UpdateSourceTrigger=PropertyChanged}" ElementStyle="{StaticResource DataGridTextStyle}" Width="1.4*" />
 
                                 <!-- Status Badge -->
                                 <DataGridTemplateColumn Header="Status" Width="120">
@@ -471,10 +534,10 @@
                                 </DataGridTemplateColumn>
 
                                 <!-- Speed -->
-                                <DataGridTextColumn Header="Speed" Binding="{Binding TransferSpeed, Mode=OneWay}" Width="90" IsReadOnly="True" />
+                                <DataGridTextColumn Header="Speed" Binding="{Binding TransferSpeed, Mode=OneWay}" ElementStyle="{StaticResource DataGridTextStyle}" Width="90" IsReadOnly="True" />
 
                                 <!-- Details -->
-                                <DataGridTextColumn Header="Details" Binding="{Binding StatusMessage, Mode=OneWay}" Width="2*" IsReadOnly="True" />
+                                <DataGridTextColumn Header="Details" Binding="{Binding StatusMessage, Mode=OneWay}" ElementStyle="{StaticResource DataGridTextStyle}" Width="2*" IsReadOnly="True" />
 
                                 <!-- Action Buttons -->
                                 <DataGridTemplateColumn Header="Action" Width="75">
