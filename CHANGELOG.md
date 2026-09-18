@@ -38,6 +38,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **📦 Versioned Executable Distribution**:
   * Added explicitly named standalone binary: `MundofyMailMigrator-v1.1.0.exe` alongside `MundofyMailMigrator.exe` to prevent browser caching conflicts.
 
+* **🛡️ Multi-Tier Robust Deduplication Engine**:
+  * Eliminates duplicate email transfers on incremental runs, even when IMAP servers format headers differently or omit standard RFC `Message-ID` fields.
+  * **3-Tier Protection Hierarchy**:
+    1. *Normalized RFC 5322 Message-ID:* Trims enclosing angle brackets (`<`, `>`), strips whitespace, and compares case-insensitively to prevent cross-server envelope formatting mismatches.
+    2. *Composite Fallback Fingerprinting:* Fallback for messages lacking a `Message-ID` header (or where the server returns `NIL` in `FETCH ENVELOPE`). Constructs a deterministic composite signature combining UTC Timestamp (to the minute), Sender (`From`), and Subject line.
+    3. *Synthetic Message-ID Injection:* When copying an email without an RFC `Message-ID`, dynamically injects a deterministic synthetic header (`<synth-{hash}@mundofy.migrated>`) into the destination message so subsequent sync passes identify it as an existing message immediately.
+  * **Unified Pipelines:** Applied across both IMAP-to-IMAP and POP3-to-IMAP migration engines.
+  * **Live Diagnostic Logging:** Logs exact message subject, date, and assigned Message-ID/fingerprint for all copied messages.
+
 ---
 
 ## [1.0.0] - 2026-09-16

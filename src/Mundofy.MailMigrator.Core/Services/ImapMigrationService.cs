@@ -221,17 +221,33 @@ public class ImapMigrationService
                 await dstFolder.OpenAsync(FolderAccess.ReadWrite, ct);
                 try
                 {
-                    // Deduplication: retrieve existing Message-IDs from destination folder
+                    // Deduplication: retrieve existing Message-IDs and fallback fingerprints from destination folder
                     var existingMessageIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    var existingFingerprints = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
                     if (options.Deduplicate && dstFolder.Count > 0)
                     {
                         job.StatusMessage = $"Checking for existing messages in '{dstFolder.FullName}'...";
                         progress?.Report(job);
-                        var dstSummaries = await dstFolder.FetchAsync(0, -1, MessageSummaryItems.Envelope, ct);
+
+                        var dstItems = MessageSummaryItems.Envelope |
+                                       MessageSummaryItems.InternalDate |
+                                       MessageSummaryItems.Size;
+                        var dstSummaries = await dstFolder.FetchAsync(0, -1, dstItems, ct);
+
                         foreach (var s in dstSummaries)
                         {
-                            if (!string.IsNullOrEmpty(s.Envelope?.MessageId))
-                                existingMessageIds.Add(s.Envelope.MessageId);
+                            var normId = NormalizeMessageId(s.Envelope?.MessageId);
+                            if (normId != null)
+                            {
+                                existingMessageIds.Add(normId);
+                            }
+
+                            var fp = BuildFingerprint(s.Envelope?.Date ?? s.InternalDate, s.Envelope?.Subject, s.Envelope?.From?.ToString());
+                            if (fp != null)
+                            {
+                                existingFingerprints.Add(fp);
+                            }
                         }
                     }
 
@@ -249,10 +265,35 @@ public class ImapMigrationService
                         if (ct.IsCancellationRequested) break;
 
                         var summary = summaries[i];
-                        var msgId = summary.Envelope?.MessageId;
+                        var rawMsgId = summary.Envelope?.MessageId;
+                        var normMsgId = NormalizeMessageId(rawMsgId);
+                        var msgDate = summary.Envelope?.Date ?? summary.InternalDate;
+                        var fp = BuildFingerprint(msgDate, summary.Envelope?.Subject, summary.Envelope?.From?.ToString());
+                        var syntheticId = GenerateSyntheticMessageId(msgDate, summary.Envelope?.Subject, summary.Envelope?.From?.ToString());
 
-                        // Deduplication check: email already exists on destination
-                        if (options.Deduplicate && !string.IsNullOrEmpty(msgId) && existingMessageIds.Contains(msgId))
+                        // Multi-tier deduplication check:
+                        // Tier 1: Normalized Message-ID match
+                        // Tier 2: Composite Fallback Fingerprint match (Date + From + Subject)
+                        // Tier 3: Synthetic Message-ID match
+                        bool isDuplicate = false;
+
+                        if (options.Deduplicate)
+                        {
+                            if (normMsgId != null && existingMessageIds.Contains(normMsgId))
+                            {
+                                isDuplicate = true;
+                            }
+                            else if (fp != null && existingFingerprints.Contains(fp))
+                            {
+                                isDuplicate = true;
+                            }
+                            else if (syntheticId != null && existingMessageIds.Contains(syntheticId))
+                            {
+                                isDuplicate = true;
+                            }
+                        }
+
+                        if (isDuplicate)
                         {
                             job.SkippedMessages++;
                             progress?.Report(job);
@@ -264,19 +305,30 @@ public class ImapMigrationService
                             // Fetch message
                             var message = await srcFolder.GetMessageAsync(summary.UniqueId, ct);
 
+                            // If message lacks Message-ID header, inject deterministic synthetic ID
+                            if (string.IsNullOrWhiteSpace(message.MessageId))
+                            {
+                                message.MessageId = syntheticId ?? $"{Guid.NewGuid():N}@mundofy.migrated";
+                            }
+
                             // Filter flags
                             var flags = FilterFlags(summary.Flags ?? MessageFlags.None, options);
-                            var internalDate = summary.InternalDate ?? DateTimeOffset.Now;
+                            var internalDate = summary.InternalDate ?? summary.Envelope?.Date ?? DateTimeOffset.Now;
 
                             await dstFolder.AppendAsync(message, flags, internalDate, ct);
 
-                            if (!string.IsNullOrEmpty(msgId))
-                                existingMessageIds.Add(msgId);
+                            var recordedId = NormalizeMessageId(message.MessageId);
+                            if (recordedId != null)
+                                existingMessageIds.Add(recordedId);
+                            if (fp != null)
+                                existingFingerprints.Add(fp);
 
                             job.CopiedMessages++;
                             long msgBytes = summary.Size ?? 1024;
                             job.BytesTransferred += msgBytes;
                             job.TransferSpeed = CalculateSpeed(job.BytesTransferred, stopwatch.Elapsed);
+
+                            Log(LogLevel.Info, $"[{job.SourceUser}] Copied msg #{i + 1} in '{srcFolder.FullName}': Subject='{summary.Envelope?.Subject}', Date='{msgDate:yyyy-MM-dd HH:mm}', MsgId='{rawMsgId ?? "(Generated: " + message.MessageId + ")"}'");
                         }
                         catch (Exception ex)
                         {
@@ -350,15 +402,25 @@ public class ImapMigrationService
 
         await dstFolder.OpenAsync(FolderAccess.ReadWrite, ct);
 
-        // Preload Message-IDs for deduplication
+        // Preload Message-IDs and fingerprints for deduplication
         var existingMessageIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var existingFingerprints = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         if (options.Deduplicate && dstFolder.Count > 0)
         {
-            var dstSummaries = await dstFolder.FetchAsync(0, -1, MessageSummaryItems.Envelope, ct);
+            var dstItems = MessageSummaryItems.Envelope |
+                           MessageSummaryItems.InternalDate |
+                           MessageSummaryItems.Size;
+            var dstSummaries = await dstFolder.FetchAsync(0, -1, dstItems, ct);
             foreach (var s in dstSummaries)
             {
-                if (!string.IsNullOrEmpty(s.Envelope?.MessageId))
-                    existingMessageIds.Add(s.Envelope.MessageId);
+                var normId = NormalizeMessageId(s.Envelope?.MessageId);
+                if (normId != null)
+                    existingMessageIds.Add(normId);
+
+                var fp = BuildFingerprint(s.Envelope?.Date ?? s.InternalDate, s.Envelope?.Subject, s.Envelope?.From?.ToString());
+                if (fp != null)
+                    existingFingerprints.Add(fp);
             }
         }
 
@@ -369,21 +431,46 @@ public class ImapMigrationService
             try
             {
                 var message = await popClient.GetMessageAsync(i, ct);
-                if (options.Deduplicate && !string.IsNullOrEmpty(message.MessageId) && existingMessageIds.Contains(message.MessageId))
+                var normMsgId = NormalizeMessageId(message.MessageId);
+                var fp = BuildFingerprint(message.Date, message.Subject, message.From?.ToString());
+                var syntheticId = GenerateSyntheticMessageId(message.Date, message.Subject, message.From?.ToString());
+
+                bool isDuplicate = false;
+                if (options.Deduplicate)
+                {
+                    if (normMsgId != null && existingMessageIds.Contains(normMsgId))
+                        isDuplicate = true;
+                    else if (fp != null && existingFingerprints.Contains(fp))
+                        isDuplicate = true;
+                    else if (syntheticId != null && existingMessageIds.Contains(syntheticId))
+                        isDuplicate = true;
+                }
+
+                if (isDuplicate)
                 {
                     job.SkippedMessages++;
                     progress?.Report(job);
                     continue;
                 }
 
+                if (string.IsNullOrWhiteSpace(message.MessageId))
+                {
+                    message.MessageId = syntheticId ?? $"{Guid.NewGuid():N}@mundofy.migrated";
+                }
+
                 await dstFolder.AppendAsync(message, MessageFlags.Seen, message.Date, ct);
 
-                if (!string.IsNullOrEmpty(message.MessageId))
-                    existingMessageIds.Add(message.MessageId);
+                var recordedId = NormalizeMessageId(message.MessageId);
+                if (recordedId != null)
+                    existingMessageIds.Add(recordedId);
+                if (fp != null)
+                    existingFingerprints.Add(fp);
 
                 job.CopiedMessages++;
                 job.BytesTransferred += 2048; // estimated bytes if not sized
                 job.TransferSpeed = CalculateSpeed(job.BytesTransferred, stopwatch.Elapsed);
+
+                Log(LogLevel.Info, $"[{job.SourceUser}] Copied POP3 msg #{i + 1}: Subject='{message.Subject}', Date='{message.Date:yyyy-MM-dd HH:mm}', MsgId='{message.MessageId}'");
             }
             catch (Exception ex)
             {
@@ -522,5 +609,34 @@ public class ImapMigrationService
             i++;
         }
         return $"{d:0.##} {suffixes[i]}";
+    }
+
+    private static string? NormalizeMessageId(string? id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return null;
+        var trimmed = id.Trim().Trim('<', '>').Trim();
+        return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed.ToLowerInvariant();
+    }
+
+    private static string? BuildFingerprint(DateTimeOffset? date, string? subject, string? from)
+    {
+        if (!date.HasValue && string.IsNullOrWhiteSpace(subject) && string.IsNullOrWhiteSpace(from))
+            return null;
+
+        var dateStr = date.HasValue ? date.Value.ToUniversalTime().ToString("yyyyMMddHHmm") : "nodate";
+        var cleanSubj = string.IsNullOrWhiteSpace(subject) ? "nosubj" : subject.Trim().ToLowerInvariant();
+        var cleanFrom = string.IsNullOrWhiteSpace(from) ? "nofrom" : from.Trim().ToLowerInvariant();
+
+        return $"{dateStr}|{cleanFrom}|{cleanSubj}";
+    }
+
+    private static string? GenerateSyntheticMessageId(DateTimeOffset? date, string? subject, string? from)
+    {
+        var fp = BuildFingerprint(date, subject, from);
+        if (fp == null) return null;
+
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var hash = Convert.ToHexString(sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(fp)))[..16].ToLowerInvariant();
+        return $"{hash}@mundofy.migrated";
     }
 }
