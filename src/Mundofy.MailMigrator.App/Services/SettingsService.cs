@@ -30,6 +30,7 @@ public class AppSettings
     // Advanced Migration Options
     public bool Deduplicate { get; set; } = true;
     public bool AllowInvalidCertificates { get; set; } = false;
+    public bool PreventSleepDuringMigration { get; set; } = true;
     public string DstRootFolder { get; set; } = "";
     public string SkipFolders { get; set; } = "Trash, Junk, Spam, Deleted Items";
     public string DenyFlags { get; set; } = "\\Recent";

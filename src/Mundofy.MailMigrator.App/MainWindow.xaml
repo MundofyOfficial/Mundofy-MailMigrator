@@ -821,6 +821,7 @@
                                     <StackPanel Grid.Column="0">
                                         <CheckBox Content="Deduplicate Messages (Skip existing Message-IDs)" IsChecked="{Binding Deduplicate}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12" />
                                         <CheckBox Content="Permit Self-Signed / Invalid SSL Certificates" IsChecked="{Binding AllowInvalidCertificates}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                                        <CheckBox Content="Prevent Computer Sleep During Migration" IsChecked="{Binding PreventSleepDuringMigration}" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12" ToolTip="Keeps the PC awake while emails are actively transferring so Windows sleep mode won't interrupt connections (monitors can still turn off)." />
                                         
                                         <TextBlock Text="Destination Root Folder (Optional prefix)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
                                         <TextBox Text="{Binding DstRootFolder, UpdateSourceTrigger=PropertyChanged}" ToolTip="Copies under this folder instead of root (e.g. 'OldMails')" />

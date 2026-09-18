@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Added source protocol selection supporting both IMAP and POP3 engines for batch accounts.
   * Added "Coming Soon" indicators for Microsoft 365 (Graph API) and Google Workspace (Gmail API) with informative tooltips and custom disabled item styling.
   * Automatic control locking: protocol selectors, host/port textboxes, and concurrency slider automatically disable and dim while a migration is actively running, preventing invalid mid-transfer modifications.
+* **Automatic Computer Sleep Prevention During Migration**:
+  * Integrates Windows native power management (`SetThreadExecutionState` with `ES_CONTINUOUS | ES_SYSTEM_REQUIRED`) to prevent the PC from entering idle sleep or standby while migrations are actively in progress.
+  * Preserves active TCP sockets and network throughput during long/overnight runs without preventing monitors from powering down to save energy.
+  * Fully configurable in the Settings & Logs tab ("Prevent Computer Sleep During Migration") and enabled by default.
 * **Precision Vector Dialog Icons**:
   * Replaced DirectWrite emoji glyphs in notification dialogs with mathematically centered vector icons (`Warning`, `Error`, `Question`, `Info`), eliminating font baseline shifts and Windows 11 emoji palette color mismatches.
 * **Date Range Filtering (DD-MM-YYYY)**:

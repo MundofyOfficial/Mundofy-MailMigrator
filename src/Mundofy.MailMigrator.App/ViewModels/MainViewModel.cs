@@ -478,6 +478,32 @@ public class MainViewModel : INotifyPropertyChanged
         set => SetField(ref _allowInvalidCertificates, value);
     }
 
+    private bool _preventSleepDuringMigration = true;
+    public bool PreventSleepDuringMigration
+    {
+        get => _preventSleepDuringMigration;
+        set
+        {
+            if (SetField(ref _preventSleepDuringMigration, value))
+            {
+                if (IsSingleMigrating || IsBatchRunning)
+                {
+                    if (value)
+                    {
+                        SleepPreventionService.Acquire();
+                        AddLog(LogLevel.Info, "⚡ Sleep prevention active: Windows idle sleep disabled during migration.");
+                    }
+                    else
+                    {
+                        SleepPreventionService.Reset();
+                        AddLog(LogLevel.Info, "ℹ Sleep prevention disabled: Windows standard sleep behavior restored.");
+                    }
+                }
+                SaveCurrentSettings();
+            }
+        }
+    }
+
     private bool _deduplicate = true;
     public bool Deduplicate
     {
@@ -1255,6 +1281,12 @@ public class MainViewModel : INotifyPropertyChanged
         var options = BuildMigrationOptions();
         var progress = new Progress<AccountJob>(_ => OnPropertyChanged(nameof(SingleJob)));
 
+        if (PreventSleepDuringMigration)
+        {
+            SleepPreventionService.Acquire();
+            AddLog(LogLevel.Info, "⚡ Sleep prevention active: Windows idle sleep disabled during migration.");
+        }
+
         try
         {
             await _migrationService.MigrateAccountAsync(srcEndpoint, dstEndpoint, SingleJob, options, progress, _singleCts.Token);
@@ -1262,6 +1294,10 @@ public class MainViewModel : INotifyPropertyChanged
         finally
         {
             IsSingleMigrating = false;
+            if (!IsBatchRunning)
+            {
+                SleepPreventionService.Reset();
+            }
         }
     }
 
@@ -1680,6 +1716,12 @@ public class MainViewModel : INotifyPropertyChanged
 
         var progress = new Progress<AccountJob>(_ => { });
 
+        if (PreventSleepDuringMigration)
+        {
+            SleepPreventionService.Acquire();
+            AddLog(LogLevel.Info, "⚡ Sleep prevention active: Windows idle sleep disabled during batch migration.");
+        }
+
         try
         {
             await _batchOrchestrator.RunBatchAsync(srcEndpoint, dstEndpoint, BatchAccounts, options, progress);
@@ -1687,6 +1729,10 @@ public class MainViewModel : INotifyPropertyChanged
         finally
         {
             IsBatchRunning = false;
+            if (!IsSingleMigrating)
+            {
+                SleepPreventionService.Reset();
+            }
         }
     }
 
@@ -1776,6 +1822,7 @@ public class MainViewModel : INotifyPropertyChanged
 
             Deduplicate = Deduplicate,
             AllowInvalidCertificates = AllowInvalidCertificates,
+            PreventSleepDuringMigration = PreventSleepDuringMigration,
             DstRootFolder = DstRootFolder,
             SkipFolders = SkipFolders,
             DenyFlags = DenyFlags,
@@ -1820,6 +1867,7 @@ public class MainViewModel : INotifyPropertyChanged
 
         _deduplicate = s.Deduplicate;
         _allowInvalidCertificates = s.AllowInvalidCertificates;
+        _preventSleepDuringMigration = s.PreventSleepDuringMigration;
         if (!string.IsNullOrWhiteSpace(s.DstRootFolder)) _dstRootFolder = s.DstRootFolder;
         if (!string.IsNullOrWhiteSpace(s.SkipFolders)) _skipFolders = s.SkipFolders;
         if (!string.IsNullOrWhiteSpace(s.DenyFlags)) _denyFlags = s.DenyFlags;
