@@ -575,35 +575,35 @@ public class MainViewModel : INotifyPropertyChanged
 
         if (!sinceValid && !beforeValid)
         {
-            DateFilterValidationMessage = "Invalid start and end dates. Use DD-MM-YYYY format (e.g. 01-01-2025).";
+            DateFilterValidationMessage = "⚠️ Invalid start and end dates. Use DD-MM-YYYY format (e.g. 01-01-2025).";
         }
         else if (!sinceValid)
         {
-            DateFilterValidationMessage = "Invalid start date. Use DD-MM-YYYY format (e.g. 01-01-2025).";
+            DateFilterValidationMessage = "⚠️ Invalid start date. Use DD-MM-YYYY format (e.g. 01-01-2025).";
         }
         else if (!beforeValid)
         {
-            DateFilterValidationMessage = "Invalid end date. Use DD-MM-YYYY format (e.g. 01-01-2025).";
+            DateFilterValidationMessage = "⚠️ Invalid end date. Use DD-MM-YYYY format (e.g. 01-01-2025).";
         }
         else if (since.HasValue && before.HasValue && since.Value > before.Value)
         {
-            DateFilterValidationMessage = "Start date cannot be after end date.";
+            DateFilterValidationMessage = "⚠️ Start date cannot be after end date.";
         }
         else if (since.HasValue && before.HasValue)
         {
-            DateFilterValidationMessage = $"Active filter: migrating emails between {since:dd-MM-yyyy} and {before:dd-MM-yyyy}.";
+            DateFilterValidationMessage = $"✓ Migrating emails between {since:dd-MM-yyyy} and {before:dd-MM-yyyy}.";
         }
         else if (since.HasValue)
         {
-            DateFilterValidationMessage = $"Active filter: migrating emails received on or after {since:dd-MM-yyyy}.";
+            DateFilterValidationMessage = $"✓ Migrating emails received on or after {since:dd-MM-yyyy}.";
         }
         else if (before.HasValue)
         {
-            DateFilterValidationMessage = $"Active filter: migrating emails received on or before {before:dd-MM-yyyy}.";
+            DateFilterValidationMessage = $"✓ Migrating emails received on or before {before:dd-MM-yyyy}.";
         }
         else
         {
-            DateFilterValidationMessage = "Enter a Start Date (DD-MM-YYYY) to filter emails.";
+            DateFilterValidationMessage = "ℹ Enter a Start Date (DD-MM-YYYY) to filter emails.";
         }
     }
 
@@ -651,7 +651,7 @@ public class MainViewModel : INotifyPropertyChanged
                 UpdateInfo = info;
                 LatestVersion = info.LatestVersion;
                 IsUpdateAvailable = true;
-                AddLog(LogLevel.Info, $"Software update v{info.LatestVersion} is available on GitHub (current: v{info.CurrentVersion}).");
+                AddLog(LogLevel.Info, $"⚡ Software update v{info.LatestVersion} is available on GitHub (current: v{info.CurrentVersion}).");
             }
         }
         catch { }
@@ -745,8 +745,8 @@ public class MainViewModel : INotifyPropertyChanged
         try
         {
             IsDetectingSource = true;
-            SingleSourceStatus = "Auto-detecting server...";
-            AddLog(LogLevel.Info, $"Probing auto-discovery for '{SingleSourceUser}'...");
+            SingleSourceStatus = "⚡ Auto-detecting server...";
+            AddLog(LogLevel.Info, $"⚡ Probing auto-discovery for '{SingleSourceUser}'...");
 
             var result = await _autoDiscoveryService.DiscoverAsync(SingleSourceUser);
             if (result.Success)
@@ -754,8 +754,8 @@ public class MainViewModel : INotifyPropertyChanged
                 SingleSourceHost = result.Host;
                 SingleSourcePort = result.Port;
                 SingleSourceUseSsl = result.UseSsl;
-                SingleSourceStatus = $"Discovered: {result.Host}";
-                AddLog(LogLevel.Success, $"Auto-Discovery succeeded: {result.Host}:{result.Port} (SSL: {result.UseSsl}) via {result.DetectionSource}");
+                SingleSourceStatus = $"⚡ Discovered: {result.Host}";
+                AddLog(LogLevel.Success, $"⚡ Auto-Discovery succeeded: {result.Host}:{result.Port} (SSL: {result.UseSsl}) via {result.DetectionSource}");
             }
             else
             {
@@ -786,8 +786,8 @@ public class MainViewModel : INotifyPropertyChanged
         try
         {
             IsDetectingDest = true;
-            SingleDestStatus = "Auto-detecting server...";
-            AddLog(LogLevel.Info, $"Probing auto-discovery for '{SingleDestUser}'...");
+            SingleDestStatus = "⚡ Auto-detecting server...";
+            AddLog(LogLevel.Info, $"⚡ Probing auto-discovery for '{SingleDestUser}'...");
 
             var result = await _autoDiscoveryService.DiscoverAsync(SingleDestUser);
             if (result.Success)
@@ -795,8 +795,8 @@ public class MainViewModel : INotifyPropertyChanged
                 SingleDestHost = result.Host;
                 SingleDestPort = result.Port;
                 SingleDestUseSsl = result.UseSsl;
-                SingleDestStatus = $"Discovered: {result.Host}";
-                AddLog(LogLevel.Success, $"Auto-Discovery succeeded: {result.Host}:{result.Port} (SSL: {result.UseSsl}) via {result.DetectionSource}");
+                SingleDestStatus = $"⚡ Discovered: {result.Host}";
+                AddLog(LogLevel.Success, $"⚡ Auto-Discovery succeeded: {result.Host}:{result.Port} (SSL: {result.UseSsl}) via {result.DetectionSource}");
             }
             else
             {
@@ -832,13 +832,13 @@ public class MainViewModel : INotifyPropertyChanged
         try
         {
             IsDetectingBatchSource = true;
-            AddLog(LogLevel.Info, $"Probing batch source auto-discovery for '{query}'...");
+            AddLog(LogLevel.Info, $"⚡ Probing batch source auto-discovery for '{query}'...");
             var result = await _autoDiscoveryService.DiscoverAsync(query);
             if (result.Success)
             {
                 BatchSourceHost = result.Host;
                 BatchSourcePort = result.Port;
-                AddLog(LogLevel.Success, $"Discovered Batch Source: {result.Host}:{result.Port} via {result.DetectionSource}");
+                AddLog(LogLevel.Success, $"⚡ Discovered Batch Source: {result.Host}:{result.Port} via {result.DetectionSource}");
             }
             else
             {
@@ -868,13 +868,13 @@ public class MainViewModel : INotifyPropertyChanged
         try
         {
             IsDetectingBatchDest = true;
-            AddLog(LogLevel.Info, $"Probing batch destination auto-discovery for '{query}'...");
+            AddLog(LogLevel.Info, $"⚡ Probing batch destination auto-discovery for '{query}'...");
             var result = await _autoDiscoveryService.DiscoverAsync(query);
             if (result.Success)
             {
                 BatchDestHost = result.Host;
                 BatchDestPort = result.Port;
-                AddLog(LogLevel.Success, $"Discovered Batch Destination: {result.Host}:{result.Port} via {result.DetectionSource}");
+                AddLog(LogLevel.Success, $"⚡ Discovered Batch Destination: {result.Host}:{result.Port} via {result.DetectionSource}");
             }
             else
             {
@@ -1016,7 +1016,7 @@ public class MainViewModel : INotifyPropertyChanged
             bool enqueued = _batchOrchestrator.EnqueueAccount(account);
             if (enqueued)
             {
-                AddLog(LogLevel.Success, $"Enqueued '{account.SourceUser}' into active running batch.");
+                AddLog(LogLevel.Success, $"⚡ Enqueued '{account.SourceUser}' into the active running batch.");
             }
             else
             {
