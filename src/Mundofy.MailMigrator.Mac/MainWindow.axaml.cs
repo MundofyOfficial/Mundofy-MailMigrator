@@ -9,19 +9,13 @@ public partial class MainWindow : Window
 {
     private readonly MacMainViewModel _vm;
 
-    private TabControl? MainTabs => this.FindControl<TabControl>("MainTabs");
-    private ScrollViewer? SingleTabScroll => this.FindControl<ScrollViewer>("SingleTabScroll");
-    private ScrollViewer? SettingsTabScroll => this.FindControl<ScrollViewer>("SettingsTabScroll");
-    private ScrollViewer? PrivacyTabScroll => this.FindControl<ScrollViewer>("PrivacyTabScroll");
-    private ScrollViewer? AboutTabScroll => this.FindControl<ScrollViewer>("AboutTabScroll");
-
     public MainWindow()
     {
         AvaloniaXamlLoader.Load(this);
         _vm = new MacMainViewModel();
         DataContext = _vm;
 
-        var mainTabs = MainTabs;
+        var mainTabs = this.FindControl<TabControl>("MainTabs");
         if (mainTabs != null)
         {
             mainTabs.SelectionChanged += MainTabs_SelectionChanged;
@@ -31,12 +25,13 @@ public partial class MainWindow : Window
     private void MainTabs_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         // Reset scroll position to top whenever switching tabs
-        if (ReferenceEquals(e.Source, MainTabs))
+        var mainTabs = this.FindControl<TabControl>("MainTabs");
+        if (ReferenceEquals(e.Source, mainTabs))
         {
-            SingleTabScroll?.ScrollToHome();
-            SettingsTabScroll?.ScrollToHome();
-            PrivacyTabScroll?.ScrollToHome();
-            AboutTabScroll?.ScrollToHome();
+            this.FindControl<ScrollViewer>("SingleTabScroll")?.ScrollToHome();
+            this.FindControl<ScrollViewer>("SettingsTabScroll")?.ScrollToHome();
+            this.FindControl<ScrollViewer>("PrivacyTabScroll")?.ScrollToHome();
+            this.FindControl<ScrollViewer>("AboutTabScroll")?.ScrollToHome();
         }
     }
 
