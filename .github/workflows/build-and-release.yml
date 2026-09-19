@@ -53,11 +53,8 @@ jobs:
               }
           }
 
-  build:
+  build-windows:
     runs-on: windows-latest
-    permissions:
-      contents: write
-
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -71,18 +68,7 @@ jobs:
       run: dotnet restore Mundofy.MailMigrator.sln
 
     - name: Build Solution
-      id: build
-      shell: pwsh
-      run: |
-        dotnet build Mundofy.MailMigrator.sln -c Release 2>&1 | Tee-Object build.log
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-    - name: Upload Build Failure Log
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-failure-log
-        path: build.log
+      run: dotnet build Mundofy.MailMigrator.sln -c Release
 
     - name: Run Unit Tests
       run: dotnet test Mundofy.MailMigrator.sln -c Release --no-build --verbosity normal
@@ -98,28 +84,67 @@ jobs:
         -p:EnableCompressionInSingleFile=true 
         -o publish/win-x64
 
-    - name: Publish macOS App (Apple Silicon arm64)
+    - name: Upload Windows Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MundofyMailMigrator-win-x64
+        path: publish/win-x64/MundofyMailMigrator.exe
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Publish Apple Silicon (arm64)
       run: >
         dotnet publish src/Mundofy.MailMigrator.Mac/Mundofy.MailMigrator.Mac.csproj 
         -c Release 
         -r osx-arm64 
         --self-contained 
         -p:PublishSingleFile=true 
-        -o publish/osx-arm64
+        -o publish/arm64
 
-    - name: Publish macOS App (Intel x64)
+    - name: Publish Intel (x64)
       run: >
         dotnet publish src/Mundofy.MailMigrator.Mac/Mundofy.MailMigrator.Mac.csproj 
         -c Release 
         -r osx-x64 
         --self-contained 
         -p:PublishSingleFile=true 
-        -o publish/osx-x64
+        -o publish/x64
 
-    - name: Package macOS Distributions (ZIP & .app Bundle)
-      shell: pwsh
+    - name: Assemble Universal macOS .app & DMG
       run: |
-        $plist = @"
+        mkdir -p "publish/dmg_root/Mundofy MailMigrator.app/Contents/MacOS/arm64"
+        mkdir -p "publish/dmg_root/Mundofy MailMigrator.app/Contents/MacOS/x64"
+        
+        # Copy compiled binaries for both architectures
+        cp -R publish/arm64/* "publish/dmg_root/Mundofy MailMigrator.app/Contents/MacOS/arm64/"
+        cp -R publish/x64/* "publish/dmg_root/Mundofy MailMigrator.app/Contents/MacOS/x64/"
+        
+        # Create universal auto-detecting launcher script
+        cat << 'EOF' > "publish/dmg_root/Mundofy MailMigrator.app/Contents/MacOS/MundofyMailMigrator"
+        #!/bin/sh
+        DIR="$(cd "$(dirname "$0")" && pwd)"
+        ARCH="$(uname -m)"
+        if [ "$ARCH" = "arm64" ]; then
+            exec "$DIR/arm64/MundofyMailMigrator" "$@"
+        else
+            exec "$DIR/x64/MundofyMailMigrator" "$@"
+        fi
+        EOF
+        chmod +x "publish/dmg_root/Mundofy MailMigrator.app/Contents/MacOS/MundofyMailMigrator"
+        chmod +x "publish/dmg_root/Mundofy MailMigrator.app/Contents/MacOS/arm64/MundofyMailMigrator"
+        chmod +x "publish/dmg_root/Mundofy MailMigrator.app/Contents/MacOS/x64/MundofyMailMigrator"
+
+        # Bundle Info.plist
+        cat << 'EOF' > "publish/dmg_root/Mundofy MailMigrator.app/Contents/Info.plist"
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
@@ -140,60 +165,88 @@ jobs:
             <true/>
         </dict>
         </plist>
-        "@
+        EOF
 
-        # Apple Silicon (arm64) .app bundle
-        $appArm = "publish/bundle-arm64/Mundofy MailMigrator.app/Contents/MacOS"
-        New-Item -ItemType Directory -Force -Path $appArm | Out-Null
-        Copy-Item -Path publish/osx-arm64/* -Destination $appArm -Recurse -Force
-        Set-Content -Path "publish/bundle-arm64/Mundofy MailMigrator.app/Contents/Info.plist" -Value $plist -Encoding UTF8
-        Compress-Archive -Path "publish/bundle-arm64/*" -DestinationPath publish/MundofyMailMigrator-macOS-arm64.zip -Force
+        # Zip universal .app
+        cd publish/dmg_root
+        zip -r -y ../MundofyMailMigrator-macOS.app.zip "Mundofy MailMigrator.app"
+        cd ../..
 
-        # Intel (x64) .app bundle
-        $appX64 = "publish/bundle-x64/Mundofy MailMigrator.app/Contents/MacOS"
-        New-Item -ItemType Directory -Force -Path $appX64 | Out-Null
-        Copy-Item -Path publish/osx-x64/* -Destination $appX64 -Recurse -Force
-        Set-Content -Path "publish/bundle-x64/Mundofy MailMigrator.app/Contents/Info.plist" -Value $plist -Encoding UTF8
-        Compress-Archive -Path "publish/bundle-x64/*" -DestinationPath publish/MundofyMailMigrator-macOS-x64.zip -Force
+        # Create drag-to-Applications symlink for DMG
+        ln -s /Applications publish/dmg_root/Applications
 
-    - name: Upload Windows Artifact
+        # Create Apple Disk Image (.dmg)
+        hdiutil create -volname "Mundofy MailMigrator" -srcfolder "publish/dmg_root" -ov -format UDZO publish/MundofyMailMigrator-macOS.dmg
+
+    - name: Upload macOS DMG Artifact
       uses: actions/upload-artifact@v4
+      with:
+        name: MundofyMailMigrator-macOS-dmg
+        path: publish/MundofyMailMigrator-macOS.dmg
+
+    - name: Upload macOS App Zip Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MundofyMailMigrator-macOS-app-zip
+        path: publish/MundofyMailMigrator-macOS.app.zip
+
+  release:
+    needs: [build-windows, build-mac]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Download Windows Artifact
+      uses: actions/download-artifact@v4
       with:
         name: MundofyMailMigrator-win-x64
-        path: publish/win-x64/MundofyMailMigrator.exe
+        path: release-assets
 
-    - name: Upload macOS arm64 Artifact
-      uses: actions/upload-artifact@v4
+    - name: Download macOS DMG Artifact
+      uses: actions/download-artifact@v4
       with:
-        name: MundofyMailMigrator-macOS-arm64
-        path: publish/MundofyMailMigrator-macOS-arm64.zip
+        name: MundofyMailMigrator-macOS-dmg
+        path: release-assets
 
-    - name: Upload macOS x64 Artifact
-      uses: actions/upload-artifact@v4
+    - name: Download macOS App Zip Artifact
+      uses: actions/download-artifact@v4
       with:
-        name: MundofyMailMigrator-macOS-x64
-        path: publish/MundofyMailMigrator-macOS-x64.zip
+        name: MundofyMailMigrator-macOS-app-zip
+        path: release-assets
 
-    - name: Extract Release Notes & Identify Target Release
+    - name: Extract Release Notes & Clean Legacy Split Assets
       id: release_target
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       shell: pwsh
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GH_REPO: ${{ github.repository }}
       run: |
+        $headers = @{
+            "Authorization" = "Bearer $env:GH_TOKEN"
+            "Accept" = "application/vnd.github+json"
+            "User-Agent" = "MundofyReleaseSync"
+        }
+        
         $tag = if ("${{ github.ref }}".StartsWith("refs/tags/")) {
             "${{ github.ref_name }}"
         } else {
-            $headers = @{
-                "Authorization" = "Bearer $env:GH_TOKEN"
-                "Accept" = "application/vnd.github+json"
-                "User-Agent" = "MundofyReleaseSync"
-            }
             (Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GH_REPO/releases?per_page=1" -Headers $headers)[0].tag_name
         }
         Write-Host "Target release tag: $tag"
         "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+        # Clean legacy split architecture assets if present
+        $rel = Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GH_REPO/releases/tags/$tag" -Headers $headers
+        foreach ($asset in $rel.assets) {
+            if ($asset.name -in @("MundofyMailMigrator-macOS-arm64.zip", "MundofyMailMigrator-macOS-x64.zip")) {
+                Write-Host "Removing legacy split asset $($asset.name)..."
+                Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GH_REPO/releases/assets/$($asset.id)" -Method Delete -Headers $headers
+            }
+        }
 
         $version = $tag.TrimStart('v', 'V')
         $content = Get-Content CHANGELOG.md -Raw
@@ -205,53 +258,15 @@ jobs:
             Set-Content -Path release_notes.md -Value "## $tag`n`nRelease $tag" -Encoding UTF8
         }
 
-    - name: Publish & Attach Binaries to GitHub Release
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    - name: Publish & Attach Universal Binaries to GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.release_target.outputs.tag }}
         files: |
-          publish/win-x64/MundofyMailMigrator.exe
-          publish/MundofyMailMigrator-macOS-arm64.zip
-          publish/MundofyMailMigrator-macOS-x64.zip
+          release-assets/MundofyMailMigrator.exe
+          release-assets/MundofyMailMigrator-macOS.dmg
+          release-assets/MundofyMailMigrator-macOS.app.zip
         body_path: release_notes.md
         generate_release_notes: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Clean & Sync All GitHub Release Changelogs
-      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
-      shell: pwsh
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GH_REPO: ${{ github.repository }}
-      run: |
-        $headers = @{
-            "Authorization" = "Bearer $env:GH_TOKEN"
-            "Accept" = "application/vnd.github+json"
-            "User-Agent" = "MundofyReleaseSync"
-        }
-        $changelog = Get-Content CHANGELOG.md -Raw
-        Write-Host "Fetching all releases for $env:GH_REPO..."
-        $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GH_REPO/releases?per_page=100" -Headers $headers
-        
-        foreach ($rel in $releases) {
-            $tag = $rel.tag_name
-            $version = $tag.TrimStart('v', 'V')
-            $pattern = "(?s)## \[$version\].*?(?=((\r?\n## \[\d)|\Z))"
-            
-            if ($changelog -match $pattern) {
-                $notes = $matches[0].Trim().TrimEnd('-').Trim()
-                if ($rel.body.Trim() -ne $notes) {
-                    Write-Host "Syncing release $tag (ID: $($rel.id)) to contain strictly version $version notes..."
-                    $bodyObj = @{ body = $notes }
-                    $json = $bodyObj | ConvertTo-Json -Compress
-                    Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GH_REPO/releases/$($rel.id)" -Method Patch -Headers $headers -Body $json -ContentType "application/json; charset=utf-8"
-                    Write-Host "Successfully updated $tag on GitHub."
-                } else {
-                    Write-Host "Release $tag is already strictly isolated."
-                }
-            } else {
-                Write-Host "No matching entry in CHANGELOG.md for $tag, keeping existing release notes."
-            }
-        }
