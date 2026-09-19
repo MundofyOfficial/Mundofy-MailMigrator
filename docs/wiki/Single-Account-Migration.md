@@ -8,7 +8,7 @@ The **Single Account Migration** tab is designed for quick, ad-hoc migrations of
 
 ### Step 1: Configure the Source Server
 1. **Username / Email:** Enter the full email address or login name.
-   * ⚡ **Zero-Config Auto-Discovery (New in v1.1.0):** As soon as you enter a valid email address or click the **⚡ Auto-Detect** button, Mundofy MailMigrator automatically queries provider registries, DNS MX records, and autoconfig endpoints to fill in the Server Host, Port, and SSL settings automatically!
+   * ⚡ **Zero-Config Auto-Discovery:** As soon as you enter a valid email address or click the **⚡ Auto-Detect** button, Mundofy MailMigrator automatically queries provider registries, DNS MX records, and autoconfig endpoints to fill in the Server Host, Port, and SSL settings automatically!
 2. **Protocol:** Select either:
    * **IMAP** (Default): Migrates all folders (Inbox, Sent, Drafts, Archives, Custom Folders).
    * **POP3**: Migrates only the primary Inbox (POP3 protocol does not support remote subfolders).

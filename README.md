@@ -42,10 +42,15 @@ Rather than keeping this as an internal utility, we open-sourced it for everyone
 
 ## Key Features
 
-* **⚡ Zero-Config Server Auto-Discovery (New in v1.1.0)**:
+* **⚡ Zero-Config Server Auto-Discovery**:
   * Simply enter your email address—Mundofy MailMigrator instantly detects your IMAP server host, port (993), and SSL encryption via a 5-tier discovery cascade (Major Providers, RFC 6186 DNS SRV, DNS MX Fingerprinting, Mozilla Thunderbird ISPDB, and cPanel/Plesk Autoconfig).
-* **🗑️ Interactive Batch Row Management (New in v1.1.0)**:
-  * Delete individual erroneous rows effortlessly via the **`➖ Remove Selected`** toolbar button, the **`🗑`** 1-click button on each row, right-click context menu, or by pressing the **`Delete`** key.
+* **📊 Mailbox Quota Checker & Pre-Flight Capacity Guard**:
+  * Query source & destination mailbox storage limits and usage in real-time (RFC 2087 IMAP QUOTA & POP3 metrics).
+  * Automated pre-flight guard alerts you if destination storage is insufficient before starting migration.
+* **🛡️ Native PC Sleep Prevention**:
+  * Keeps your system awake during active transfers while allowing monitors to sleep.
+* **🗑️ Interactive Batch Row Management & Per-Account Pause/Resume**:
+  * Manage batch rows with individual pause/resume, deletion via toolbar, 1-click button, or context menu.
 * **Dual Mode**:
   * **Interactive Desktop GUI**: Double-click `MundofyMailMigrator.exe` to launch the modern WPF application.
   * **Headless CLI**: Run from terminal or scripts with `-c ImapCopy.cfg` for automated migrations.
