@@ -26,7 +26,18 @@ jobs:
       run: dotnet restore Mundofy.MailMigrator.sln
 
     - name: Build Solution
-      run: dotnet build Mundofy.MailMigrator.sln -c Release --no-restore
+      id: build
+      shell: pwsh
+      run: |
+        dotnet build Mundofy.MailMigrator.sln -c Release 2>&1 | Tee-Object build.log
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+    - name: Upload Build Failure Log
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-failure-log
+        path: build.log
 
     - name: Run Unit Tests
       run: dotnet test Mundofy.MailMigrator.sln -c Release --no-build --verbosity normal
