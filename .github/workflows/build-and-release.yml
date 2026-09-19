@@ -28,7 +28,7 @@ jobs:
       run: dotnet restore Mundofy.MailMigrator.sln
 
     - name: Build Solution
-      run: dotnet build Mundofy.MailMigrator.sln -c Release --no-restore -v normal
+      run: dotnet build Mundofy.MailMigrator.sln -c Release
 
     - name: Run Unit Tests
       run: dotnet test Mundofy.MailMigrator.sln -c Release --no-build --verbosity normal

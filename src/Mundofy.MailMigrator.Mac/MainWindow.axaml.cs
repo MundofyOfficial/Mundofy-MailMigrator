@@ -17,7 +17,7 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
-        InitializeComponent();
+        AvaloniaXamlLoader.Load(this);
         _vm = new MacMainViewModel();
         DataContext = _vm;
 
@@ -26,11 +26,6 @@ public partial class MainWindow : Window
         {
             mainTabs.SelectionChanged += MainTabs_SelectionChanged;
         }
-    }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
     }
 
     private void MainTabs_SelectionChanged(object? sender, SelectionChangedEventArgs e)
