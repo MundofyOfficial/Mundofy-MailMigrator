@@ -48,13 +48,28 @@ jobs:
         name: MundofyMailMigrator-win-x64
         path: publish/win-x64/MundofyMailMigrator.exe
 
+    - name: Extract Tag Release Notes
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: pwsh
+      run: |
+        $tag = "${{ github.ref_name }}"
+        $version = $tag.TrimStart('v')
+        $content = Get-Content CHANGELOG.md -Raw
+        $pattern = "(?s)## \[$version\].*?(?=((\r?\n## \[\d)|\Z))"
+        if ($content -match $pattern) {
+            $notes = $matches[0].Trim().TrimEnd('-').Trim()
+            Set-Content -Path release_notes.md -Value $notes -Encoding UTF8
+        } else {
+            Set-Content -Path release_notes.md -Value "## $tag`n`nRelease $tag" -Encoding UTF8
+        }
+
     - name: Create GitHub Release
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v2
       with:
         files: |
           publish/win-x64/MundofyMailMigrator.exe
-        body_path: CHANGELOG.md
+        body_path: release_notes.md
         generate_release_notes: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

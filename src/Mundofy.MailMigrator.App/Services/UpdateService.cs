@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Windows;
 
 using Mundofy.MailMigrator.Core;
@@ -51,6 +52,17 @@ public static class UpdateService
             if (string.IsNullOrWhiteSpace(latestVersionStr))
             {
                 return new UpdateInfo(false, currentVersionStr, currentVersionStr, "", "", 0);
+            }
+
+            // Ensure only this version's changelog is displayed (never historical cumulative logs)
+            if (!string.IsNullOrWhiteSpace(releaseNotes) && releaseNotes.Contains("## ["))
+            {
+                var pattern = $@"(?s)## \[(?:v)?{Regex.Escape(latestVersionStr)}\].*?(?=((\r?\n## \[\d)|\Z))";
+                var match = Regex.Match(releaseNotes, pattern);
+                if (match.Success)
+                {
+                    releaseNotes = match.Value.Trim().TrimEnd('-').Trim();
+                }
             }
 
             // Find MundofyMailMigrator.exe asset

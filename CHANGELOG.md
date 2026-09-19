@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.4.0] - 2026-09-19
 
 ### Added
+* **Dedicated Privacy & Compliance Tab & Zero-Telemetry Guarantee**:
+  * Native desktop UI tab detailing 100% standalone, client-side architecture with point-to-point TLS 1.3 socket streaming and zero cloud relays.
+  * Comprehensive worldwide privacy compliance breakdown (GDPR, CCPA/CPRA, PIPEDA, HIPAA-ready).
+  * Complete transparency documentation detailing the single anonymous GitHub API update check.
+  * Direct 1-click transition button from the About screen to the Privacy & Compliance tab.
 * **IMAP & POP3 Mailbox Quota Checker**:
   * Added RFC 2087 IMAP QUOTA protocol support, converting 1024-octet storage blocks into accurate byte metrics (MB / GB) and percentage utilization.
   * Added POP3 storage usage calculation using message sizing and count metrics.
@@ -19,6 +24,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Automated pre-flight comparison between source mailbox size and destination available free space.
   * Warns the operator before migration begins if the destination mailbox has insufficient capacity, preventing destination server `[OVERQUOTA]` rejections.
   * Supported on both Single Account Migration and Multi-Account Batch Migration.
+* **Centralized Version Source of Truth**:
+  * Centralized `AppVersion` constant in `Mundofy.MailMigrator.Core` with dynamic assembly metadata reflection.
+  * Dynamically bound header version badge, About tab version text, activity startup logs, and User-Agent headers.
+
+### Fixed
+* **Batch Re-Run & Fresh Counter Reset**:
+  * Pressing "Start Batch Migration" when all accounts were previously completed now cleanly re-queues all accounts as a fresh run instead of doing nothing.
+  * Automatically resets message counters (`TotalMessages`, `CopiedMessages`, `SkippedMessages`, `FailedMessages`), transfer speed, and row progress bars to `0% / Queued`.
+  * Instantly resets the overall batch progress bar and status text upon clicking start, providing clear visual feedback that a new request has begun.
+
+---
+
+## [1.3.0] - 2026-09-19
+
+### Added
 * **Automatic Computer Sleep Prevention During Migration**:
   * Integrates Windows native power management (`SetThreadExecutionState` with `ES_CONTINUOUS | ES_SYSTEM_REQUIRED`) to prevent the PC from entering idle sleep or standby while migrations are actively in progress.
   * Preserves active TCP sockets and network throughput during long/overnight runs without preventing monitors from powering down to save energy.
@@ -35,15 +55,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **Precision Vector Dialog Icons**:
   * Replaced DirectWrite emoji glyphs in notification dialogs with mathematically centered vector icons (`Warning`, `Error`, `Question`, `Info`), eliminating font baseline shifts and Windows 11 emoji palette color mismatches.
 
-### Fixed
-* **Batch Re-Run & Fresh Counter Reset**:
-  * Pressing "Start Batch Migration" when all accounts were previously completed now cleanly re-queues all accounts as a fresh run instead of doing nothing.
-  * Automatically resets message counters (`TotalMessages`, `CopiedMessages`, `SkippedMessages`, `FailedMessages`), transfer speed, and row progress bars to `0% / Queued`.
-  * Instantly resets the overall batch progress bar and status text upon clicking start, providing clear visual feedback that a new request has begun.
-
 ---
 
 ## [1.2.2] - 2026-09-18
+
+### Added
+* **Live Activity Log Search and Real-Time Filtering**:
+  * Added dynamic search filtering to the Live Activity Log toolbar, matching log messages, status levels, or timestamps in real time.
+  * Added entry counter displaying matching and total record counts.
+  * Added quick-clear search button.
+* **Dual-Format Log Export (.TXT and .CSV)**:
+  * Export activity logs to standard plaintext log files (`.txt`) or structured comma-separated values (`.csv`) with automatic header generation and RFC-compliant escaping.
+  * Supports exporting filtered log results (e.g., exporting only errors or warnings).
+
+### Changed
+* **Enlarged Activity Log Interface and Smooth Vertical Scrolling**:
+  * Expanded the log view height to 460px with automatic vertical scrolling across Settings & Logs and About screens.
+  * Implemented smooth mouse wheel event bubbling between log list and outer page container.
+
+### Fixed
+* **Application-Wide Dark ToolTip Styling**:
+  * Added global dark theme ToolTip style in `App.xaml`, eliminating Windows Aero white/light-gray tooltips in favor of rounded dark slate containers with high-contrast text.
+* **Update Notification Button Mouseover**:
+  * Implemented custom ControlTemplate with defined dark emerald hover and pressed states, preventing default Windows Aero light-cyan wash and preserving text legibility.
+* **ScrollViewer Intersection Corner**:
+  * Replaced default Windows white corner square where horizontal and vertical scrollbars intersect with a transparent container and dark background override.
+
+---
+
+## [1.2.1] - 2026-09-18
+
+### Added
+* **Input and Session State Persistence**:
+  * Automatically saves and restores last-used server hostnames, ports, protocols, SSL configurations, and usernames across application restarts in `%APPDATA%\Mundofy\MailMigrator\settings.json`.
+  * Persists advanced migration preferences (deduplication, certificate allowances, folder exclusions, and date filter configurations).
+  * Explicitly excludes passwords and batch account lists from disk storage to maintain credential security.
+* **Password Privacy Masking Toggle**:
+  * Added password visibility toggle in the batch migration toolbar (`Show Passwords` / `Hide Passwords`).
+  * Masks source and destination passwords with bullets in the batch accounts table by default.
+  * Supports full inline cell editing and clipboard pasting while maintaining on-screen privacy.
+* **Invalid SSL Certificate Warning**:
+  * Added interactive security confirmation modal before initiating single or batch migrations when "Permit Self-Signed / Invalid SSL Certificates" is enabled, warning users of Man-in-the-Middle (MitM) credential interception risks.
+
+---
+
+## [1.2.0] - 2026-09-18
 
 ### Added
 * **Date Range Filtering (DD-MM-YYYY)**:
@@ -58,38 +114,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Header notification badge indicating available updates.
   * Modal dialog detailing the latest version number, release date, and changelog.
   * One-click in-place executable replacement and restart via detached process, maintaining existing filesystem paths and shortcuts without requiring an external installer.
-* **Input and Session State Persistence**:
-  * Automatically saves and restores last-used server hostnames, ports, protocols, SSL configurations, and usernames across application restarts in `%APPDATA%\Mundofy\MailMigrator\settings.json`.
-  * Persists advanced migration preferences (deduplication, certificate allowances, folder exclusions, and date filter configurations).
-  * Explicitly excludes passwords and batch account lists from disk storage to maintain credential security.
-* **Password Privacy Masking Toggle**:
-  * Added password visibility toggle in the batch migration toolbar (`Show Passwords` / `Hide Passwords`).
-  * Masks source and destination passwords with bullets in the batch accounts table by default.
-  * Supports full inline cell editing and clipboard pasting while maintaining on-screen privacy.
-* **Invalid SSL Certificate Warning**:
-  * Added interactive security confirmation modal before initiating single or batch migrations when "Permit Self-Signed / Invalid SSL Certificates" is enabled, warning users of Man-in-the-Middle (MitM) credential interception risks.
-* **Live Activity Log Search and Real-Time Filtering**:
-  * Added dynamic search filtering to the Live Activity Log toolbar, matching log messages, status levels, or timestamps in real time.
-  * Added entry counter displaying matching and total record counts.
-  * Added quick-clear search button.
-* **Dual-Format Log Export (.TXT and .CSV)**:
-  * Export activity logs to standard plaintext log files (`.txt`) or structured comma-separated values (`.csv`) with automatic header generation and RFC-compliant escaping.
-  * Supports exporting filtered log results (e.g., exporting only errors or warnings).
 
 ### Changed
 * **Single Executable Distribution**:
   * Discontinued duplicate versioned executable generation. Releases package and distribute exclusively `MundofyMailMigrator.exe` to ensure stable shortcut targets and automated deployment compatibility.
-* **Enlarged Activity Log Interface and Smooth Vertical Scrolling**:
-  * Expanded the log view height to 460px with automatic vertical scrolling across Settings & Logs and About screens.
-  * Implemented smooth mouse wheel event bubbling between log list and outer page container.
-
-### Fixed
-* **Application-Wide Dark ToolTip Styling**:
-  * Added global dark theme ToolTip style in `App.xaml`, eliminating Windows Aero white/light-gray tooltips in favor of rounded dark slate containers with high-contrast text.
-* **Update Notification Button Mouseover**:
-  * Implemented custom ControlTemplate with defined dark emerald hover and pressed states, preventing default Windows Aero light-cyan wash and preserving text legibility.
-* **ScrollViewer Intersection Corner**:
-  * Replaced default Windows white corner square where horizontal and vertical scrollbars intersect with a transparent container and dark background override.
 
 ---
 
