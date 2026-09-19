@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{EC1665B3
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mundofy.MailMigrator.Tests", "tests\Mundofy.MailMigrator.Tests\Mundofy.MailMigrator.Tests.csproj", "{C9EAF2BB-D38E-4449-879A-FB79927F7154}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mundofy.MailMigrator.Mac", "src\Mundofy.MailMigrator.Mac\Mundofy.MailMigrator.Mac.csproj", "{03D05492-4C14-4505-84ED-3FD5173E6278}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,10 +36,15 @@ Global
 		{C9EAF2BB-D38E-4449-879A-FB79927F7154}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9EAF2BB-D38E-4449-879A-FB79927F7154}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9EAF2BB-D38E-4449-879A-FB79927F7154}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03D05492-4C14-4505-84ED-3FD5173E6278}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03D05492-4C14-4505-84ED-3FD5173E6278}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03D05492-4C14-4505-84ED-3FD5173E6278}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03D05492-4C14-4505-84ED-3FD5173E6278}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8CAF5001-B4CE-433B-A32B-CD4749EA6377} = {5B0F66FC-7A91-4F74-83AC-E9C3AAA8F3B7}
 		{3CCADE66-8700-40CE-9AD5-EE60850F96BE} = {5B0F66FC-7A91-4F74-83AC-E9C3AAA8F3B7}
 		{C9EAF2BB-D38E-4449-879A-FB79927F7154} = {EC1665B3-F53C-4BFE-9AD1-CF8AFB0C4D1E}
+		{03D05492-4C14-4505-84ED-3FD5173E6278} = {5B0F66FC-7A91-4F74-83AC-E9C3AAA8F3B7}
 	EndGlobalSection
 EndGlobal

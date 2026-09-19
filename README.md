@@ -1,14 +1,16 @@
 # Mundofy MailMigrator (v1.4.0)
 
-[![Download MundofyMailMigrator-v1.4.0.exe](https://img.shields.io/badge/Download-MundofyMailMigrator--v1.4.0.exe-2563EB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
+[![Download Windows (x64)](https://img.shields.io/badge/Download-Windows_(x64)-2563EB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
+[![Download macOS (arm64/x64)](https://img.shields.io/badge/Download-macOS_(Apple_Silicon_&_Intel)-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
 [![Latest Release](https://img.shields.io/badge/Release-v1.4.0-059669?style=for-the-badge)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
 [![Changelog](https://img.shields.io/badge/Changelog-v1.4.0-orange?style=for-the-badge)](CHANGELOG.md)
 [![Privacy: Zero Telemetry](https://img.shields.io/badge/Privacy-Zero--Telemetry-10B981?style=for-the-badge&logo=shield&logoColor=white)](#-100-privacy-by-design--zero-telemetry-guarantee)
 [![Wiki Documentation](https://img.shields.io/badge/Wiki-Documentation-purple?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/wiki)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-> 🚀 **[Click Here to Download MundofyMailMigrator.exe](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)**  
-> *Single-file standalone Windows executable. Zero installation, zero runtime dependencies.*
+> 🚀 **[Click Here to Download Latest Releases](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)**  
+> * **Windows**: `MundofyMailMigrator.exe` (Single-file standalone 64-bit Windows executable. Zero installation, zero runtime dependencies.)
+> * **macOS**: Dedicated native desktop app for Apple Silicon (`MundofyMailMigrator-macOS-arm64.zip`) and Intel Mac (`MundofyMailMigrator-macOS-x64.zip`). Zero runtime dependencies.
 
 > 📚 **[Browse the Full Wiki Documentation](https://github.com/MundofyOfficial/Mundofy-MailMigrator/wiki)** for comprehensive guides on Single Account Migration, Concurrency Batching, CLI Automation, and Troubleshooting.
 

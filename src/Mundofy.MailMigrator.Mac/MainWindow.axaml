@@ -1,0 +1,334 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Mundofy.MailMigrator.Mac.ViewModels"
+        x:Class="Mundofy.MailMigrator.Mac.MainWindow"
+        x:DataType="vm:MacMainViewModel"
+        Title="Mundofy MailMigrator (macOS)"
+        Width="1180" Height="820"
+        MinWidth="1000" MinHeight="700"
+        Background="#0B0F19">
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- TOP HEADER BAR -->
+        <Border Grid.Row="0" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="0,0,0,1" Padding="20,14">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Mundofy MailMigrator" FontWeight="Bold" FontSize="18" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                    <Border Background="#1E3A8A" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding AppVersionDisplay}" FontSize="11" FontWeight="Bold" Foreground="#93C5FD" />
+                    </Border>
+                    <Border Background="#064E3B" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="macOS" FontSize="10" FontWeight="Bold" Foreground="#6EE7B7" />
+                    </Border>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Created by Danny Schuller • mundofy.com" FontSize="11" Foreground="#64748B" VerticalAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- MAIN CONTENT TABS -->
+        <TabControl x:Name="MainTabs" Grid.Row="1" Margin="16,10,16,16">
+            
+            <!-- TAB 1: SINGLE ACCOUNT MIGRATION -->
+            <TabItem Header="Single Account Migration">
+                <ScrollViewer x:Name="SingleTabScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
+                    <StackPanel Spacing="14" Margin="0,10,0,0">
+                        <Grid ColumnDefinitions="*,16,*">
+                            <!-- SOURCE CARD -->
+                            <Border Grid.Column="0" Classes="Card" Padding="18">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Text="Source Mailbox (From)" FontWeight="Bold" FontSize="14" Foreground="#60A5FA" />
+
+                                    <Grid ColumnDefinitions="2*,10,*">
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Server Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                            <TextBox Text="{Binding SingleSourceHost}" Watermark="e.g. imap.example.com" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Port" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                            <TextBox Text="{Binding SingleSourcePort}" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Email / Username" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBox Grid.Column="0" Text="{Binding SingleSourceUser}" Watermark="user@example.com" />
+                                            <Button Grid.Column="1" Content="⚡ Auto-Detect" Click="AutoDetectSource_Click" Classes="Outline" Margin="6,0,0,0" Padding="8,6" FontSize="11" />
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Password" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding SingleSourcePassword}" PasswordChar="•" Watermark="Password" />
+                                    </StackPanel>
+
+                                    <Border Classes="InnerCard" Padding="10,6">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding SingleSourceQuotaText}" FontSize="11" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                            <Button Grid.Column="1" Content="📊 Check Quota" Click="CheckSourceQuota_Click" Classes="Outline" Padding="6,3" FontSize="10" />
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- DESTINATION CARD -->
+                            <Border Grid.Column="2" Classes="Card" Padding="18">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Text="Destination Mailbox (To)" FontWeight="Bold" FontSize="14" Foreground="#34D399" />
+
+                                    <Grid ColumnDefinitions="2*,10,*">
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Server Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                            <TextBox Text="{Binding SingleDestHost}" Watermark="e.g. mail.destination.com" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Port" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                            <TextBox Text="{Binding SingleDestPort}" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Email / Username" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBox Grid.Column="0" Text="{Binding SingleDestUser}" Watermark="user@destination.com" />
+                                            <Button Grid.Column="1" Content="⚡ Auto-Detect" Click="AutoDetectDest_Click" Classes="Outline" Margin="6,0,0,0" Padding="8,6" FontSize="11" />
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Password" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding SingleDestPassword}" PasswordChar="•" Watermark="Password" />
+                                    </StackPanel>
+
+                                    <Border Classes="InnerCard" Padding="10,6">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding SingleDestQuotaText}" FontSize="11" Foreground="#34D399" VerticalAlignment="Center" />
+                                            <Button Grid.Column="1" Content="📊 Check Quota" Click="CheckDestQuota_Click" Classes="Outline" Padding="6,3" FontSize="10" />
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- LIVE PROGRESS & CONTROL CARD -->
+                        <Border Classes="Card" Padding="18">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding SingleStatusText}" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" />
+                                        <TextBlock Text="{Binding SingleFolderProgressText}" FontSize="11" Foreground="#94A3B8" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                        <Button Content="▶ Start Migration" Click="StartSingleMigration_Click" IsEnabled="{Binding CanStartSingleMigration}" Classes="Primary" />
+                                        <Button Content="⏹ Stop" Click="CancelSingleMigration_Click" IsEnabled="{Binding IsSingleMigrating}" Classes="Outline" />
+                                    </StackPanel>
+                                </Grid>
+                                <ProgressBar Value="{Binding SingleProgressPercent}" Height="8" CornerRadius="4" Background="#0F172A" Foreground="#2563EB" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 2: BATCH MIGRATION -->
+            <TabItem Header="Batch Migration">
+                <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="0,10,0,0">
+                    <!-- SERVER DEFAULTS -->
+                    <Border Grid.Row="0" Classes="Card" Padding="14" Margin="0,0,0,10">
+                        <Grid ColumnDefinitions="*,12,*,12,Auto">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Default Source Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2" />
+                                <TextBox Text="{Binding BatchSourceHost}" Watermark="e.g. source.server.com" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Default Dest Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2" />
+                                <TextBox Text="{Binding BatchDestHost}" Watermark="e.g. dest.server.com" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4" Width="140">
+                                <TextBlock Text="{Binding Concurrency, StringFormat='Workers: {0}'}" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2" />
+                                <Slider Value="{Binding Concurrency}" Minimum="1" Maximum="16" SmallChange="1" LargeChange="2" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- TOOLBAR -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+                        <Button Content="➕ Add Account" Click="AddAccount_Click" Classes="Outline" FontSize="11" />
+                        <Button Content="➖ Remove Selected" Click="RemoveAccount_Click" Classes="Outline" FontSize="11" />
+                    </StackPanel>
+
+                    <!-- ACCOUNTS DATAGRID -->
+                    <Border Grid.Row="2" Classes="Card" Padding="0">
+                        <DataGrid ItemsSource="{Binding BatchAccounts}" 
+                                  SelectedItem="{Binding SelectedAccount}"
+                                  AutoGenerateColumns="False" 
+                                  CanUserResizeColumns="True"
+                                  GridLinesVisibility="Horizontal"
+                                  Background="#0F172A"
+                                  BorderThickness="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Source User" Binding="{Binding SourceUsername}" Width="2*" />
+                                <DataGridTextColumn Header="Source Pass" Binding="{Binding SourcePassword}" Width="*" />
+                                <DataGridTextColumn Header="Dest User" Binding="{Binding DestUsername}" Width="2*" />
+                                <DataGridTextColumn Header="Dest Pass" Binding="{Binding DestPassword}" Width="*" />
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="1.2*" />
+                                <DataGridTextColumn Header="Progress" Binding="{Binding ProgressPercent, StringFormat='{}{0:0}%'}" Width="*" />
+                                <DataGridTextColumn Header="Transferred" Binding="{Binding CopiedMessages}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <!-- BATCH CONTROLS & OVERALL PROGRESS -->
+                    <Border Grid.Row="3" Classes="Card" Padding="14" Margin="0,10,0,0">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding BatchStatusText}" FontWeight="Bold" FontSize="12" Foreground="#FFFFFF" />
+                                <ProgressBar Value="{Binding BatchProgressPercent}" Height="6" CornerRadius="3" Background="#0F172A" Foreground="#2563EB" Margin="0,4,16,0" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                <Button Content="▶ Start Batch Migration" Click="StartBatchMigration_Click" IsEnabled="{Binding CanStartBatchMigration}" Classes="Primary" />
+                                <Button Content="⏹ Stop Batch" Click="CancelBatchMigration_Click" IsEnabled="{Binding IsBatchMigrating}" Classes="Outline" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 3: SETTINGS & LOGS -->
+            <TabItem Header="Settings &amp; Logs">
+                <ScrollViewer x:Name="SettingsTabScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
+                    <StackPanel Spacing="14" Margin="0,10,0,0">
+                        <!-- MIGRATION PREFERENCES CARD -->
+                        <Border Classes="Card" Padding="18">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Migration Preferences" FontWeight="Bold" FontSize="14" Foreground="#60A5FA" />
+                                <CheckBox IsChecked="{Binding Deduplicate}" Content="Smart Message-ID Deduplication (Prevents duplicate emails on incremental runs)" Foreground="#E2E8F0" />
+                                <CheckBox IsChecked="{Binding AllowInvalidCertificates}" Content="Permit Self-Signed / Invalid SSL Certificates" Foreground="#E2E8F0" />
+                                <Grid ColumnDefinitions="*,16,*">
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Folders to Skip (comma separated)" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding SkipFolders}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Deny Flags (space separated, e.g. \Recent)" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding DenyFlags}" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- LIVE ACTIVITY LOGS -->
+                        <Border Classes="Card" Padding="18">
+                            <StackPanel Spacing="10">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <TextBlock Grid.Column="0" Text="Live Activity Log" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding LogCountStatusText}" FontSize="11" Foreground="#64748B" Margin="10,0,0,0" VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                                        <TextBox Text="{Binding LogSearchText}" Watermark="🔍 Search logs..." Width="180" FontSize="11" />
+                                        <Button Content="🗑 Clear" Click="ClearLogs_Click" Classes="Outline" FontSize="11" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <Border Classes="InnerCard" Height="360">
+                                    <ListBox ItemsSource="{Binding FilteredLogs}" Background="Transparent" BorderThickness="0">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding FormattedText}" FontFamily="Consolas, Menlo, Monaco, monospace" FontSize="11" Foreground="#94A3B8" />
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 4: PRIVACY & COMPLIANCE -->
+            <TabItem Header="Privacy &amp; Compliance">
+                <ScrollViewer x:Name="PrivacyTabScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
+                    <StackPanel Spacing="14" Margin="0,10,0,0">
+                        <Border Classes="Card" BorderBrush="#10B981" Padding="20">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock Grid.Column="0" Text="🛡️" FontSize="36" VerticalAlignment="Center" Margin="0,0,16,0" />
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="100% Standalone &amp; Zero-Telemetry Architecture" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF" />
+                                    <TextBlock Text="Your emails belong strictly to you and your servers. Mundofy MailMigrator operates entirely client-side on your local machine with zero telemetry, zero analytics tracking, and zero cloud intermediaries."
+                                               FontSize="12" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Classes="Card" Padding="18">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Why We Don't Want Your Data" FontWeight="Bold" FontSize="14" Foreground="#38BDF8" />
+                                <TextBlock Text="In an era where modern desktop applications quietly siphon usage analytics and route data through proprietary cloud relays, Mundofy MailMigrator is built on an old-school principle: pure client-side computing. When migrating mailboxes, sensitive business contracts, medical correspondences, and credentials flow through the wire. No third party should ever be in that loop. Direct TLS 1.3 socket connections are opened point-to-point between your computer and your email servers. No data is stored, cached, or uploaded anywhere else."
+                                           FontSize="12" Foreground="#E2E8F0" TextWrapping="Wrap" LineHeight="18" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Classes="Card" Padding="18">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Worldwide Privacy Compliance" FontWeight="Bold" FontSize="14" Foreground="#10B981" />
+                                <TextBlock Text="• 🇪🇺 GDPR (EU): Articles 5, 25 &amp; 32 (Privacy by Design and by Default). Mundofy never receives or hosts customer PII." FontSize="12" Foreground="#94A3B8" />
+                                <TextBlock Text="• 🇺🇸 CCPA / CPRA (California): Zero consumer personal data collected, sold, or shared." FontSize="12" Foreground="#94A3B8" />
+                                <TextBlock Text="• 🇨🇦 PIPEDA &amp; UK GDPR: Full alignment with international data minimization standards." FontSize="12" Foreground="#94A3B8" />
+                                <TextBlock Text="• 🏥 Healthcare &amp; Enterprise (HIPAA-Ready): Email data never leaves your enterprise perimeter." FontSize="12" Foreground="#94A3B8" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Classes="Card" Padding="18">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Complete Transparency: The One Single Ping" FontWeight="Bold" FontSize="14" Foreground="#F59E0B" />
+                                <TextBlock Text="The only network request this application ever makes outside your specified mail hosts is an anonymous query to GitHub Releases (api.github.com) to check if a new version is available. Zero telemetry, no device IDs, no account names. In air-gapped or offline networks, this check silently times out and migration works 100% normally."
+                                           FontSize="12" Foreground="#E2E8F0" TextWrapping="Wrap" LineHeight="18" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 5: ABOUT -->
+            <TabItem Header="About">
+                <ScrollViewer x:Name="AboutTabScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
+                    <Border Classes="Card" Padding="24" Margin="0,10,0,0">
+                        <StackPanel Spacing="16" MaxWidth="680" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Border Background="#1E3A8A" CornerRadius="10" Width="48" Height="48" VerticalAlignment="Center">
+                                    <TextBlock Text="M" FontWeight="Bold" FontSize="24" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Mundofy MailMigrator" FontWeight="Bold" FontSize="20" Foreground="#FFFFFF" />
+                                    <TextBlock Text="{Binding AppVersionDisplay, StringFormat='Version {0} (macOS)'}" FontSize="12" Foreground="#94A3B8" />
+                                </StackPanel>
+                            </StackPanel>
+
+                            <Border Classes="InnerCard" Padding="14">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Why This Tool Was Created" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" />
+                                    <TextBlock Text="Built by Mundofy as the modern open-source successor to classic imapcopy. Supporting native TLS 1.3, IMAP and POP3, RFC 2087 mailbox quota checks, pre-flight capacity guard, zero-config server auto-discovery, smart deduplication, and full cross-platform capability."
+                                               FontSize="11" Foreground="#94A3B8" TextWrapping="Wrap" LineHeight="17" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="InnerCard" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Credits &amp; Authorship" FontWeight="Bold" FontSize="12" Foreground="#60A5FA" Margin="0,0,0,4" />
+                                    <TextBlock Text="• Author: Danny Schuller" FontSize="11" Foreground="#E2E8F0" />
+                                    <TextBlock Text="• Company: Mundofy (mundofy.com)" FontSize="11" Foreground="#E2E8F0" />
+                                    <TextBlock Text="• Engine: MailKit by Jeffrey Stedfast" FontSize="11" Foreground="#94A3B8" />
+                                    <TextBlock Text="• Inspired by: Armin Diehl's original imapcopy (2001-2009)" FontSize="11" Foreground="#94A3B8" />
+                                    <TextBlock Text="• Open Source: MIT License on GitHub" FontSize="11" Foreground="#94A3B8" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+</Window>
