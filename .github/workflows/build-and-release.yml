@@ -17,16 +17,18 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Setup .NET 8
+    - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: |
+          8.0.x
+          9.0.x
 
     - name: Restore Dependencies
       run: dotnet restore Mundofy.MailMigrator.sln
 
     - name: Build Solution
-      run: dotnet build Mundofy.MailMigrator.sln -c Release --no-restore
+      run: dotnet build Mundofy.MailMigrator.sln -c Release --no-restore -v normal
 
     - name: Run Unit Tests
       run: dotnet test Mundofy.MailMigrator.sln -c Release --no-build --verbosity normal
