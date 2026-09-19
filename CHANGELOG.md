@@ -5,9 +5,13 @@ All notable changes to **Mundofy MailMigrator** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.2] - 2026-09-18
+## [1.3.0] - 2026-09-19
 
 ### Added
+* **Automatic Computer Sleep Prevention During Migration**:
+  * Integrates Windows native power management (`SetThreadExecutionState` with `ES_CONTINUOUS | ES_SYSTEM_REQUIRED`) to prevent the PC from entering idle sleep or standby while migrations are actively in progress.
+  * Preserves active TCP sockets and network throughput during long/overnight runs without preventing monitors from powering down to save energy.
+  * Fully configurable in the Settings & Logs tab ("Prevent Computer Sleep During Migration") and enabled by default with `%APPDATA%` persistence.
 * **Per-Account Pause & Resume in Multi-Batch Migration**:
   * Direct row-level pause and resume controls in the active batch table.
   * Pausing an individual account immediately cancels its active transfer, releases its worker slot, and leaves other concurrently migrating accounts completely unaffected.
@@ -15,13 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **Protocol Selection on Batch Migration Tab**:
   * Added source protocol selection supporting both IMAP and POP3 engines for batch accounts.
   * Added "Coming Soon" indicators for Microsoft 365 (Graph API) and Google Workspace (Gmail API) with informative tooltips and custom disabled item styling.
-  * Automatic control locking: protocol selectors, host/port textboxes, and concurrency slider automatically disable and dim while a migration is actively running, preventing invalid mid-transfer modifications.
-* **Automatic Computer Sleep Prevention During Migration**:
-  * Integrates Windows native power management (`SetThreadExecutionState` with `ES_CONTINUOUS | ES_SYSTEM_REQUIRED`) to prevent the PC from entering idle sleep or standby while migrations are actively in progress.
-  * Preserves active TCP sockets and network throughput during long/overnight runs without preventing monitors from powering down to save energy.
-  * Fully configurable in the Settings & Logs tab ("Prevent Computer Sleep During Migration") and enabled by default.
+* **Dynamic Control Locking During Active Migration**:
+  * Protocol selectors, host/port textboxes, and concurrency slider automatically disable and dim while a migration is actively running, preventing invalid mid-transfer modifications.
 * **Precision Vector Dialog Icons**:
   * Replaced DirectWrite emoji glyphs in notification dialogs with mathematically centered vector icons (`Warning`, `Error`, `Question`, `Info`), eliminating font baseline shifts and Windows 11 emoji palette color mismatches.
+
+---
+
+## [1.2.2] - 2026-09-18
+
+### Added
 * **Date Range Filtering (DD-MM-YYYY)**:
   * Restrict message transfers by date envelope (since a specified start date, before an end date, or within a bounded date window).
   * High-efficiency early filtering: inspects envelope metadata during the initial folder scan and skips excluded messages before downloading message bodies.
