@@ -54,14 +54,23 @@ public static class UpdateService
                 return new UpdateInfo(false, currentVersionStr, currentVersionStr, "", "", 0);
             }
 
-            // Ensure only this version's changelog is displayed (never historical cumulative logs)
-            if (!string.IsNullOrWhiteSpace(releaseNotes) && releaseNotes.Contains("## ["))
+            // Ensure only this specific version's changelog is displayed (never historical cumulative logs)
+            if (!string.IsNullOrWhiteSpace(releaseNotes))
             {
-                var pattern = $@"(?s)## \[(?:v)?{Regex.Escape(latestVersionStr)}\].*?(?=((\r?\n## \[\d)|\Z))";
+                var pattern = $@"(?s)## \[(?:v)?{Regex.Escape(latestVersionStr)}\].*?(?=((\r?\n## (\[)?\d)|\Z))";
                 var match = Regex.Match(releaseNotes, pattern);
                 if (match.Success)
                 {
                     releaseNotes = match.Value.Trim().TrimEnd('-').Trim();
+                }
+                else
+                {
+                    var fallbackPattern = $@"(?s)#{1,3} (?:\[)?(?:v)?{Regex.Escape(latestVersionStr)}(?:\])?.*?(?=((\r?\n#{1,3} (\[)?\d)|\Z))";
+                    var fallbackMatch = Regex.Match(releaseNotes, fallbackPattern);
+                    if (fallbackMatch.Success)
+                    {
+                        releaseNotes = fallbackMatch.Value.Trim().TrimEnd('-').Trim();
+                    }
                 }
             }
 
