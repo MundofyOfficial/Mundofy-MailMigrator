@@ -114,11 +114,11 @@
         </Border>
 
         <!-- MAIN CONTENT TABS -->
-        <TabControl x:Name="MainTabControl" Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="18,12,18,18">
+        <TabControl x:Name="MainTabControl" SelectionChanged="MainTabControl_SelectionChanged" Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="18,12,18,18">
             
             <!-- TAB 1: SINGLE MAILBOX MIGRATION -->
             <TabItem Header="Single Account Migration">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
+                <ScrollViewer x:Name="SingleTabScrollViewer" RequestBringIntoView="TabScrollViewer_RequestBringIntoView" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
                     <StackPanel Margin="0,14,0,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -859,7 +859,7 @@
 
             <!-- TAB 3: SETTINGS & LOGS -->
             <TabItem Header="Settings &amp; Logs">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
+                <ScrollViewer x:Name="SettingsTabScrollViewer" RequestBringIntoView="TabScrollViewer_RequestBringIntoView" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
                     <StackPanel Margin="0,14,0,0">
                         <!-- DATE RANGE FILTER CARD -->
                         <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,12">
@@ -1030,7 +1030,7 @@
 
             <!-- TAB 4: PRIVACY & COMPLIANCE -->
             <TabItem Header="Privacy &amp; Compliance">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
+                <ScrollViewer x:Name="PrivacyTabScrollViewer" RequestBringIntoView="TabScrollViewer_RequestBringIntoView" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
                     <StackPanel Margin="0,14,0,0">
                         <!-- HERO BANNER CARD -->
                         <Border Background="#0B1B2B" BorderBrush="#10B981" BorderThickness="1" CornerRadius="8" Padding="24" Margin="0,0,0,16">
@@ -1221,7 +1221,7 @@
 
             <!-- TAB 5: ABOUT -->
             <TabItem Header="About">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
+                <ScrollViewer x:Name="AboutTabScrollViewer" RequestBringIntoView="TabScrollViewer_RequestBringIntoView" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
                     <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="32" Margin="0,14,0,0">
                         <StackPanel MaxWidth="720" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,18">

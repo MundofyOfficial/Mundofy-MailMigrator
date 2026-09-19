@@ -59,6 +59,50 @@ public partial class MainWindow : Window
         MainTabControl.SelectedIndex = 3;
     }
 
+    private bool _isSwitchingTab;
+
+    private void MainTabControl_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (ReferenceEquals(e.Source, MainTabControl))
+        {
+            _isSwitchingTab = true;
+            ResetSelectedTabScroll();
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, new Action(() =>
+            {
+                ResetSelectedTabScroll();
+                _isSwitchingTab = false;
+            }));
+        }
+    }
+
+    private void TabScrollViewer_RequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
+    {
+        if (_isSwitchingTab)
+        {
+            e.Handled = true;
+        }
+    }
+
+    private void ResetSelectedTabScroll()
+    {
+        if (MainTabControl.SelectedContent is System.Windows.Controls.ScrollViewer sv)
+        {
+            sv.ScrollToVerticalOffset(0);
+            sv.ScrollToHorizontalOffset(0);
+            sv.ScrollToTop();
+        }
+        else if (MainTabControl.SelectedContent is DependencyObject dep)
+        {
+            var childSv = FindDescendant<System.Windows.Controls.ScrollViewer>(dep);
+            if (childSv != null)
+            {
+                childSv.ScrollToVerticalOffset(0);
+                childSv.ScrollToHorizontalOffset(0);
+                childSv.ScrollToTop();
+            }
+        }
+    }
+
     private void OnDataGridRowPreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (sender is System.Windows.Controls.DataGridRow row)
