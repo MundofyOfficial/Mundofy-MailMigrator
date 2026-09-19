@@ -116,11 +116,45 @@ jobs:
         -p:PublishSingleFile=true 
         -o publish/osx-x64
 
-    - name: Package macOS Distributions (ZIP)
+    - name: Package macOS Distributions (ZIP & .app Bundle)
       shell: pwsh
       run: |
-        Compress-Archive -Path publish/osx-arm64/* -DestinationPath publish/MundofyMailMigrator-macOS-arm64.zip -Force
-        Compress-Archive -Path publish/osx-x64/* -DestinationPath publish/MundofyMailMigrator-macOS-x64.zip -Force
+        $plist = @"
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>MundofyMailMigrator</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.mundofy.mailmigrator</string>
+            <key>CFBundleName</key>
+            <string>Mundofy MailMigrator</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.4.0</string>
+            <key>CFBundleVersion</key>
+            <string>1.4.0</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+        </dict>
+        </plist>
+        "@
+
+        # Apple Silicon (arm64) .app bundle
+        $appArm = "publish/bundle-arm64/Mundofy MailMigrator.app/Contents/MacOS"
+        New-Item -ItemType Directory -Force -Path $appArm | Out-Null
+        Copy-Item -Path publish/osx-arm64/* -Destination $appArm -Recurse -Force
+        Set-Content -Path "publish/bundle-arm64/Mundofy MailMigrator.app/Contents/Info.plist" -Value $plist -Encoding UTF8
+        Compress-Archive -Path "publish/bundle-arm64/*" -DestinationPath publish/MundofyMailMigrator-macOS-arm64.zip -Force
+
+        # Intel (x64) .app bundle
+        $appX64 = "publish/bundle-x64/Mundofy MailMigrator.app/Contents/MacOS"
+        New-Item -ItemType Directory -Force -Path $appX64 | Out-Null
+        Copy-Item -Path publish/osx-x64/* -Destination $appX64 -Recurse -Force
+        Set-Content -Path "publish/bundle-x64/Mundofy MailMigrator.app/Contents/Info.plist" -Value $plist -Encoding UTF8
+        Compress-Archive -Path "publish/bundle-x64/*" -DestinationPath publish/MundofyMailMigrator-macOS-x64.zip -Force
 
     - name: Upload Windows Artifact
       uses: actions/upload-artifact@v4
@@ -140,11 +174,27 @@ jobs:
         name: MundofyMailMigrator-macOS-x64
         path: publish/MundofyMailMigrator-macOS-x64.zip
 
-    - name: Extract Tag Release Notes
-      if: startsWith(github.ref, 'refs/tags/')
+    - name: Extract Release Notes & Identify Target Release
+      id: release_target
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       shell: pwsh
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_REPO: ${{ github.repository }}
       run: |
-        $tag = "${{ github.ref_name }}"
+        $tag = if ("${{ github.ref }}".StartsWith("refs/tags/")) {
+            "${{ github.ref_name }}"
+        } else {
+            $headers = @{
+                "Authorization" = "Bearer $env:GH_TOKEN"
+                "Accept" = "application/vnd.github+json"
+                "User-Agent" = "MundofyReleaseSync"
+            }
+            (Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GH_REPO/releases?per_page=1" -Headers $headers)[0].tag_name
+        }
+        Write-Host "Target release tag: $tag"
+        "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
         $version = $tag.TrimStart('v', 'V')
         $content = Get-Content CHANGELOG.md -Raw
         $pattern = "(?s)## \[$version\].*?(?=((\r?\n## \[\d)|\Z))"
@@ -155,10 +205,11 @@ jobs:
             Set-Content -Path release_notes.md -Value "## $tag`n`nRelease $tag" -Encoding UTF8
         }
 
-    - name: Create GitHub Release
-      if: startsWith(github.ref, 'refs/tags/')
+    - name: Publish & Attach Binaries to GitHub Release
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: ${{ steps.release_target.outputs.tag }}
         files: |
           publish/win-x64/MundofyMailMigrator.exe
           publish/MundofyMailMigrator-macOS-arm64.zip
