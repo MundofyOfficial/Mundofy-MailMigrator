@@ -5,7 +5,7 @@ All notable changes to **Mundofy MailMigrator** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.0] - 2026-09-19
 
 ### Added
 * **IMAP & POP3 Mailbox Quota Checker**:
@@ -19,18 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Automated pre-flight comparison between source mailbox size and destination available free space.
   * Warns the operator before migration begins if the destination mailbox has insufficient capacity, preventing destination server `[OVERQUOTA]` rejections.
   * Supported on both Single Account Migration and Multi-Account Batch Migration.
-
-### Fixed
-* **Batch Re-Run & Fresh Counter Reset**:
-  * Pressing "Start Batch Migration" when all accounts were previously completed now cleanly re-queues all accounts as a fresh run instead of doing nothing.
-  * Automatically resets message counters (`TotalMessages`, `CopiedMessages`, `SkippedMessages`, `FailedMessages`), transfer speed, and row progress bars to `0% / Queued`.
-  * Instantly resets the overall batch progress bar and status text upon clicking start, providing clear visual feedback that a new request has begun.
-
----
-
-## [1.3.0] - 2026-09-19
-
-### Added
 * **Automatic Computer Sleep Prevention During Migration**:
   * Integrates Windows native power management (`SetThreadExecutionState` with `ES_CONTINUOUS | ES_SYSTEM_REQUIRED`) to prevent the PC from entering idle sleep or standby while migrations are actively in progress.
   * Preserves active TCP sockets and network throughput during long/overnight runs without preventing monitors from powering down to save energy.
@@ -46,6 +34,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Protocol selectors, host/port textboxes, and concurrency slider automatically disable and dim while a migration is actively running, preventing invalid mid-transfer modifications.
 * **Precision Vector Dialog Icons**:
   * Replaced DirectWrite emoji glyphs in notification dialogs with mathematically centered vector icons (`Warning`, `Error`, `Question`, `Info`), eliminating font baseline shifts and Windows 11 emoji palette color mismatches.
+
+### Fixed
+* **Batch Re-Run & Fresh Counter Reset**:
+  * Pressing "Start Batch Migration" when all accounts were previously completed now cleanly re-queues all accounts as a fresh run instead of doing nothing.
+  * Automatically resets message counters (`TotalMessages`, `CopiedMessages`, `SkippedMessages`, `FailedMessages`), transfer speed, and row progress bars to `0% / Queued`.
+  * Instantly resets the overall batch progress bar and status text upon clicking start, providing clear visual feedback that a new request has begun.
 
 ---
 
