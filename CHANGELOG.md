@@ -5,6 +5,29 @@ All notable changes to **Mundofy MailMigrator** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+* **IMAP & POP3 Mailbox Quota Checker**:
+  * Added RFC 2087 IMAP QUOTA protocol support, converting 1024-octet storage blocks into accurate byte metrics (MB / GB) and percentage utilization.
+  * Added POP3 storage usage calculation using message sizing and count metrics.
+  * Interactive "📊 Check Quotas" batch toolbar button and right-click context menu item to query mailbox limits and usage for all accounts in parallel.
+  * Real-time color-coded health badges (Normal, Warning >= 80%, Critical >= 95%, Exceeded >= 100%, and Unlimited).
+  * Storage quota indicators on Single Account Migration for both Source and Destination mailboxes.
+  * Detection and clean formatting for unmetered and unlimited storage mailboxes.
+* **Pre-Flight Destination Storage Capacity Guard**:
+  * Automated pre-flight comparison between source mailbox size and destination available free space.
+  * Warns the operator before migration begins if the destination mailbox has insufficient capacity, preventing destination server `[OVERQUOTA]` rejections.
+  * Supported on both Single Account Migration and Multi-Account Batch Migration.
+
+### Fixed
+* **Batch Re-Run & Fresh Counter Reset**:
+  * Pressing "Start Batch Migration" when all accounts were previously completed now cleanly re-queues all accounts as a fresh run instead of doing nothing.
+  * Automatically resets message counters (`TotalMessages`, `CopiedMessages`, `SkippedMessages`, `FailedMessages`), transfer speed, and row progress bars to `0% / Queued`.
+  * Instantly resets the overall batch progress bar and status text upon clicking start, providing clear visual feedback that a new request has begun.
+
+---
+
 ## [1.3.0] - 2026-09-19
 
 ### Added
