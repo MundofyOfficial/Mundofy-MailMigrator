@@ -6,6 +6,7 @@
     <Application.Resources>
         <converters:StatusToBrushConverter x:Key="StatusToBrushConverter" />
         <converters:PasswordMaskConverter x:Key="PasswordMaskConverter" />
+        <converters:QuotaStatusToBrushConverter x:Key="QuotaStatusToBrushConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
         <!-- Color Palette -->

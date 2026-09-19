@@ -127,6 +127,20 @@ public class AccountJob : INotifyPropertyChanged
         set => SetField(ref _transferSpeed, value);
     }
 
+    private MailboxQuotaInfo? _sourceQuota;
+    public MailboxQuotaInfo? SourceQuota
+    {
+        get => _sourceQuota;
+        set => SetField(ref _sourceQuota, value);
+    }
+
+    private MailboxQuotaInfo? _destQuota;
+    public MailboxQuotaInfo? DestQuota
+    {
+        get => _destQuota;
+        set => SetField(ref _destQuota, value);
+    }
+
     public double ProgressPercentage
     {
         get

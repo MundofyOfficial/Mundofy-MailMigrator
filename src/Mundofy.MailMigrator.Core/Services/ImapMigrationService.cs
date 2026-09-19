@@ -19,12 +19,14 @@ public class ImapMigrationService
         LogEmitted?.Invoke(this, new LogEntry { Level = level, Message = message });
     }
 
-    public async Task<(bool Success, string Message)> TestConnectionAsync(
+    public async Task<(bool Success, string Message, MailboxQuotaInfo Quota)> TestConnectionWithQuotaAsync(
         ServerEndpoint endpoint,
         string username,
         string password,
         CancellationToken ct = default)
     {
+        var quotaInfo = new MailboxQuotaInfo();
+
         try
         {
             if (endpoint.Protocol == ServerProtocol.Pop3)
@@ -32,23 +34,103 @@ public class ImapMigrationService
                 using var client = CreatePop3Client(endpoint);
                 await client.ConnectAsync(endpoint.Host, endpoint.Port, GetSecureSocketOptions(endpoint), ct);
                 await client.AuthenticateAsync(username, password, ct);
+
                 int count = client.Count;
+                quotaInfo.MessageCountUsed = count;
+
+                try
+                {
+                    var sizes = await client.GetMessageSizesAsync(ct);
+                    long totalBytes = 0;
+                    foreach (var s in sizes) totalBytes += s;
+                    quotaInfo.StorageUsedBytes = totalBytes;
+                }
+                catch { }
+
                 await client.DisconnectAsync(true, ct);
-                return (true, $"POP3 Connected successfully! ({count} messages in mailbox)");
+
+                string sizeStr = quotaInfo.StorageUsedBytes.HasValue
+                    ? $" ({count:N0} messages, {MailboxQuotaInfo.FormatBytes(quotaInfo.StorageUsedBytes.Value)})"
+                    : $" ({count:N0} messages)";
+                return (true, $"POP3 Connected successfully!{sizeStr}", quotaInfo);
             }
             else
             {
                 using var client = CreateImapClient(endpoint);
                 await client.ConnectAsync(endpoint.Host, endpoint.Port, GetSecureSocketOptions(endpoint), ct);
                 await client.AuthenticateAsync(username, password, ct);
+
+                if (client.Capabilities.HasFlag(MailKit.Net.Imap.ImapCapabilities.Quota))
+                {
+                    try
+                    {
+                        var inbox = client.Inbox;
+                        await inbox.OpenAsync(MailKit.FolderAccess.ReadOnly, ct);
+                        var quota = await inbox.GetQuotaAsync(ct);
+                        if (quota != null)
+                        {
+                            quotaInfo.IsSupported = true;
+                            quotaInfo.QuotaRoot = quota.QuotaRoot?.FullName ?? quota.QuotaRoot?.Name ?? "";
+                            // RFC 2087: IMAP QUOTA STORAGE resources are reported in units of 1024 octets (kilobytes)
+                            if (quota.StorageLimit.HasValue) quotaInfo.StorageLimitBytes = (long)quota.StorageLimit.Value * 1024L;
+                            if (quota.CurrentStorageSize.HasValue) quotaInfo.StorageUsedBytes = (long)quota.CurrentStorageSize.Value * 1024L;
+                            if (quota.MessageLimit.HasValue) quotaInfo.MessageCountLimit = (long)quota.MessageLimit.Value;
+                            if (quota.CurrentMessageCount.HasValue) quotaInfo.MessageCountUsed = (long)quota.CurrentMessageCount.Value;
+                        }
+                        quotaInfo.MessageCountUsed ??= inbox.Count;
+                        if (!quotaInfo.StorageUsedBytes.HasValue && inbox.Count == 0)
+                        {
+                            quotaInfo.StorageUsedBytes = 0;
+                        }
+                        await inbox.CloseAsync(false, ct);
+                    }
+                    catch { }
+                }
+                else
+                {
+                    try
+                    {
+                        var inbox = client.Inbox;
+                        await inbox.OpenAsync(MailKit.FolderAccess.ReadOnly, ct);
+                        quotaInfo.MessageCountUsed = inbox.Count;
+                        await inbox.CloseAsync(false, ct);
+                    }
+                    catch { }
+                }
+
                 await client.DisconnectAsync(true, ct);
-                return (true, "IMAP Connected successfully!");
+
+                string quotaSummary = quotaInfo.IsSupported && quotaInfo.StorageLimitBytes.HasValue
+                    ? $" ({quotaInfo.FormattedSummary})"
+                    : (quotaInfo.MessageCountUsed.HasValue ? $" ({quotaInfo.MessageCountUsed.Value:N0} messages in Inbox)" : "");
+
+                return (true, $"IMAP Connected successfully!{quotaSummary}", quotaInfo);
             }
         }
         catch (Exception ex)
         {
-            return (false, ex.Message);
+            return (false, ex.Message, quotaInfo);
         }
+    }
+
+    public async Task<(bool Success, string Message)> TestConnectionAsync(
+        ServerEndpoint endpoint,
+        string username,
+        string password,
+        CancellationToken ct = default)
+    {
+        var result = await TestConnectionWithQuotaAsync(endpoint, username, password, ct);
+        return (result.Success, result.Message);
+    }
+
+    public async Task<MailboxQuotaInfo> GetMailboxQuotaAsync(
+        ServerEndpoint endpoint,
+        string username,
+        string password,
+        CancellationToken ct = default)
+    {
+        var result = await TestConnectionWithQuotaAsync(endpoint, username, password, ct);
+        return result.Quota;
     }
 
     public async Task MigrateAccountAsync(
@@ -405,10 +487,19 @@ public class ImapMigrationService
         {
             var personal = imapClient.PersonalNamespaces.FirstOrDefault();
             var root = personal != null ? imapClient.GetFolder(personal) : imapClient.Inbox;
-            try { dstFolder = await root.CreateAsync(options.DstRootFolder, true, ct); }
-            catch { dstFolder = imapClient.GetFolder(options.DstRootFolder); }
+            try 
+            { 
+                var created = await root.CreateAsync(options.DstRootFolder, true, ct); 
+                if (created != null) dstFolder = created;
+            }
+            catch 
+            { 
+                try { dstFolder = await imapClient.GetFolderAsync(options.DstRootFolder, ct); }
+                catch { dstFolder = imapClient.Inbox; }
+            }
         }
 
+        dstFolder ??= imapClient.Inbox;
         await dstFolder.OpenAsync(FolderAccess.ReadWrite, ct);
 
         // Preload Message-IDs and fingerprints for deduplication
@@ -557,18 +648,18 @@ public class ImapMigrationService
         {
             try
             {
-                return await root.CreateAsync(targetName, true, ct);
+                var created = await root.CreateAsync(targetName, true, ct);
+                if (created != null) return created;
+            }
+            catch { }
+
+            try
+            {
+                return await dstClient.GetFolderAsync(targetName, ct);
             }
             catch
             {
-                try
-                {
-                    return await dstClient.GetFolderAsync(targetName, ct);
-                }
-                catch
-                {
-                    return dstClient.Inbox;
-                }
+                return dstClient.Inbox;
             }
         }
     }

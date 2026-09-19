@@ -83,6 +83,8 @@ public class MainViewModel : INotifyPropertyChanged
         ImportCsvCommand = new RelayCommand(ImportCsvFile);
         ExportCsvCommand = new RelayCommand(ExportCsvFile, () => BatchAccounts.Count > 0);
         TestAllBatchCommand = new RelayCommand(async () => await TestAllBatchAsync(), () => !IsBatchRunning && BatchAccounts.Count > 0);
+        CheckBatchQuotasCommand = new RelayCommand(async () => await CheckBatchQuotasAsync(), () => !IsBatchRunning && BatchAccounts.Count > 0);
+        CheckSelectedAccountQuotaCommand = new RelayCommand(async () => await CheckSelectedAccountQuotaAsync(), () => SelectedAccount != null && !IsBatchRunning);
         StartBatchCommand = new RelayCommand(async () => await StartBatchAsync(), () => !IsBatchRunning && BatchAccounts.Count > 0);
         StopBatchCommand = new RelayCommand(StopBatch, () => IsBatchRunning);
         ClearBatchCommand = new RelayCommand(ClearBatch, () => !IsBatchRunning);
@@ -192,6 +194,13 @@ public class MainViewModel : INotifyPropertyChanged
         set => SetField(ref _singleSourceStatus, value);
     }
 
+    private MailboxQuotaInfo? _singleSourceQuota;
+    public MailboxQuotaInfo? SingleSourceQuota
+    {
+        get => _singleSourceQuota;
+        set => SetField(ref _singleSourceQuota, value);
+    }
+
     private bool _isDetectingSource;
     public bool IsDetectingSource
     {
@@ -267,6 +276,13 @@ public class MainViewModel : INotifyPropertyChanged
     {
         get => _singleDestStatus;
         set => SetField(ref _singleDestStatus, value);
+    }
+
+    private MailboxQuotaInfo? _singleDestQuota;
+    public MailboxQuotaInfo? SingleDestQuota
+    {
+        get => _singleDestQuota;
+        set => SetField(ref _singleDestQuota, value);
     }
 
     private bool _isDetectingDest;
@@ -420,6 +436,11 @@ public class MainViewModel : INotifyPropertyChanged
             if (SetField(ref _selectedAccount, value))
             {
                 RemoveAccountCommand?.RaiseCanExecuteChanged();
+                TestSelectedAccountCommand?.RaiseCanExecuteChanged();
+                CheckSelectedAccountQuotaCommand?.RaiseCanExecuteChanged();
+                QueueSelectedAccountCommand?.RaiseCanExecuteChanged();
+                CopySourceEmailCommand?.RaiseCanExecuteChanged();
+                CopyDestEmailCommand?.RaiseCanExecuteChanged();
             }
         }
     }
@@ -433,6 +454,16 @@ public class MainViewModel : INotifyPropertyChanged
             if (SetField(ref _isBatchRunning, value))
             {
                 OnPropertyChanged(nameof(IsNotBatchRunning));
+                TestAllBatchCommand?.RaiseCanExecuteChanged();
+                StartBatchCommand?.RaiseCanExecuteChanged();
+                StopBatchCommand?.RaiseCanExecuteChanged();
+                CheckBatchQuotasCommand?.RaiseCanExecuteChanged();
+                CheckSelectedAccountQuotaCommand?.RaiseCanExecuteChanged();
+                TestSelectedAccountCommand?.RaiseCanExecuteChanged();
+                ClearBatchCommand?.RaiseCanExecuteChanged();
+                LoadCfgCommand?.RaiseCanExecuteChanged();
+                AutoDetectBatchSourceCommand?.RaiseCanExecuteChanged();
+                AutoDetectBatchDestCommand?.RaiseCanExecuteChanged();
             }
         }
     }
@@ -926,6 +957,7 @@ public class MainViewModel : INotifyPropertyChanged
     public RelayCommand StartSingleAccountInBatchCommand { get; }
     public RelayCommand QueueSelectedAccountCommand { get; }
     public RelayCommand TestSelectedAccountCommand { get; }
+    public RelayCommand CheckSelectedAccountQuotaCommand { get; }
     public RelayCommand CopySourceEmailCommand { get; }
     public RelayCommand CopyDestEmailCommand { get; }
     public RelayCommand ClearCompletedAccountsCommand { get; }
@@ -934,6 +966,7 @@ public class MainViewModel : INotifyPropertyChanged
     public RelayCommand ImportCsvCommand { get; }
     public RelayCommand ExportCsvCommand { get; }
     public RelayCommand TestAllBatchCommand { get; }
+    public RelayCommand CheckBatchQuotasCommand { get; }
     public RelayCommand StartBatchCommand { get; }
     public RelayCommand StopBatchCommand { get; }
     public RelayCommand ClearBatchCommand { get; }
@@ -1188,7 +1221,7 @@ public class MainViewModel : INotifyPropertyChanged
 
     private async Task TestSingleSourceAsync()
     {
-        SingleSourceStatus = "Testing...";
+        SingleSourceStatus = "Testing connection & quota...";
         var endpoint = new ServerEndpoint
         {
             Protocol = SingleSourceProtocol,
@@ -1198,14 +1231,22 @@ public class MainViewModel : INotifyPropertyChanged
             AllowInvalidCertificates = AllowInvalidCertificates
         };
 
-        var result = await _migrationService.TestConnectionAsync(endpoint, SingleSourceUser, SingleSourcePassword);
-        SingleSourceStatus = result.Success ? "✓ Connected OK" : $"✗ Failed: {result.Message}";
-        AddLog(result.Success ? LogLevel.Success : LogLevel.Error, $"Source Test: {SingleSourceStatus}");
+        var (success, message, quota) = await _migrationService.TestConnectionWithQuotaAsync(endpoint, SingleSourceUser, SingleSourcePassword);
+        SingleSourceQuota = quota;
+        SingleSourceStatus = success ? "✓ Connected OK" : $"✗ Failed: {message}";
+        if (success && quota != null && quota.StorageUsedBytes.HasValue)
+        {
+            AddLog(LogLevel.Success, $"Source Test: Connected OK | Quota: {quota.FormattedSummary}");
+        }
+        else
+        {
+            AddLog(success ? LogLevel.Success : LogLevel.Error, $"Source Test: {SingleSourceStatus}");
+        }
     }
 
     private async Task TestSingleDestAsync()
     {
-        SingleDestStatus = "Testing...";
+        SingleDestStatus = "Testing connection & quota...";
         var endpoint = new ServerEndpoint
         {
             Protocol = SingleDestProtocol,
@@ -1215,9 +1256,17 @@ public class MainViewModel : INotifyPropertyChanged
             AllowInvalidCertificates = AllowInvalidCertificates
         };
 
-        var result = await _migrationService.TestConnectionAsync(endpoint, SingleDestUser, SingleDestPassword);
-        SingleDestStatus = result.Success ? "✓ Connected OK" : $"✗ Failed: {result.Message}";
-        AddLog(result.Success ? LogLevel.Success : LogLevel.Error, $"Destination Test: {SingleDestStatus}");
+        var (success, message, quota) = await _migrationService.TestConnectionWithQuotaAsync(endpoint, SingleDestUser, SingleDestPassword);
+        SingleDestQuota = quota;
+        SingleDestStatus = success ? "✓ Connected OK" : $"✗ Failed: {message}";
+        if (success && quota != null && quota.StorageUsedBytes.HasValue)
+        {
+            AddLog(LogLevel.Success, $"Destination Test: Connected OK | Quota: {quota.FormattedSummary}");
+        }
+        else
+        {
+            AddLog(success ? LogLevel.Success : LogLevel.Error, $"Destination Test: {SingleDestStatus}");
+        }
     }
 
     private bool ConfirmInvalidCertificatesIfEnabled()
@@ -1246,6 +1295,26 @@ public class MainViewModel : INotifyPropertyChanged
         if (!ConfirmInvalidCertificatesIfEnabled())
         {
             return;
+        }
+
+        if (SingleDestQuota?.StorageAvailableBytes.HasValue == true &&
+            SingleSourceQuota?.StorageUsedBytes.HasValue == true &&
+            SingleDestQuota.StorageAvailableBytes.Value < SingleSourceQuota.StorageUsedBytes.Value)
+        {
+            var res = DarkMessageBox.Show(
+                $"Warning: Destination Quota Capacity Risk\n\n" +
+                $"The destination mailbox only has {MailboxQuotaInfo.FormatBytes(SingleDestQuota.StorageAvailableBytes.Value)} free storage available, " +
+                $"but the source mailbox currently holds {MailboxQuotaInfo.FormatBytes(SingleSourceQuota.StorageUsedBytes.Value)}.\n\n" +
+                $"Proceeding may trigger a destination [OVERQUOTA] rejection before all messages are transferred.\n\n" +
+                $"Do you want to proceed anyway?",
+                "Insufficient Destination Storage",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (res != MessageBoxResult.Yes)
+            {
+                return;
+            }
         }
 
         IsSingleMigrating = true;
@@ -1398,6 +1467,39 @@ public class MainViewModel : INotifyPropertyChanged
             AddLog(LogLevel.Success, $"Credentials verified for '{SelectedAccount.SourceUser}'.");
         else
             AddLog(LogLevel.Error, $"Credential test failed for '{SelectedAccount.SourceUser}': {SelectedAccount.StatusMessage}");
+    }
+
+    private async Task CheckSelectedAccountQuotaAsync()
+    {
+        if (SelectedAccount == null) return;
+
+        if (string.IsNullOrWhiteSpace(BatchSourceHost) || string.IsNullOrWhiteSpace(BatchDestHost))
+        {
+            DarkMessageBox.Show("Please specify both Source and Destination server hosts in the Batch setup card.", "Missing Host", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var srcEndpoint = new ServerEndpoint
+        {
+            Protocol = BatchSourceProtocol,
+            Host = BatchSourceHost,
+            Port = BatchSourcePort,
+            UseSsl = BatchSourceUseSsl,
+            AllowInvalidCertificates = AllowInvalidCertificates
+        };
+
+        var dstEndpoint = new ServerEndpoint
+        {
+            Protocol = BatchDestProtocol,
+            Host = BatchDestHost,
+            Port = BatchDestPort,
+            UseSsl = BatchDestUseSsl,
+            AllowInvalidCertificates = AllowInvalidCertificates
+        };
+
+        AddLog(LogLevel.Info, $"Checking storage quota for '{SelectedAccount.SourceUser}'...");
+        await _batchOrchestrator.CheckAccountQuotasAsync(srcEndpoint, dstEndpoint, SelectedAccount);
+        AddLog(LogLevel.Info, $"Quota check for '{SelectedAccount.SourceUser}': Source: {(SelectedAccount.SourceQuota?.FormattedSummary ?? "None")}, Dest: {(SelectedAccount.DestQuota?.FormattedSummary ?? "None")}");
     }
 
     private void CopySourceEmail()
@@ -1677,6 +1779,48 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    private async Task CheckBatchQuotasAsync()
+    {
+        if (string.IsNullOrWhiteSpace(BatchSourceHost) || string.IsNullOrWhiteSpace(BatchDestHost))
+        {
+            DarkMessageBox.Show("Please specify both Source and Destination server hosts in the Batch setup card.", "Missing Host", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        IsBatchRunning = true;
+        BatchStatusText = "Checking mailbox quotas...";
+        AddLog(LogLevel.Info, $"Checking mailbox quotas for {BatchAccounts.Count} account(s)...");
+
+        var srcEndpoint = new ServerEndpoint
+        {
+            Protocol = BatchSourceProtocol,
+            Host = BatchSourceHost,
+            Port = BatchSourcePort,
+            UseSsl = BatchSourceUseSsl,
+            AllowInvalidCertificates = AllowInvalidCertificates
+        };
+
+        var dstEndpoint = new ServerEndpoint
+        {
+            Protocol = BatchDestProtocol,
+            Host = BatchDestHost,
+            Port = BatchDestPort,
+            UseSsl = BatchDestUseSsl,
+            AllowInvalidCertificates = AllowInvalidCertificates
+        };
+
+        try
+        {
+            await _batchOrchestrator.CheckAllAccountQuotasAsync(srcEndpoint, dstEndpoint, BatchAccounts, Concurrency);
+            BatchStatusText = "Quota checking completed.";
+            AddLog(LogLevel.Success, $"Quota check completed for {BatchAccounts.Count} account(s).");
+        }
+        finally
+        {
+            IsBatchRunning = false;
+        }
+    }
+
     private async Task StartBatchAsync()
     {
         if (string.IsNullOrWhiteSpace(BatchSourceHost) || string.IsNullOrWhiteSpace(BatchDestHost))
@@ -1688,6 +1832,37 @@ public class MainViewModel : INotifyPropertyChanged
         if (!ConfirmInvalidCertificatesIfEnabled())
         {
             return;
+        }
+
+        var overquotaAccounts = BatchAccounts
+            .Where(a => a.DestQuota?.StorageAvailableBytes.HasValue == true &&
+                        a.SourceQuota?.StorageUsedBytes.HasValue == true &&
+                        a.DestQuota.StorageAvailableBytes.Value < a.SourceQuota.StorageUsedBytes.Value)
+            .ToList();
+
+        if (overquotaAccounts.Count > 0)
+        {
+            var accountDetails = string.Join("\n", overquotaAccounts.Take(5).Select(a =>
+                $"• {a.SourceUser}: Needs {MailboxQuotaInfo.FormatBytes(a.SourceQuota!.StorageUsedBytes!.Value)}, Dest free: {MailboxQuotaInfo.FormatBytes(a.DestQuota!.StorageAvailableBytes!.Value)}"));
+
+            if (overquotaAccounts.Count > 5)
+            {
+                accountDetails += $"\n...and {overquotaAccounts.Count - 5} more account(s)";
+            }
+
+            var res = DarkMessageBox.Show(
+                $"Storage Warning: {overquotaAccounts.Count} account(s) have source mailboxes exceeding destination available storage:\n\n" +
+                $"{accountDetails}\n\n" +
+                $"These accounts may fail with [OVERQUOTA] errors during migration.\n\n" +
+                $"Do you want to proceed with the batch anyway?",
+                "Destination Storage Warning",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (res != MessageBoxResult.Yes)
+            {
+                return;
+            }
         }
 
         IsBatchRunning = true;

@@ -175,6 +175,28 @@
                                         <Button Grid.Column="0" Content="Test Source Connection" Command="{Binding TestSingleSourceCommand}" Padding="18,8" />
                                         <TextBlock Grid.Column="1" Text="{Binding SingleSourceStatus}" VerticalAlignment="Center" Margin="14,0,0,0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
                                     </Grid>
+
+                                    <!-- Single Source Mailbox Quota Info -->
+                                    <Border Margin="0,12,0,0" Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SingleSourceQuota}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="📊 Storage Quota:" FontWeight="SemiBold" FontSize="12" Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <TextBlock Grid.Column="1" Text="{Binding SingleSourceQuota.FormattedSummary}" Foreground="{Binding SingleSourceQuota, Converter={StaticResource QuotaStatusToBrushConverter}}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                        </Grid>
+                                    </Border>
                                 </StackPanel>
                             </Border>
 
@@ -225,6 +247,28 @@
                                         <Button Grid.Column="0" Content="Test Dest Connection" Command="{Binding TestSingleDestCommand}" Padding="18,8" />
                                         <TextBlock Grid.Column="1" Text="{Binding SingleDestStatus}" VerticalAlignment="Center" Margin="14,0,0,0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
                                     </Grid>
+
+                                    <!-- Single Dest Mailbox Quota Info -->
+                                    <Border Margin="0,12,0,0" Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SingleDestQuota}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="📊 Storage Quota:" FontWeight="SemiBold" FontSize="12" Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <TextBlock Grid.Column="1" Text="{Binding SingleDestQuota.FormattedSummary}" Foreground="{Binding SingleDestQuota, Converter={StaticResource QuotaStatusToBrushConverter}}" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                        </Grid>
+                                    </Border>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -443,7 +487,8 @@
                                         </TextBlock>
                                     </StackPanel>
                                 </Button>
-                                <Button Content="🔍 Test All Credentials" Command="{Binding TestAllBatchCommand}" Padding="16,8" />
+                                 <Button Content="📊 Check Quotas" Command="{Binding CheckBatchQuotasCommand}" Margin="0,0,8,0" Padding="14,8" ToolTip="Query IMAP and POP3 storage limits and mailbox usage for all accounts" />
+                                 <Button Content="🔍 Test All Credentials" Command="{Binding TestAllBatchCommand}" Padding="16,8" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -486,6 +531,7 @@
                                 <ContextMenu>
                                     <MenuItem Header="▶ Start / Queue / Pause Account" Command="{Binding QueueSelectedAccountCommand}" ToolTip="Start migrating, pause active, or queue into running batch" />
                                     <MenuItem Header="🔍 Test Account Credentials" Command="{Binding TestSelectedAccountCommand}" ToolTip="Test IMAP connection for this account" />
+                                    <MenuItem Header="📊 Check Account Quotas" Command="{Binding CheckSelectedAccountQuotaCommand}" ToolTip="Query storage quota for this account" />
                                     <Separator />
                                     <MenuItem Header="📋 Copy Source Email" Command="{Binding CopySourceEmailCommand}" />
                                     <MenuItem Header="📋 Copy Destination Email" Command="{Binding CopyDestEmailCommand}" />
@@ -652,7 +698,7 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
 
-                                <!-- Copied / Total -->
+                                <!-- Messages Column -->
                                 <DataGridTemplateColumn Header="Messages" Width="160">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
@@ -664,6 +710,60 @@
                                                 <Run Text=" exist) / " Foreground="{StaticResource TextSecondaryBrush}" />
                                                 <Run Text="{Binding TotalMessages, Mode=OneWay}" FontWeight="SemiBold" />
                                             </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Quota Column -->
+                                <DataGridTemplateColumn Header="Quota (Src / Dst)" Width="150">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel VerticalAlignment="Center" Margin="4,2">
+                                                <TextBlock FontSize="11" TextTrimming="CharacterEllipsis">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding SourceQuota}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                    <Run Text="Src: " Foreground="#94A3B8" FontWeight="SemiBold" />
+                                                    <Run Text="{Binding SourceQuota.FormattedSummary, Mode=OneWay}" Foreground="{Binding SourceQuota, Converter={StaticResource QuotaStatusToBrushConverter}}" />
+                                                </TextBlock>
+                                                <TextBlock FontSize="11" TextTrimming="CharacterEllipsis">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DestQuota}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                    <Run Text="Dst: " Foreground="#94A3B8" FontWeight="SemiBold" />
+                                                    <Run Text="{Binding DestQuota.FormattedSummary, Mode=OneWay}" Foreground="{Binding DestQuota, Converter={StaticResource QuotaStatusToBrushConverter}}" />
+                                                </TextBlock>
+                                                <TextBlock Text="—" FontSize="11" Foreground="#475569" Margin="2,0,0,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{Binding SourceQuota}" Value="{x:Null}" />
+                                                                        <Condition Binding="{Binding DestQuota}" Value="{x:Null}" />
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </MultiDataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </StackPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>

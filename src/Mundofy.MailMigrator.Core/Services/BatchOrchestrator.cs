@@ -283,26 +283,89 @@ public class BatchOrchestrator
         acc.Status = MigrationStatus.Testing;
         acc.StatusMessage = "Testing source connection...";
 
-        var srcTest = await _migrationService.TestConnectionAsync(source, acc.SourceUser, acc.SourcePassword, ct);
-        if (!srcTest.Success)
+        var (srcOk, srcMsg, srcQuota) = await _migrationService.TestConnectionWithQuotaAsync(source, acc.SourceUser, acc.SourcePassword, ct);
+        if (!srcOk)
         {
             acc.Status = MigrationStatus.Failed;
-            acc.StatusMessage = $"Source Error: {srcTest.Message}";
+            acc.StatusMessage = $"Source Error: {srcMsg}";
             return false;
         }
+        acc.SourceQuota = srcQuota;
 
         acc.StatusMessage = "Testing destination connection...";
-        var dstTest = await _migrationService.TestConnectionAsync(dest, acc.DestUser, acc.DestPassword, ct);
-        if (!dstTest.Success)
+        var (dstOk, dstMsg, dstQuota) = await _migrationService.TestConnectionWithQuotaAsync(dest, acc.DestUser, acc.DestPassword, ct);
+        if (!dstOk)
         {
             acc.Status = MigrationStatus.Failed;
-            acc.StatusMessage = $"Dest Error: {dstTest.Message}";
+            acc.StatusMessage = $"Dest Error: {dstMsg}";
             return false;
+        }
+        acc.DestQuota = dstQuota;
+
+        if (dstQuota != null && srcQuota != null &&
+            dstQuota.StorageAvailableBytes.HasValue && srcQuota.StorageUsedBytes.HasValue &&
+            dstQuota.StorageAvailableBytes.Value < srcQuota.StorageUsedBytes.Value)
+        {
+            acc.Status = MigrationStatus.Ready;
+            acc.StatusMessage = $"Verified (Warning: Dest {MailboxQuotaInfo.FormatBytes(dstQuota.StorageAvailableBytes.Value)} < Source {MailboxQuotaInfo.FormatBytes(srcQuota.StorageUsedBytes.Value)})";
+            return true;
         }
 
         acc.Status = MigrationStatus.Ready;
         acc.StatusMessage = "Verified (Ready)";
         return true;
+    }
+
+    public async Task CheckAccountQuotasAsync(
+        ServerEndpoint source,
+        ServerEndpoint dest,
+        AccountJob acc,
+        CancellationToken ct = default)
+    {
+        acc.StatusMessage = "Checking quotas...";
+        try
+        {
+            var srcQuota = await _migrationService.GetMailboxQuotaAsync(source, acc.SourceUser, acc.SourcePassword, ct);
+            acc.SourceQuota = srcQuota;
+
+            var dstQuota = await _migrationService.GetMailboxQuotaAsync(dest, acc.DestUser, acc.DestPassword, ct);
+            acc.DestQuota = dstQuota;
+
+            if (dstQuota != null && srcQuota != null &&
+                dstQuota.StorageAvailableBytes.HasValue && srcQuota.StorageUsedBytes.HasValue &&
+                dstQuota.StorageAvailableBytes.Value < srcQuota.StorageUsedBytes.Value)
+            {
+                acc.StatusMessage = $"Dest low ({MailboxQuotaInfo.FormatBytes(dstQuota.StorageAvailableBytes.Value)} free < {MailboxQuotaInfo.FormatBytes(srcQuota.StorageUsedBytes.Value)} needed)";
+            }
+            else
+            {
+                acc.StatusMessage = "Quotas checked";
+            }
+        }
+        catch (Exception ex)
+        {
+            acc.StatusMessage = $"Quota check failed: {ex.Message}";
+        }
+    }
+
+    public async Task CheckAllAccountQuotasAsync(
+        ServerEndpoint source,
+        ServerEndpoint dest,
+        IEnumerable<AccountJob> accounts,
+        int concurrency = 4,
+        CancellationToken ct = default)
+    {
+        var accountList = accounts.ToList();
+        var parallelOptions = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = Math.Clamp(concurrency, 1, 16),
+            CancellationToken = ct
+        };
+
+        await Parallel.ForEachAsync(accountList, parallelOptions, async (acc, token) =>
+        {
+            await CheckAccountQuotasAsync(source, dest, acc, token);
+        });
     }
 
     public async Task TestAllAccountsAsync(
