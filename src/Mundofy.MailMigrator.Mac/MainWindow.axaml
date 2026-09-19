@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Mundofy.MailMigrator.Mac.ViewModels"
         x:Class="Mundofy.MailMigrator.Mac.MainWindow"
@@ -44,7 +44,7 @@
                                     <Grid ColumnDefinitions="2*,10,*">
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="Server Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
-                                            <TextBox Text="{Binding SingleSourceHost}" Watermark="e.g. imap.example.com" />
+                                            <TextBox Text="{Binding SingleSourceHost}" PlaceholderText="e.g. imap.example.com" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="Port" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
@@ -55,14 +55,14 @@
                                     <StackPanel>
                                         <TextBlock Text="Email / Username" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <TextBox Grid.Column="0" Text="{Binding SingleSourceUser}" Watermark="user@example.com" />
+                                            <TextBox Grid.Column="0" Text="{Binding SingleSourceUser}" PlaceholderText="user@example.com" />
                                             <Button Grid.Column="1" Content="⚡ Auto-Detect" Click="AutoDetectSource_Click" Classes="Outline" Margin="6,0,0,0" Padding="8,6" FontSize="11" />
                                         </Grid>
                                     </StackPanel>
 
                                     <StackPanel>
                                         <TextBlock Text="Password" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
-                                        <TextBox Text="{Binding SingleSourcePassword}" PasswordChar="•" Watermark="Password" />
+                                        <TextBox Text="{Binding SingleSourcePassword}" PasswordChar="•" PlaceholderText="Password" />
                                     </StackPanel>
 
                                     <Border Classes="InnerCard" Padding="10,6">
@@ -82,7 +82,7 @@
                                     <Grid ColumnDefinitions="2*,10,*">
                                         <StackPanel Grid.Column="0">
                                             <TextBlock Text="Server Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
-                                            <TextBox Text="{Binding SingleDestHost}" Watermark="e.g. mail.destination.com" />
+                                            <TextBox Text="{Binding SingleDestHost}" PlaceholderText="e.g. mail.destination.com" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="Port" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
@@ -93,14 +93,14 @@
                                     <StackPanel>
                                         <TextBlock Text="Email / Username" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <TextBox Grid.Column="0" Text="{Binding SingleDestUser}" Watermark="user@destination.com" />
+                                            <TextBox Grid.Column="0" Text="{Binding SingleDestUser}" PlaceholderText="user@destination.com" />
                                             <Button Grid.Column="1" Content="⚡ Auto-Detect" Click="AutoDetectDest_Click" Classes="Outline" Margin="6,0,0,0" Padding="8,6" FontSize="11" />
                                         </Grid>
                                     </StackPanel>
 
                                     <StackPanel>
                                         <TextBlock Text="Password" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
-                                        <TextBox Text="{Binding SingleDestPassword}" PasswordChar="•" Watermark="Password" />
+                                        <TextBox Text="{Binding SingleDestPassword}" PasswordChar="•" PlaceholderText="Password" />
                                     </StackPanel>
 
                                     <Border Classes="InnerCard" Padding="10,6">
@@ -141,11 +141,11 @@
                         <Grid ColumnDefinitions="*,12,*,12,Auto">
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Default Source Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2" />
-                                <TextBox Text="{Binding BatchSourceHost}" Watermark="e.g. source.server.com" />
+                                <TextBox Text="{Binding BatchSourceHost}" PlaceholderText="e.g. source.server.com" />
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Default Dest Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2" />
-                                <TextBox Text="{Binding BatchDestHost}" Watermark="e.g. dest.server.com" />
+                                <TextBox Text="{Binding BatchDestHost}" PlaceholderText="e.g. dest.server.com" />
                             </StackPanel>
                             <StackPanel Grid.Column="4" Width="140">
                                 <TextBlock Text="{Binding Concurrency, StringFormat='Workers: {0}'}" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2" />
@@ -160,7 +160,7 @@
                         <Button Content="➖ Remove Selected" Click="RemoveAccount_Click" Classes="Outline" FontSize="11" />
                     </StackPanel>
 
-                    <!-- ACCOUNTS DATAGRID -->
+                    <!-- DATA GRID -->
                     <Border Grid.Row="2" Classes="Card" Padding="0">
                         <DataGrid ItemsSource="{Binding BatchAccounts}" 
                                   SelectedItem="{Binding SelectedAccount}"
@@ -170,12 +170,12 @@
                                   Background="#0F172A"
                                   BorderThickness="0">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Source User" Binding="{Binding SourceUsername}" Width="2*" />
+                                <DataGridTextColumn Header="Source User" Binding="{Binding SourceUser}" Width="2*" />
                                 <DataGridTextColumn Header="Source Pass" Binding="{Binding SourcePassword}" Width="*" />
-                                <DataGridTextColumn Header="Dest User" Binding="{Binding DestUsername}" Width="2*" />
+                                <DataGridTextColumn Header="Dest User" Binding="{Binding DestUser}" Width="2*" />
                                 <DataGridTextColumn Header="Dest Pass" Binding="{Binding DestPassword}" Width="*" />
                                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="1.2*" />
-                                <DataGridTextColumn Header="Progress" Binding="{Binding ProgressPercent, StringFormat='{}{0:0}%'}" Width="*" />
+                                <DataGridTextColumn Header="Progress" Binding="{Binding ProgressPercentage, StringFormat='{}{0:0}%'}" Width="*" />
                                 <DataGridTextColumn Header="Transferred" Binding="{Binding CopiedMessages}" Width="*" />
                             </DataGrid.Columns>
                         </DataGrid>
@@ -227,7 +227,7 @@
                                     <TextBlock Grid.Column="0" Text="Live Activity Log" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" VerticalAlignment="Center" />
                                     <TextBlock Grid.Column="1" Text="{Binding LogCountStatusText}" FontSize="11" Foreground="#64748B" Margin="10,0,0,0" VerticalAlignment="Center" />
                                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                                        <TextBox Text="{Binding LogSearchText}" Watermark="🔍 Search logs..." Width="180" FontSize="11" />
+                                        <TextBox Text="{Binding LogSearchText}" PlaceholderText="🔍 Search logs..." Width="180" FontSize="11" />
                                         <Button Content="🗑 Clear" Click="ClearLogs_Click" Classes="Outline" FontSize="11" />
                                     </StackPanel>
                                 </Grid>
@@ -236,7 +236,11 @@
                                     <ListBox ItemsSource="{Binding FilteredLogs}" Background="Transparent" BorderThickness="0">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding FormattedText}" FontFamily="Consolas, Menlo, Monaco, monospace" FontSize="11" Foreground="#94A3B8" />
+                                                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                                    <TextBlock Text="{Binding Timestamp, StringFormat='[{0:HH:mm:ss}]'}" FontFamily="Consolas, Menlo, Monaco, monospace" FontSize="11" Foreground="#64748B" />
+                                                    <TextBlock Text="{Binding Level, StringFormat='[{0}]'}" FontFamily="Consolas, Menlo, Monaco, monospace" FontSize="11" Foreground="#38BDF8" FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Message}" FontFamily="Consolas, Menlo, Monaco, monospace" FontSize="11" Foreground="#CBD5E1" />
+                                                </StackPanel>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>

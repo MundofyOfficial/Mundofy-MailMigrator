@@ -1,5 +1,6 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml;
 using Mundofy.MailMigrator.Mac.ViewModels;
 
 namespace Mundofy.MailMigrator.Mac;
@@ -8,13 +9,28 @@ public partial class MainWindow : Window
 {
     private readonly MacMainViewModel _vm;
 
+    private TabControl? MainTabs => this.FindControl<TabControl>("MainTabs");
+    private ScrollViewer? SingleTabScroll => this.FindControl<ScrollViewer>("SingleTabScroll");
+    private ScrollViewer? SettingsTabScroll => this.FindControl<ScrollViewer>("SettingsTabScroll");
+    private ScrollViewer? PrivacyTabScroll => this.FindControl<ScrollViewer>("PrivacyTabScroll");
+    private ScrollViewer? AboutTabScroll => this.FindControl<ScrollViewer>("AboutTabScroll");
+
     public MainWindow()
     {
         InitializeComponent();
         _vm = new MacMainViewModel();
         DataContext = _vm;
 
-        MainTabs.SelectionChanged += MainTabs_SelectionChanged;
+        var mainTabs = MainTabs;
+        if (mainTabs != null)
+        {
+            mainTabs.SelectionChanged += MainTabs_SelectionChanged;
+        }
+    }
+
+    private void InitializeComponent()
+    {
+        AvaloniaXamlLoader.Load(this);
     }
 
     private void MainTabs_SelectionChanged(object? sender, SelectionChangedEventArgs e)
