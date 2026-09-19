@@ -1866,6 +1866,9 @@ public class MainViewModel : INotifyPropertyChanged
         }
 
         IsBatchRunning = true;
+        BatchOverallProgress = 0;
+        ActiveWorkersCount = 0;
+        BatchStatusText = $"Starting batch migration for {BatchAccounts.Count} account(s)...";
 
         var srcEndpoint = new ServerEndpoint
         {
@@ -1929,7 +1932,18 @@ public class MainViewModel : INotifyPropertyChanged
         {
             BatchOverallProgress = report.OverallPercentage;
             ActiveWorkersCount = report.ActiveWorkers;
-            BatchStatusText = $"{report.CompletedAccounts + report.FailedAccounts} / {report.TotalAccounts} Accounts ({report.OverallPercentage:F0}%) | {report.TotalCopiedMessages} msgs copied | {report.ActiveWorkers} active workers";
+            if (report.TotalAccounts == 0)
+            {
+                BatchStatusText = "No accounts queued";
+            }
+            else if (report.CompletedAccounts + report.FailedAccounts == report.TotalAccounts && report.TotalAccounts > 0)
+            {
+                BatchStatusText = $"Batch Completed: {report.CompletedAccounts} succeeded, {report.FailedAccounts} failed | {report.TotalCopiedMessages:N0} msgs copied ({MailboxQuotaInfo.FormatBytes(report.TotalBytesTransferred)}) in {report.ElapsedTime:mm\\:ss}";
+            }
+            else
+            {
+                BatchStatusText = $"{report.CompletedAccounts + report.FailedAccounts} / {report.TotalAccounts} Accounts ({report.OverallPercentage:F0}%) | {report.TotalCopiedMessages:N0} msgs copied | {report.ActiveWorkers} active workers";
+            }
         });
     }
 

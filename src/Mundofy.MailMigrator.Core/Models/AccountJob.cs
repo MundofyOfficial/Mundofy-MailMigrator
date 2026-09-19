@@ -151,6 +151,23 @@ public class AccountJob : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Resets all counters and status fields for a fresh migration run.
+    /// </summary>
+    public void ResetForMigration()
+    {
+        TotalMessages = 0;
+        CopiedMessages = 0;
+        SkippedMessages = 0;
+        FailedMessages = 0;
+        BytesTransferred = 0;
+        TransferSpeed = string.Empty;
+        CurrentFolder = string.Empty;
+        Status = MigrationStatus.Queued;
+        StatusMessage = "Queued";
+        OnPropertyChanged(nameof(ProgressPercentage));
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)

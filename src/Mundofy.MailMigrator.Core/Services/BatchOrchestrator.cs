@@ -73,13 +73,10 @@ public class BatchOrchestrator
             Interlocked.Increment(ref _totalAccounts);
         }
 
-        account.Status = MigrationStatus.Queued;
-        account.StatusMessage = "Queued in active batch...";
-        account.TotalMessages = 0;
-        account.CopiedMessages = 0;
-        account.SkippedMessages = 0;
-        account.FailedMessages = 0;
-        account.BytesTransferred = 0;
+        account.ResetForMigration();
+        account.StatusMessage = wasPaused || wasFailed
+            ? "Resumed (Queued)..."
+            : "Queued in active batch...";
 
         _queue.Writer.TryWrite(account);
         NotifyProgress();
@@ -113,8 +110,14 @@ public class BatchOrchestrator
             SingleWriter = false
         });
 
-        // Pick accounts that are not already Completed
-        var initialList = accounts.Where(a => a.Status != MigrationStatus.Completed).ToList();
+        var accountList = accounts.ToList();
+        var initialList = accountList.Where(a => a.Status != MigrationStatus.Completed).ToList();
+        if (initialList.Count == 0 && accountList.Count > 0)
+        {
+            // All accounts were previously completed — reset and re-run all accounts as a fresh request
+            initialList = accountList;
+        }
+
         _totalAccounts = initialList.Count;
         _completedAccounts = 0;
         _failedAccounts = 0;
@@ -125,10 +128,11 @@ public class BatchOrchestrator
 
         foreach (var acc in initialList)
         {
-            acc.Status = MigrationStatus.Queued;
-            acc.StatusMessage = "Queued";
+            acc.ResetForMigration();
             _queue.Writer.TryWrite(acc);
         }
+
+        NotifyProgress();
 
         _stopwatch = Stopwatch.StartNew();
 

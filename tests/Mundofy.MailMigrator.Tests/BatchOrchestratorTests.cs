@@ -116,4 +116,42 @@ public class BatchOrchestratorTests
         orchestrator.Stop();
         await runTask;
     }
+
+    [Fact]
+    public async Task RunBatchAsync_WhenAccountsCompleted_ResetsCountersAndReruns()
+    {
+        var migrationService = new ImapMigrationService();
+        var orchestrator = new BatchOrchestrator(migrationService);
+
+        var src = new ServerEndpoint { Host = "127.0.0.1", Port = 993, UseSsl = true };
+        var dst = new ServerEndpoint { Host = "127.0.0.1", Port = 993, UseSsl = true };
+        var options = new MigrationOptions { MaxConcurrency = 1 };
+
+        var completedAccount = new AccountJob
+        {
+            SourceUser = "done@source.com",
+            DestUser = "done@dest.com",
+            Status = MigrationStatus.Completed,
+            StatusMessage = "Completed previously",
+            TotalMessages = 500,
+            CopiedMessages = 500,
+            BytesTransferred = 1048576,
+            TransferSpeed = "5 MB/s"
+        };
+
+        var accounts = new List<AccountJob> { completedAccount };
+
+        var runTask = orchestrator.RunBatchAsync(src, dst, accounts, options);
+        await Task.Delay(50);
+
+        // Account counters must be cleanly reset for the new request
+        Assert.True(completedAccount.Status == MigrationStatus.Queued || completedAccount.Status == MigrationStatus.InProgress);
+        Assert.Equal(0, completedAccount.TotalMessages);
+        Assert.Equal(0, completedAccount.CopiedMessages);
+        Assert.Equal(0, completedAccount.BytesTransferred);
+        Assert.Equal(string.Empty, completedAccount.TransferSpeed);
+
+        orchestrator.Stop();
+        await runTask;
+    }
 }
