@@ -114,7 +114,7 @@
         </Border>
 
         <!-- MAIN CONTENT TABS -->
-        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="18,12,18,18">
+        <TabControl x:Name="MainTabControl" Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="18,12,18,18">
             
             <!-- TAB 1: SINGLE MAILBOX MIGRATION -->
             <TabItem Header="Single Account Migration">
@@ -1028,7 +1028,198 @@
                 </ScrollViewer>
             </TabItem>
 
-            <!-- TAB 4: ABOUT -->
+            <!-- TAB 4: PRIVACY & COMPLIANCE -->
+            <TabItem Header="Privacy &amp; Compliance">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
+                    <StackPanel Margin="0,14,0,0">
+                        <!-- HERO BANNER CARD -->
+                        <Border Background="#0B1B2B" BorderBrush="#10B981" BorderThickness="1" CornerRadius="8" Padding="24" Margin="0,0,0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#064E3B" BorderBrush="#10B981" BorderThickness="1" CornerRadius="12" Width="60" Height="60" Margin="0,0,20,0" VerticalAlignment="Top">
+                                    <TextBlock Text="🛡️" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Text="100% Standalone &amp; Zero-Telemetry Architecture" FontWeight="Bold" FontSize="18" Foreground="#FFFFFF" />
+                                        <Border Background="#065F46" CornerRadius="4" Padding="7,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="GLOBAL PRIVACY COMPLIANT" FontSize="10" FontWeight="Bold" Foreground="#6EE7B7" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Your emails belong strictly to you and your servers. Mundofy MailMigrator operates entirely client-side on your local machine with zero telemetry, zero analytics tracking, and zero cloud intermediaries."
+                                               FontSize="13" Foreground="#94A3B8" TextWrapping="Wrap" LineHeight="19" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- THE PRIVACY STORY: RADICAL CLIENT-SIDE TRANSPARENCY -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="22" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="The Story Behind Our Zero-Data Philosophy" FontWeight="Bold" FontSize="15" Foreground="#38BDF8" Margin="0,0,0,8" />
+                                <TextBlock Text="In an era where modern desktop applications quietly siphon usage analytics, upload diagnostic dumps, and route user data through proprietary cloud relays, we built Mundofy MailMigrator on a radically different premise: We do not want your data."
+                                           TextWrapping="Wrap" FontSize="13" LineHeight="20" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10" />
+                                <TextBlock Text="When migrating email, the data flowing through the wire contains sensitive business contracts, private medical correspondences, legal documents, and personal memories. No third party—including us—should ever sit between you and your email servers. That is why Mundofy MailMigrator is designed from its core as a pure, self-contained desktop utility. All TLS connections are negotiated point-to-point directly between your PC and your designated mail hosts. No relays, no middleman proxies, and no external storage."
+                                           TextWrapping="Wrap" FontSize="13" LineHeight="20" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,14" />
+
+                                <!-- DIRECT CONNECTION DIAGRAM / PIPELINE -->
+                                <Border Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="6" Padding="16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="1.4*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0" Background="#1E293B" CornerRadius="6" Padding="12,10" VerticalAlignment="Center">
+                                            <StackPanel HorizontalAlignment="Center">
+                                                <TextBlock Text="Source Mail Server" FontWeight="Bold" FontSize="12" Foreground="#60A5FA" HorizontalAlignment="Center" />
+                                                <TextBlock Text="(IMAP / POP3 / TLS)" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <TextBlock Grid.Column="1" Text="◄── TLS 1.3 ──►" FontSize="11" FontWeight="SemiBold" Foreground="#10B981" VerticalAlignment="Center" Margin="10,0" />
+
+                                        <Border Grid.Column="2" Background="#064E3B" BorderBrush="#10B981" BorderThickness="1" CornerRadius="6" Padding="12,10" VerticalAlignment="Center">
+                                            <StackPanel HorizontalAlignment="Center">
+                                                <TextBlock Text="Your Local Computer (This App)" FontWeight="Bold" FontSize="12" Foreground="#FFFFFF" HorizontalAlignment="Center" />
+                                                <TextBlock Text="In-Memory Streaming • Zero Cloud Storage" FontSize="10" Foreground="#6EE7B7" HorizontalAlignment="Center" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <TextBlock Grid.Column="3" Text="◄── TLS 1.3 ──►" FontSize="11" FontWeight="SemiBold" Foreground="#10B981" VerticalAlignment="Center" Margin="10,0" />
+
+                                        <Border Grid.Column="4" Background="#1E293B" CornerRadius="6" Padding="12,10" VerticalAlignment="Center">
+                                            <StackPanel HorizontalAlignment="Center">
+                                                <TextBlock Text="Destination Server" FontWeight="Bold" FontSize="12" Foreground="#60A5FA" HorizontalAlignment="Center" />
+                                                <TextBlock Text="(IMAP / TLS)" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Center" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- WORLDWIDE COMPLIANCE MATRIX -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="22" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="Worldwide Privacy Law Compliance" FontWeight="Bold" FontSize="15" Foreground="#10B981" Margin="0,0,0,4" />
+                                <TextBlock Text="Because zero personal data, logs, or analytics are collected, transmitted, or hosted on external servers, Mundofy MailMigrator is compliant by architecture with global data protection laws:"
+                                           FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,14" TextWrapping="Wrap" />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="14" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="14" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- GDPR -->
+                                    <Border Grid.Row="0" Grid.Column="0" Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="6" Padding="14">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                <TextBlock Text="🇪🇺" FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                <TextBlock Text="European Union (GDPR)" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock Text="Full compliance with GDPR Articles 5, 25 &amp; 32 (Privacy by Design and by Default). Mundofy does not act as a Data Processor or Controller since zero customer PII touches our systems."
+                                                       FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="17" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- CCPA -->
+                                    <Border Grid.Row="0" Grid.Column="2" Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="6" Padding="14">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                <TextBlock Text="🇺🇸" FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                <TextBlock Text="California (CCPA / CPRA)" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock Text="Zero consumer personal information is ever collected, sold, or shared with third parties. No behavioral tracking, advertising identifiers, or device fingerprinting exists in the application."
+                                                       FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="17" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- PIPEDA & INTERNATIONAL -->
+                                    <Border Grid.Row="2" Grid.Column="0" Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="6" Padding="14">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                <TextBlock Text="🇨🇦" FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                <TextBlock Text="Canada (PIPEDA) &amp; UK GDPR" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock Text="Fully aligned with Canadian PIPEDA and UK Data Protection Act principles. Your data remains strictly within your enterprise perimeter and your chosen mail host."
+                                                       FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="17" />
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- HIPAA & ENTERPRISE -->
+                                    <Border Grid.Row="2" Grid.Column="2" Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="6" Padding="14">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                <TextBlock Text="🏥" FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                <TextBlock Text="Enterprise &amp; Healthcare (HIPAA-Ready)" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock Text="Because data never traverses external cloud intermediaries, healthcare providers, law firms, and financial institutions can migrate sensitive email records without needing third-party Business Associate Agreements (BAAs)."
+                                                       FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="17" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- THE ONLY EXTERNAL CHECK WE DO -->
+                        <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="22" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="The Single External Check We Perform: GitHub Updates" FontWeight="Bold" FontSize="15" Foreground="#F59E0B" Margin="0,0,0,6" />
+                                <TextBlock Text="We believe in complete, unapologetic transparency. There is exactly ONE non-mail network request this application ever performs:"
+                                           FontSize="13" LineHeight="19" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                <Border Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="6" Padding="14" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <TextBlock Text="• Request: GET https://api.github.com/repos/MundofyOfficial/Mundofy-MailMigrator/releases/latest" FontFamily="Consolas, monospace" FontSize="11" Foreground="#93C5FD" />
+                                        <TextBlock Text="• Purpose: Queries the public GitHub Releases API to compare the latest version tag against your installed version so you can stay updated with new features and security fixes." FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                        <TextBlock Text="• Data Sent: Zero telemetry. No machine IDs, no account names, no IP tracking, and no usage analytics." FontSize="11" Foreground="#34D399" Margin="0,4,0,0" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Text="If you run in an isolated, air-gapped intranet or offline environment without internet access, this check gracefully times out silently and the migration engine functions 100% normally."
+                                           FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- AUDITABILITY & OPEN SOURCE -->
+                        <Border Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="20">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Don't Take Our Word For It — Audit the Code" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" />
+                                    <TextBlock Text="Mundofy MailMigrator is 100% open-source under the MIT license. You can inspect every socket connection in the source code, verify live packet captures using Wireshark, or compile your own binaries."
+                                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <Button Grid.Column="1" Click="OpenGitHubRepo_Click" Cursor="Hand" Margin="20,0,0,0" VerticalAlignment="Center"
+                                        Padding="16,8" Background="#065F46" BorderThickness="1" BorderBrush="#10B981" Foreground="#FFFFFF" FontWeight="SemiBold" FontSize="13">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="6" />
+                                        </Style>
+                                    </Button.Resources>
+                                    <TextBlock Text="🔍 Inspect Source on GitHub" />
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 5: ABOUT -->
             <TabItem Header="About">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
                     <Border Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="32" Margin="0,14,0,0">
@@ -1046,6 +1237,32 @@
                                     <TextBlock Text="{Binding AppVersionDisplay, StringFormat='Version {0}'}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
                                 </StackPanel>
                             </StackPanel>
+
+                            <!-- PRIVACY & COMPLIANCE SUMMARY CARD -->
+                            <Border Background="#064E3B" BorderBrush="#10B981" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="🛡️" FontSize="22" VerticalAlignment="Center" Margin="0,0,14,0" />
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="100% Standalone &amp; Worldwide Privacy Compliant" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" />
+                                        <TextBlock Text="Zero telemetry, zero tracking, zero cloud intermediaries. Point-to-point encrypted TLS transfers only. The only ping we ever make is checking GitHub for app updates."
+                                                   FontSize="11" Foreground="#A7F3D0" TextWrapping="Wrap" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Click="SwitchToPrivacyTab_Click" Cursor="Hand" Margin="14,0,0,0" VerticalAlignment="Center"
+                                            Padding="12,6" Background="#047857" BorderBrush="#34D399" BorderThickness="1" Foreground="#FFFFFF" FontSize="11" FontWeight="SemiBold">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="5" />
+                                            </Style>
+                                        </Button.Resources>
+                                        <TextBlock Text="Read Privacy Story ➔" />
+                                    </Button>
+                                </Grid>
+                            </Border>
 
                             <!-- ORIGIN STORY CARD -->
                             <Border Background="#0F172A" BorderBrush="#334155" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,16">

@@ -41,6 +41,24 @@ public partial class MainWindow : Window
         catch { }
     }
 
+    private void OpenGitHubRepo_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/MundofyOfficial/Mundofy-MailMigrator",
+                UseShellExecute = true
+            });
+        }
+        catch { }
+    }
+
+    private void SwitchToPrivacyTab_Click(object sender, RoutedEventArgs e)
+    {
+        MainTabControl.SelectedIndex = 3;
+    }
+
     private void OnDataGridRowPreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
         if (sender is System.Windows.Controls.DataGridRow row)

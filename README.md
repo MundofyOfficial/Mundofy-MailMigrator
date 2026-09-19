@@ -3,6 +3,7 @@
 [![Download MundofyMailMigrator-v1.4.0.exe](https://img.shields.io/badge/Download-MundofyMailMigrator--v1.4.0.exe-2563EB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
 [![Latest Release](https://img.shields.io/badge/Release-v1.4.0-059669?style=for-the-badge)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
 [![Changelog](https://img.shields.io/badge/Changelog-v1.4.0-orange?style=for-the-badge)](CHANGELOG.md)
+[![Privacy: Zero Telemetry](https://img.shields.io/badge/Privacy-Zero--Telemetry-10B981?style=for-the-badge&logo=shield&logoColor=white)](#-100-privacy-by-design--zero-telemetry-guarantee)
 [![Wiki Documentation](https://img.shields.io/badge/Wiki-Documentation-purple?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/wiki)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
@@ -116,6 +117,53 @@ Rather than keeping this as an internal utility, we open-sourced it for everyone
 # Test logins for all accounts without transferring
 .\MundofyMailMigrator.exe -c ImapCopy.cfg --test
 ```
+
+---
+
+## 🔒 100% Privacy by Design & Zero-Telemetry Guarantee
+
+### The Story Behind Our Zero-Data Philosophy
+
+In an era where modern desktop applications quietly siphon usage analytics, upload diagnostic crash dumps, and route sensitive traffic through proprietary cloud servers, we built **Mundofy MailMigrator** on an uncompromising principle:
+
+> **"We don't want your data, we don't track your activity, and we believe your emails belong strictly to you and your servers."**
+
+When migrating mailboxes, the data traversing the network consists of confidential business contracts, private medical correspondences, financial transactions, and irreplaceable personal memories. No third party—including Mundofy—should ever be an intermediary in that process.
+
+### Complete Point-to-Point Architecture
+
+Mundofy MailMigrator is an independent, single-file desktop application. When you initiate a migration:
+* Direct, end-to-end encrypted **TLS 1.3** sockets are established point-to-point between your computer and your designated mail servers.
+* Emails stream strictly in-memory between Source and Destination.
+* **Zero cloud relays**: No data ever passes through Mundofy servers, third-party proxies, or external cloud infrastructure.
+* **Zero disk caching**: Mail payloads are not stored in temporary files or cached on disk.
+
+```
+┌─────────────────────────┐          TLS 1.3          ┌──────────────────────────────────┐          TLS 1.3          ┌──────────────────────────┐
+│   Source Mail Server    │ ◄───────────────────────► │   Your Computer (MailMigrator)   │ ◄───────────────────────► │  Destination Mail Server │
+│   (IMAP / POP3 / SSL)   │     Direct Connection     │  Pure In-Memory • Zero Telemetry │     Direct Connection     │        (IMAP / SSL)      │
+└─────────────────────────┘                           └──────────────────────────────────┘                           └──────────────────────────┘
+```
+
+### Worldwide Privacy Law Compliance
+
+Because zero personal data, logs, or telemetry are ever collected, processed, or transmitted to any external server, Mundofy MailMigrator is **inherently compliant by architecture** with global data protection frameworks:
+* 🇪🇺 **GDPR (EU)**: Full compliance with Articles 5, 25 & 32 (*Privacy by Design and by Default*). Mundofy does not act as a Data Controller or Data Processor because zero customer personal data (PII) ever touches our systems.
+* 🇺🇸 **CCPA / CPRA (California)**: Zero consumer personal information is ever collected, sold, or shared with data brokers or advertisers.
+* 🇨🇦 **PIPEDA & UK GDPR**: Fully compliant with international commercial privacy standards.
+* 🏥 **HIPAA & SOC 2 Friendly**: Healthcare organizations and financial institutions can migrate sensitive email records within their own security perimeters without requiring third-party Business Associate Agreements (BAAs).
+
+### Complete Network Transparency: The One Single Ping
+
+We believe in radical honesty. There is **exactly ONE** external network request this application ever makes outside of the mail servers you explicitly specify:
+* **The Request**: An anonymous HTTP `GET` request to GitHub's public API (`https://api.github.com/repos/MundofyOfficial/Mundofy-MailMigrator/releases/latest`).
+* **The Purpose**: To check whether a newer version has been released, allowing you to update in-place with bug fixes and security improvements.
+* **The Payload**: Contains **zero telemetry**, no machine identifiers, no MAC addresses, no email addresses, and no analytics.
+* **Air-Gapped & Offline Ready**: If you run in an isolated intranet or air-gapped environment without internet access, this check silently and gracefully times out, and the migration engine functions 100% normally.
+
+### Audit the Code Yourself
+
+Trust is earned through transparency. Every single line of code in Mundofy MailMigrator is open-source under the permissive [MIT License](LICENSE). Sysadmins, security engineers, and privacy teams are invited to audit our source code, monitor network traffic with tools like Wireshark, or compile their own binaries directly from source.
 
 ---
 
