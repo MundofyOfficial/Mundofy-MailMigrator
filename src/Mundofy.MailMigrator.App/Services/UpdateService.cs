@@ -1,10 +1,12 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.Json;
 using System.Windows;
+
+using Mundofy.MailMigrator.Core;
 
 namespace Mundofy.MailMigrator.App.Services;
 
@@ -24,15 +26,13 @@ public static class UpdateService
 
     static UpdateService()
     {
-        HttpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Mundofy-MailMigrator", "1.2.0"));
+        HttpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Mundofy-MailMigrator", AppVersion.Current));
         HttpClient.Timeout = TimeSpan.FromSeconds(15);
     }
 
     public static string GetCurrentVersion()
     {
-        var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-        var ver = asm.GetName().Version;
-        return ver != null ? $"{ver.Major}.{ver.Minor}.{ver.Build}" : "1.2.0";
+        return AppVersion.Current;
     }
 
     public static async Task<UpdateInfo> CheckForUpdateAsync(CancellationToken ct = default)

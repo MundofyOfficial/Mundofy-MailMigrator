@@ -7,6 +7,7 @@ using Microsoft.Win32;
 using System.Globalization;
 using System.Text;
 using System.Windows.Data;
+using Mundofy.MailMigrator.Core;
 using Mundofy.MailMigrator.Core.Models;
 using Mundofy.MailMigrator.Core.Parsers;
 using Mundofy.MailMigrator.Core.Services;
@@ -122,11 +123,14 @@ public class MainViewModel : INotifyPropertyChanged
             StatusMessage = "Ready"
         });
 
-        AddLog(LogLevel.Info, "Mundofy MailMigrator v1.2.2 initialized.");
+        AddLog(LogLevel.Info, $"Mundofy MailMigrator v{AppVersion.Current} initialized.");
 
         // Non-blocking background check for updates on startup
         _ = CheckForUpdatesSilentlyAsync();
     }
+
+    public string AppVersionString => AppVersion.Current;
+    public string AppVersionDisplay => $"v{AppVersion.Current}";
 
     #region Single Migration Properties
 
