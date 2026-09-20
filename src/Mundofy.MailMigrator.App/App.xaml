@@ -31,6 +31,7 @@
 
         <!-- Modern Dark ToolTip Style -->
         <Style TargetType="ToolTip">
+            <Setter Property="OverridesDefaultStyle" Value="True" />
             <Setter Property="Background" Value="#1E293B" />
             <Setter Property="Foreground" Value="#F8FAFC" />
             <Setter Property="BorderBrush" Value="#475569" />
@@ -47,7 +48,10 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="6"
                                 Padding="{TemplateBinding Padding}"
-                                SnapsToDevicePixels="True">
+                                SnapsToDevicePixels="True"
+                                TextElement.Foreground="{TemplateBinding Foreground}"
+                                TextElement.FontFamily="{TemplateBinding FontFamily}"
+                                TextElement.FontSize="{TemplateBinding FontSize}">
                             <ContentPresenter />
                         </Border>
                     </ControlTemplate>

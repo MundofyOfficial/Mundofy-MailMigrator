@@ -20,6 +20,30 @@
                     <Border Background="#064E3B" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="macOS" FontSize="10" FontWeight="Bold" Foreground="#6EE7B7" />
                     </Border>
+                    
+                    <!-- In-App Update Notification Badge -->
+                    <Button Click="OpenUpdatePage_Click"
+                            IsVisible="{Binding IsUpdateAvailable}"
+                            Cursor="Hand"
+                            Margin="10,0,0,0"
+                            Padding="8,3"
+                            Background="#065F46"
+                            BorderBrush="#10B981"
+                            BorderThickness="1"
+                            CornerRadius="5"
+                            ToolTip.Tip="A newer version of Mundofy MailMigrator is available on GitHub. Click to download now.">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="#047857" />
+                                <Setter Property="BorderBrush" Value="#34D399" />
+                            </Style>
+                        </Button.Styles>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
+                            <TextBlock Text="⚡ Update Available:" FontSize="10" FontWeight="Bold" Foreground="#6EE7B7" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding LatestVersion, StringFormat='v{0}'}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                            <TextBlock Text="(Update Now)" FontSize="9" Foreground="#A7F3D0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
                 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">

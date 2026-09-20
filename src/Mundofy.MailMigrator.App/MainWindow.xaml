@@ -50,7 +50,22 @@
                             <Button Command="{Binding OpenUpdateDialogCommand}"
                                     Cursor="Hand"
                                     Margin="12,0,0,0"
-                                    ToolTip="A newer version of Mundofy MailMigrator is available on GitHub. Click to update now.">
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Padding="0"
+                                    FocusVisualStyle="{x:Null}">
+                                <Button.ToolTip>
+                                    <ToolTip Background="#0F172A" BorderBrush="#10B981" BorderThickness="1" Padding="12,10" HasDropShadow="True">
+                                        <StackPanel MaxWidth="320">
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                                <TextBlock Text="⚡" FontSize="13" Foreground="#34D399" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                <TextBlock Text="Update Available" FontWeight="Bold" FontSize="12" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <TextBlock Text="A newer version of Mundofy MailMigrator is available on GitHub. Click to view release notes and update now."
+                                                       TextWrapping="Wrap" FontSize="11" Foreground="#94A3B8" LineHeight="16" />
+                                        </StackPanel>
+                                    </ToolTip>
+                                </Button.ToolTip>
                                 <Button.Style>
                                     <Style TargetType="Button">
                                         <Setter Property="Visibility" Value="Collapsed" />
@@ -66,7 +81,7 @@
                                                             SnapsToDevicePixels="True">
                                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                             <TextBlock x:Name="badgeIcon" Text="⚡ Update Available: " FontSize="11" FontWeight="Bold" Foreground="#6EE7B7" />
-                                                            <TextBlock Text="{Binding LatestVersion, StringFormat={}v{0}}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                            <TextBlock x:Name="badgeVersion" Text="{Binding LatestVersion, StringFormat={}v{0}}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
                                                             <TextBlock x:Name="badgeAction" Text=" (Update Now)" FontSize="10" Foreground="#A7F3D0" Margin="5,0,0,0" VerticalAlignment="Center" />
                                                         </StackPanel>
                                                     </Border>
@@ -74,7 +89,8 @@
                                                         <Trigger Property="IsMouseOver" Value="True">
                                                             <Setter TargetName="badgeBorder" Property="Background" Value="#047857" />
                                                             <Setter TargetName="badgeBorder" Property="BorderBrush" Value="#34D399" />
-                                                            <Setter TargetName="badgeIcon" Property="Foreground" Value="#A7F3D0" />
+                                                            <Setter TargetName="badgeIcon" Property="Foreground" Value="#D1FAE5" />
+                                                            <Setter TargetName="badgeVersion" Property="Foreground" Value="#FFFFFF" />
                                                             <Setter TargetName="badgeAction" Property="Foreground" Value="#FFFFFF" />
                                                         </Trigger>
                                                         <Trigger Property="IsPressed" Value="True">

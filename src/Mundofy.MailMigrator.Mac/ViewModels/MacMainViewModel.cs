@@ -666,6 +666,20 @@ public class MacMainViewModel : INotifyPropertyChanged
         }
     }
 
+    public void OpenUpdatePage()
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest",
+                UseShellExecute = true
+            };
+            System.Diagnostics.Process.Start(psi);
+        }
+        catch { }
+    }
+
     #endregion
 
     #region Protocol Handling & OAuth
