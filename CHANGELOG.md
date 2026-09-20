@@ -5,6 +5,20 @@ All notable changes to **Mundofy MailMigrator** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-09-20
+
+### Fixed
+* **Update Notification Button & ToolTip Theme Hardening**:
+  * Fixed button mouseover hover behavior, ensuring the update notification badge retains its dark emerald container (`#047857`) and bright neon border (`#34D399`) rather than falling back to Windows Aero light theme.
+  * Replaced default system tooltip with a custom, dedicated dark-theme tooltip container (`#0F172A`, emerald accent border `#10B981`, drop shadow, crisp white title, and readable muted description) that completely eliminates unreadable white-on-white text.
+  * Hardened global `ToolTip` template in `App.xaml` with `OverridesDefaultStyle="True"` and explicit foreground and typography bindings across the entire application.
+
+### Added
+* **macOS In-App Update Notification Badge**:
+  * Added in-app update notification badge to macOS header bar with 1-click navigation to the latest GitHub release and pointer-over styling.
+
+---
+
 ## [1.5.0] - 2026-09-20
 
 ### Added
