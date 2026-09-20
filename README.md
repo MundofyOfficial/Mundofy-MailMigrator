@@ -1,9 +1,9 @@
-# Mundofy MailMigrator (v1.5.1)
+# Mundofy MailMigrator (v1.5.2)
 
 [![Download Windows (x64)](https://img.shields.io/badge/Download-Windows_(x64)-2563EB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
 [![Download macOS (Universal)](https://img.shields.io/badge/Download-macOS_(Universal_DMG_&_App)-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
-[![Latest Release](https://img.shields.io/badge/Release-v1.5.1-059669?style=for-the-badge)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
-[![Changelog](https://img.shields.io/badge/Changelog-v1.5.1-orange?style=for-the-badge)](CHANGELOG.md)
+[![Latest Release](https://img.shields.io/badge/Release-v1.5.2-059669?style=for-the-badge)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
+[![Changelog](https://img.shields.io/badge/Changelog-v1.5.2-orange?style=for-the-badge)](CHANGELOG.md)
 [![Privacy: Zero Telemetry](https://img.shields.io/badge/Privacy-Zero--Telemetry-10B981?style=for-the-badge&logo=shield&logoColor=white)](#-100-privacy-by-design--zero-telemetry-guarantee)
 [![Wiki Documentation](https://img.shields.io/badge/Wiki-Documentation-purple?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/wiki)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)

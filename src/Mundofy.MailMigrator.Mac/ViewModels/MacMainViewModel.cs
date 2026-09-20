@@ -483,6 +483,13 @@ public class MacMainViewModel : INotifyPropertyChanged
     public bool HasBatchEnterpriseDest => IsBatchDestM365Tenant || IsBatchDestGoogleSA;
     public bool HasAnyBatchEnterprise => HasBatchEnterpriseSource || HasBatchEnterpriseDest;
 
+    public bool IsBatchSourcePasswordRequired => !HasBatchEnterpriseSource;
+    public bool IsBatchDestPasswordRequired => !HasBatchEnterpriseDest;
+    public string BatchSourceUserHeader => HasBatchEnterpriseSource ? "Source Mailbox (Email)" : "Source User";
+    public string BatchSourcePasswordHeader => HasBatchEnterpriseSource ? "Source Auth" : "Source Pass";
+    public string BatchDestUserHeader => HasBatchEnterpriseDest ? "Dest Mailbox (Email)" : "Dest User";
+    public string BatchDestPasswordHeader => HasBatchEnterpriseDest ? "Dest Auth" : "Dest Pass";
+
     private int _concurrency = 4;
     public int Concurrency
     {
@@ -738,6 +745,9 @@ public class MacMainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsBatchSourceGoogleSA));
             OnPropertyChanged(nameof(HasBatchEnterpriseSource));
             OnPropertyChanged(nameof(HasAnyBatchEnterprise));
+            OnPropertyChanged(nameof(IsBatchSourcePasswordRequired));
+            OnPropertyChanged(nameof(BatchSourceUserHeader));
+            OnPropertyChanged(nameof(BatchSourcePasswordHeader));
         }
         else
         {
@@ -794,6 +804,9 @@ public class MacMainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsBatchDestGoogleSA));
             OnPropertyChanged(nameof(HasBatchEnterpriseDest));
             OnPropertyChanged(nameof(HasAnyBatchEnterprise));
+            OnPropertyChanged(nameof(IsBatchDestPasswordRequired));
+            OnPropertyChanged(nameof(BatchDestUserHeader));
+            OnPropertyChanged(nameof(BatchDestPasswordHeader));
         }
         else
         {

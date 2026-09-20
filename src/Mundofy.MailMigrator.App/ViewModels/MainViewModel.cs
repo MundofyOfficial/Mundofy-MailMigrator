@@ -555,6 +555,13 @@ public class MainViewModel : INotifyPropertyChanged
     public bool HasBatchEnterpriseDest => IsBatchDestM365Tenant || IsBatchDestGoogleSA;
     public bool HasAnyBatchEnterprise => HasBatchEnterpriseSource || HasBatchEnterpriseDest;
 
+    public bool IsBatchSourcePasswordRequired => !HasBatchEnterpriseSource;
+    public bool IsBatchDestPasswordRequired => !HasBatchEnterpriseDest;
+    public string BatchSourceUserHeader => HasBatchEnterpriseSource ? "Source Mailbox (Email)" : "Source User / Email";
+    public string BatchSourcePasswordHeader => HasBatchEnterpriseSource ? "Source Auth" : "Source Password";
+    public string BatchDestUserHeader => HasBatchEnterpriseDest ? "Dest Mailbox (Email)" : "Dest User / Email";
+    public string BatchDestPasswordHeader => HasBatchEnterpriseDest ? "Dest Auth" : "Dest Password";
+
     private int _concurrency = 4;
     public int Concurrency
     {
@@ -1332,6 +1339,9 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsBatchSourceGoogleSA));
             OnPropertyChanged(nameof(HasBatchEnterpriseSource));
             OnPropertyChanged(nameof(HasAnyBatchEnterprise));
+            OnPropertyChanged(nameof(IsBatchSourcePasswordRequired));
+            OnPropertyChanged(nameof(BatchSourceUserHeader));
+            OnPropertyChanged(nameof(BatchSourcePasswordHeader));
         }
         else
         {
@@ -1388,6 +1398,9 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsBatchDestGoogleSA));
             OnPropertyChanged(nameof(HasBatchEnterpriseDest));
             OnPropertyChanged(nameof(HasAnyBatchEnterprise));
+            OnPropertyChanged(nameof(IsBatchDestPasswordRequired));
+            OnPropertyChanged(nameof(BatchDestUserHeader));
+            OnPropertyChanged(nameof(BatchDestPasswordHeader));
         }
         else
         {
@@ -1935,7 +1948,7 @@ public class MainViewModel : INotifyPropertyChanged
     {
         if (!Clipboard.ContainsText()) return;
         string text = Clipboard.GetText();
-        var accounts = CsvAccountParser.Parse(text);
+        var accounts = CsvAccountParser.Parse(text, BatchSourceProtocol, BatchDestProtocol);
         if (accounts.Count == 0)
         {
             AddLog(LogLevel.Warning, "No valid account rows found in clipboard text.");
@@ -2046,7 +2059,7 @@ public class MainViewModel : INotifyPropertyChanged
         if (dlg.ShowDialog() == true)
         {
             var content = File.ReadAllText(dlg.FileName);
-            var accounts = CsvAccountParser.Parse(content);
+            var accounts = CsvAccountParser.Parse(content, BatchSourceProtocol, BatchDestProtocol);
             var fileName = Path.GetFileName(dlg.FileName);
 
             if (accounts.Count == 0)

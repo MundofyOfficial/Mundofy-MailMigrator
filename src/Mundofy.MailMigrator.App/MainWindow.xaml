@@ -436,14 +436,15 @@
 
             <!-- TAB 2: BATCH MIGRATION -->
             <TabItem Header="Batch Migration (Multi-Account)">
-                <Grid Margin="0,14,0,0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                <ScrollViewer x:Name="BatchTabScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,14,0">
+                    <Grid Margin="0,14,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
                     <!-- ROW 0: DEFAULT SERVERS & CONCURRENCY SETTING -->
                     <Border Grid.Row="0" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,12">
@@ -692,8 +693,9 @@
                     </Border>
 
                     <!-- ROW 3: INTERACTIVE ACCOUNTS DATAGRID -->
-                    <Border Grid.Row="3" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="2">
+                    <Border Grid.Row="3" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="2" MinHeight="280">
                         <DataGrid x:Name="BatchGrid"
+                                  MinHeight="276"
                                   ItemsSource="{Binding BatchAccounts}" 
                                   SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
                                   AutoGenerateColumns="False" 
@@ -816,59 +818,183 @@
 
                             <DataGrid.Columns>
                                 <!-- Source User -->
-                                <DataGridTextColumn Header="Source User / Email" Binding="{Binding SourceUser, UpdateSourceTrigger=PropertyChanged}" ElementStyle="{StaticResource DataGridTextStyle}" Width="1.8*" />
+                                <DataGridTextColumn Header="{Binding DataContext.BatchSourceUserHeader, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
+                                                    Binding="{Binding SourceUser, UpdateSourceTrigger=PropertyChanged}" 
+                                                    ElementStyle="{StaticResource DataGridTextStyle}" 
+                                                    Width="1.8*" />
 
                                 <!-- Source Password -->
-                                <DataGridTemplateColumn Header="Source Password" Width="1.4*">
+                                <DataGridTemplateColumn Header="{Binding DataContext.BatchSourcePasswordHeader, RelativeSource={RelativeSource AncestorType=DataGrid}}" Width="1.4*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Style="{StaticResource DataGridTextStyle}">
-                                                <TextBlock.Text>
-                                                    <MultiBinding Converter="{StaticResource PasswordMaskConverter}">
-                                                        <Binding Path="SourcePassword" />
-                                                        <Binding Path="DataContext.MaskPasswords" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
+                                            <Grid>
+                                                <!-- Shown for IMAP/POP3 -->
+                                                <TextBlock>
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridTextStyle}">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsBatchSourcePasswordRequired, RelativeSource={RelativeSource AncestorType=DataGrid}}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                    <TextBlock.Text>
+                                                        <MultiBinding Converter="{StaticResource PasswordMaskConverter}">
+                                                            <Binding Path="SourcePassword" />
+                                                            <Binding Path="DataContext.MaskPasswords" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+
+                                                <!-- Shown for M365 / Google Workspace (No Password Needed) -->
+                                                <Border CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Setter Property="Background" Value="#0F172A" />
+                                                            <Setter Property="BorderBrush" Value="#334155" />
+                                                            <Setter Property="BorderThickness" Value="1" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsBatchSourcePasswordRequired, RelativeSource={RelativeSource AncestorType=DataGrid}}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="🔑" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="Admin OAuth2" FontSize="10" Foreground="#38BDF8" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                     <DataGridTemplateColumn.CellEditingTemplate>
                                         <DataTemplate>
-                                            <TextBox Text="{Binding SourcePassword, UpdateSourceTrigger=PropertyChanged}" 
-                                                     Background="#0F172A" 
-                                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                                     BorderBrush="{StaticResource AccentPrimaryBrush}"
-                                                     Padding="4,2" 
-                                                     VerticalAlignment="Center" />
+                                            <Grid>
+                                                <TextBox Text="{Binding SourcePassword, UpdateSourceTrigger=PropertyChanged}" 
+                                                         Background="#0F172A" 
+                                                         Foreground="{StaticResource TextPrimaryBrush}"
+                                                         BorderBrush="{StaticResource AccentPrimaryBrush}"
+                                                         Padding="4,2" 
+                                                         VerticalAlignment="Center">
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsBatchSourcePasswordRequired, RelativeSource={RelativeSource AncestorType=DataGrid}}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBox.Style>
+                                                </TextBox>
+                                                <TextBlock Text="Admin Authenticated" FontSize="11" Foreground="#64748B" FontStyle="Italic" VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsBatchSourcePasswordRequired, RelativeSource={RelativeSource AncestorType=DataGrid}}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellEditingTemplate>
                                 </DataGridTemplateColumn>
 
                                 <!-- Dest User -->
-                                <DataGridTextColumn Header="Dest User / Email" Binding="{Binding DestUser, UpdateSourceTrigger=PropertyChanged}" ElementStyle="{StaticResource DataGridTextStyle}" Width="1.8*" />
+                                <DataGridTextColumn Header="{Binding DataContext.BatchDestUserHeader, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
+                                                    Binding="{Binding DestUser, UpdateSourceTrigger=PropertyChanged}" 
+                                                    ElementStyle="{StaticResource DataGridTextStyle}" 
+                                                    Width="1.8*" />
 
                                 <!-- Dest Password -->
-                                <DataGridTemplateColumn Header="Dest Password" Width="1.4*">
+                                <DataGridTemplateColumn Header="{Binding DataContext.BatchDestPasswordHeader, RelativeSource={RelativeSource AncestorType=DataGrid}}" Width="1.4*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Style="{StaticResource DataGridTextStyle}">
-                                                <TextBlock.Text>
-                                                    <MultiBinding Converter="{StaticResource PasswordMaskConverter}">
-                                                        <Binding Path="DestPassword" />
-                                                        <Binding Path="DataContext.MaskPasswords" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
+                                            <Grid>
+                                                <!-- Shown for IMAP -->
+                                                <TextBlock>
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource DataGridTextStyle}">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsBatchDestPasswordRequired, RelativeSource={RelativeSource AncestorType=DataGrid}}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                    <TextBlock.Text>
+                                                        <MultiBinding Converter="{StaticResource PasswordMaskConverter}">
+                                                            <Binding Path="DestPassword" />
+                                                            <Binding Path="DataContext.MaskPasswords" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+
+                                                <!-- Shown for M365 / Google Workspace (No Password Needed) -->
+                                                <Border CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Setter Property="Background" Value="#0F172A" />
+                                                            <Setter Property="BorderBrush" Value="#334155" />
+                                                            <Setter Property="BorderThickness" Value="1" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsBatchDestPasswordRequired, RelativeSource={RelativeSource AncestorType=DataGrid}}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="🔑" FontSize="10" Margin="0,0,4,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="Admin OAuth2" FontSize="10" Foreground="#38BDF8" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                     <DataGridTemplateColumn.CellEditingTemplate>
                                         <DataTemplate>
-                                            <TextBox Text="{Binding DestPassword, UpdateSourceTrigger=PropertyChanged}" 
-                                                     Background="#0F172A" 
-                                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                                     BorderBrush="{StaticResource AccentPrimaryBrush}"
-                                                     Padding="4,2" 
-                                                     VerticalAlignment="Center" />
+                                            <Grid>
+                                                <TextBox Text="{Binding DestPassword, UpdateSourceTrigger=PropertyChanged}" 
+                                                         Background="#0F172A" 
+                                                         Foreground="{StaticResource TextPrimaryBrush}"
+                                                         BorderBrush="{StaticResource AccentPrimaryBrush}"
+                                                         Padding="4,2" 
+                                                         VerticalAlignment="Center">
+                                                    <TextBox.Style>
+                                                        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsBatchDestPasswordRequired, RelativeSource={RelativeSource AncestorType=DataGrid}}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBox.Style>
+                                                </TextBox>
+                                                <TextBlock Text="Admin Authenticated" FontSize="11" Foreground="#64748B" FontStyle="Italic" VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataContext.IsBatchDestPasswordRequired, RelativeSource={RelativeSource AncestorType=DataGrid}}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellEditingTemplate>
                                 </DataGridTemplateColumn>
@@ -1053,7 +1179,8 @@
                         </Grid>
                     </Border>
                 </Grid>
-            </TabItem>
+            </ScrollViewer>
+        </TabItem>
 
             <!-- TAB 3: SETTINGS & LOGS -->
             <TabItem Header="Settings &amp; Logs">

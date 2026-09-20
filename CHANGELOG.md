@@ -5,6 +5,28 @@ All notable changes to **Mundofy MailMigrator** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] - 2026-09-20
+
+### Added
+* **Dynamic Protocol Column Adaptation for Batch Migrations**:
+  * Added smart context-sensitive headers and badges for Microsoft 365 and Google Workspace in the Batch Account DataGrid (`MainWindow.xaml` and `MainWindow.axaml`).
+  * When Microsoft 365 or Google Workspace is selected as Source or Destination:
+    * Username header automatically updates to `Source Mailbox (Email)` / `Dest Mailbox (Email)`.
+    * Password header updates to `Source Auth` / `Dest Auth` and renders a clean `🔑 Admin OAuth2` badge.
+    * Text editing is automatically disabled for password cells when passwordless admin authentication is active.
+* **Intelligent Multi-Format CSV and Clipboard Parser**:
+  * Re-architected `CsvAccountParser` with column header auto-detection (`SourceUser`, `SourceEmail`, `DestUser`, `DestEmail`, `Password`, etc.).
+  * Added native support for 2-column email mapping CSVs (`source@domain.com, dest@domain.com`) without misidentifying destination email addresses as source passwords.
+  * Added support for 1-column single mailbox lists (`user@domain.com`) commonly exported from Google Admin and M365 Admin centers.
+  * Added protocol-aware parsing fallback to prioritize email-to-email mapping when source or destination protocols rely on tenant-level admin OAuth2 credentials.
+
+### Fixed
+* **Batch Migration Table Collapsing & Scroll Usability**:
+  * Fixed an issue where the Batch Migration accounts table collapsed into a thin line when empty or resized.
+  * Wrapped the Batch tab in a responsive `ScrollViewer` and set a robust minimum height (`MinHeight="280"` container, `MinHeight="276"` DataGrid) ensuring all columns, headers, rows, and scrollbars remain accessible.
+
+---
+
 ## [1.5.1] - 2026-09-20
 
 ### Fixed

@@ -109,6 +109,64 @@ bob@example.com,secret,*,*";
     }
 
     [Fact]
+    public void TestCsvAccountParser_TwoColumnEmailMapping()
+    {
+        string csv = @"john@source.com,john@dest.com
+sarah@source.com,sarah@dest.com";
+
+        var accounts = CsvAccountParser.Parse(csv);
+
+        Assert.Equal(2, accounts.Count);
+        Assert.Equal("john@source.com", accounts[0].SourceUser);
+        Assert.Equal("john@dest.com", accounts[0].DestUser);
+        Assert.Empty(accounts[0].SourcePassword);
+        Assert.Empty(accounts[0].DestPassword);
+        Assert.Equal("sarah@source.com", accounts[1].SourceUser);
+        Assert.Equal("sarah@dest.com", accounts[1].DestUser);
+    }
+
+    [Fact]
+    public void TestCsvAccountParser_SingleColumnMailboxes()
+    {
+        string csv = "user1@tenant.onmicrosoft.com\r\nuser2@tenant.onmicrosoft.com";
+
+        var accounts = CsvAccountParser.Parse(csv);
+
+        Assert.Equal(2, accounts.Count);
+        Assert.Equal("user1@tenant.onmicrosoft.com", accounts[0].SourceUser);
+        Assert.Equal("user1@tenant.onmicrosoft.com", accounts[0].DestUser);
+        Assert.Empty(accounts[0].SourcePassword);
+    }
+
+    [Fact]
+    public void TestCsvAccountParser_HeaderTwoColumnSourceDest()
+    {
+        string csv = @"SourceEmail,DestEmail
+ceo@oldcorp.com,ceo@newcorp.com";
+
+        var accounts = CsvAccountParser.Parse(csv);
+
+        Assert.Single(accounts);
+        Assert.Equal("ceo@oldcorp.com", accounts[0].SourceUser);
+        Assert.Equal("ceo@newcorp.com", accounts[0].DestUser);
+        Assert.Empty(accounts[0].SourcePassword);
+    }
+
+    [Fact]
+    public void TestCsvAccountParser_M365ToImap_ThreeColumns()
+    {
+        string csv = "user@m365.com,user@nextcloud.local,SecretPass123";
+
+        var accounts = CsvAccountParser.Parse(csv, ServerProtocol.Microsoft365, ServerProtocol.Imap);
+
+        Assert.Single(accounts);
+        Assert.Equal("user@m365.com", accounts[0].SourceUser);
+        Assert.Empty(accounts[0].SourcePassword);
+        Assert.Equal("user@nextcloud.local", accounts[0].DestUser);
+        Assert.Equal("SecretPass123", accounts[0].DestPassword);
+    }
+
+    [Fact]
     public void TestMigrationOptions_FolderFiltering()
     {
         var options = new MigrationOptions();
