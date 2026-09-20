@@ -89,4 +89,76 @@ public partial class MainWindow : Window
     {
         _vm.ClearLogs();
     }
+
+    private async void SignInSingleSourceOAuth_Click(object? sender, RoutedEventArgs e)
+    {
+        await _vm.SignInOAuthAsync(isSource: true);
+    }
+
+    private void ClearSingleSourceOAuth_Click(object? sender, RoutedEventArgs e)
+    {
+        _vm.ClearOAuth(isSource: true);
+    }
+
+    private async void SignInSingleDestOAuth_Click(object? sender, RoutedEventArgs e)
+    {
+        await _vm.SignInOAuthAsync(isSource: false);
+    }
+
+    private void ClearSingleDestOAuth_Click(object? sender, RoutedEventArgs e)
+    {
+        _vm.ClearOAuth(isSource: false);
+    }
+
+    private async void BrowseSourceServiceAccount_Click(object? sender, RoutedEventArgs e)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel != null)
+        {
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+            {
+                Title = "Select Source Google Service Account JSON Key",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new Avalonia.Platform.Storage.FilePickerFileType("JSON Key Files") { Patterns = new[] { "*.json" } },
+                    new Avalonia.Platform.Storage.FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
+                }
+            });
+            if (files.Count > 0)
+            {
+                var path = files[0].Path.LocalPath;
+                if (!string.IsNullOrEmpty(path))
+                {
+                    _vm.LoadSourceServiceAccountFile(path);
+                }
+            }
+        }
+    }
+
+    private async void BrowseDestServiceAccount_Click(object? sender, RoutedEventArgs e)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel != null)
+        {
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+            {
+                Title = "Select Destination Google Service Account JSON Key",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new Avalonia.Platform.Storage.FilePickerFileType("JSON Key Files") { Patterns = new[] { "*.json" } },
+                    new Avalonia.Platform.Storage.FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
+                }
+            });
+            if (files.Count > 0)
+            {
+                var path = files[0].Path.LocalPath;
+                if (!string.IsNullOrEmpty(path))
+                {
+                    _vm.LoadDestServiceAccountFile(path);
+                }
+            }
+        }
+    }
 }

@@ -12,8 +12,8 @@
     <Authors>Danny Schuller (Mundofy)</Authors>
     <Copyright>Copyright © Mundofy (Danny Schuller)</Copyright>
     <Description>High-Speed IMAP &amp; POP3 Email Migration Suite for macOS</Description>
-    <Version>1.4.0</Version>
-    <AssemblyVersion>1.4.0.0</AssemblyVersion>
+    <Version>1.5.0</Version>
+    <AssemblyVersion>1.5.0.0</AssemblyVersion>
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>

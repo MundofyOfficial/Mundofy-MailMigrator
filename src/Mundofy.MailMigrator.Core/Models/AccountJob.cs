@@ -48,6 +48,20 @@ public class AccountJob : INotifyPropertyChanged
         set => SetField(ref _destPassword, value);
     }
 
+    private string _sourceOAuthToken = string.Empty;
+    public string SourceOAuthToken
+    {
+        get => _sourceOAuthToken;
+        set => SetField(ref _sourceOAuthToken, value);
+    }
+
+    private string _destOAuthToken = string.Empty;
+    public string DestOAuthToken
+    {
+        get => _destOAuthToken;
+        set => SetField(ref _destOAuthToken, value);
+    }
+
     private MigrationStatus _status = MigrationStatus.Pending;
     public MigrationStatus Status
     {

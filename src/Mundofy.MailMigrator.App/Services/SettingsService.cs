@@ -22,9 +22,15 @@ public class AppSettings
     public string BatchSourceProtocol { get; set; } = "Imap";
     public string BatchSourceHost { get; set; } = "";
     public int BatchSourcePort { get; set; } = 993;
+    public string BatchSourceTenantId { get; set; } = "";
+    public string BatchSourceClientId { get; set; } = "";
+    public string BatchSourceServiceAccountPath { get; set; } = "";
     public string BatchDestProtocol { get; set; } = "Imap";
     public string BatchDestHost { get; set; } = "";
     public int BatchDestPort { get; set; } = 993;
+    public string BatchDestTenantId { get; set; } = "";
+    public string BatchDestClientId { get; set; } = "";
+    public string BatchDestServiceAccountPath { get; set; } = "";
     public int Concurrency { get; set; } = 4;
 
     // Advanced Migration Options

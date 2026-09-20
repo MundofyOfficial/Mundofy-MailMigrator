@@ -29,10 +29,12 @@ public class ImapMigrationService
 
         try
         {
+            var (host, port) = ResolveHostAndPort(endpoint);
+
             if (endpoint.Protocol == ServerProtocol.Pop3)
             {
                 using var client = CreatePop3Client(endpoint);
-                await client.ConnectAsync(endpoint.Host, endpoint.Port, GetSecureSocketOptions(endpoint), ct);
+                await client.ConnectAsync(host, port, GetSecureSocketOptions(endpoint), ct);
                 await client.AuthenticateAsync(username, password, ct);
 
                 int count = client.Count;
@@ -57,8 +59,8 @@ public class ImapMigrationService
             else
             {
                 using var client = CreateImapClient(endpoint);
-                await client.ConnectAsync(endpoint.Host, endpoint.Port, GetSecureSocketOptions(endpoint), ct);
-                await client.AuthenticateAsync(username, password, ct);
+                await client.ConnectAsync(host, port, GetSecureSocketOptions(endpoint), ct);
+                await AuthenticateImapClientAsync(client, endpoint, username, password, ct);
 
                 if (client.Capabilities.HasFlag(MailKit.Net.Imap.ImapCapabilities.Quota))
                 {
@@ -201,13 +203,17 @@ public class ImapMigrationService
 
         job.StatusMessage = "Connecting to source IMAP server...";
         progress?.Report(job);
-        await srcClient.ConnectAsync(source.Host, source.Port, GetSecureSocketOptions(source), ct);
-        await srcClient.AuthenticateAsync(job.SourceUser, job.SourcePassword, ct);
+        var (srcHost, srcPort) = ResolveHostAndPort(source);
+        await srcClient.ConnectAsync(srcHost, srcPort, GetSecureSocketOptions(source), ct);
+        string srcToken = !string.IsNullOrWhiteSpace(job.SourceOAuthToken) ? job.SourceOAuthToken : job.SourcePassword;
+        await AuthenticateImapClientAsync(srcClient, source, job.SourceUser, srcToken, ct);
 
         job.StatusMessage = "Connecting to destination IMAP server...";
         progress?.Report(job);
-        await dstClient.ConnectAsync(dest.Host, dest.Port, GetSecureSocketOptions(dest), ct);
-        await dstClient.AuthenticateAsync(job.DestUser, job.DestPassword, ct);
+        var (dstHost, dstPort) = ResolveHostAndPort(dest);
+        await dstClient.ConnectAsync(dstHost, dstPort, GetSecureSocketOptions(dest), ct);
+        string dstToken = !string.IsNullOrWhiteSpace(job.DestOAuthToken) ? job.DestOAuthToken : job.DestPassword;
+        await AuthenticateImapClientAsync(dstClient, dest, job.DestUser, dstToken, ct);
 
         // Enumerate all source folders
         job.StatusMessage = "Enumerating folders...";
@@ -469,13 +475,16 @@ public class ImapMigrationService
 
         job.StatusMessage = "Connecting to POP3 source...";
         progress?.Report(job);
-        await popClient.ConnectAsync(source.Host, source.Port, GetSecureSocketOptions(source), ct);
+        var (srcHost, srcPort) = ResolveHostAndPort(source);
+        await popClient.ConnectAsync(srcHost, srcPort, GetSecureSocketOptions(source), ct);
         await popClient.AuthenticateAsync(job.SourceUser, job.SourcePassword, ct);
 
         job.StatusMessage = "Connecting to destination IMAP...";
         progress?.Report(job);
-        await imapClient.ConnectAsync(dest.Host, dest.Port, GetSecureSocketOptions(dest), ct);
-        await imapClient.AuthenticateAsync(job.DestUser, job.DestPassword, ct);
+        var (dstHost, dstPort) = ResolveHostAndPort(dest);
+        await imapClient.ConnectAsync(dstHost, dstPort, GetSecureSocketOptions(dest), ct);
+        string dstToken = !string.IsNullOrWhiteSpace(job.DestOAuthToken) ? job.DestOAuthToken : job.DestPassword;
+        await AuthenticateImapClientAsync(imapClient, dest, job.DestUser, dstToken, ct);
 
         int count = popClient.Count;
         job.TotalMessages = count;
@@ -689,6 +698,51 @@ public class ImapMigrationService
         }
         client.Timeout = 60000;
         return client;
+    }
+
+    public static (string Host, int Port) ResolveHostAndPort(ServerEndpoint endpoint)
+    {
+        string host = endpoint.Host?.Trim() ?? string.Empty;
+        int port = endpoint.Port;
+
+        if (string.IsNullOrWhiteSpace(host))
+        {
+            if (endpoint.Protocol == ServerProtocol.Microsoft365)
+            {
+                host = "outlook.office365.com";
+                port = 993;
+            }
+            else if (endpoint.Protocol == ServerProtocol.GoogleWorkspace)
+            {
+                host = "imap.gmail.com";
+                port = 993;
+            }
+        }
+
+        return (host, port <= 0 ? 993 : port);
+    }
+
+    private static async Task AuthenticateImapClientAsync(
+        ImapClient client,
+        ServerEndpoint endpoint,
+        string username,
+        string passwordOrToken,
+        CancellationToken ct)
+    {
+        string token = !string.IsNullOrWhiteSpace(endpoint.OAuthAccessToken)
+            ? endpoint.OAuthAccessToken
+            : (passwordOrToken.StartsWith("oauth:", StringComparison.OrdinalIgnoreCase) ? passwordOrToken[6..] : "");
+
+        if (endpoint.IsOAuth2 || !string.IsNullOrWhiteSpace(token))
+        {
+            var authToken = !string.IsNullOrWhiteSpace(token) ? token : passwordOrToken;
+            var oauth2 = new SaslMechanismOAuth2(username, authToken);
+            await client.AuthenticateAsync(oauth2, ct);
+        }
+        else
+        {
+            await client.AuthenticateAsync(username, passwordOrToken, ct);
+        }
     }
 
     private static SecureSocketOptions GetSecureSocketOptions(ServerEndpoint endpoint)

@@ -43,14 +43,33 @@
 
                                     <Grid ColumnDefinitions="2*,10,*">
                                         <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Server Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
-                                            <TextBox Text="{Binding SingleSourceHost}" PlaceholderText="e.g. imap.example.com" />
+                                            <TextBlock Text="Protocol" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                            <ComboBox ItemsSource="{Binding AvailableSourceProtocols}" SelectedItem="{Binding SelectedSingleSourceProtocolOption}" HorizontalAlignment="Stretch" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="Port" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
                                             <TextBox Text="{Binding SingleSourcePort}" />
                                         </StackPanel>
                                     </Grid>
+
+                                    <!-- Modern OAuth2 Sign-In Panel -->
+                                    <Border Classes="InnerCard" Padding="12,8" BorderBrush="#3B82F6" Background="#172554" IsVisible="{Binding IsSingleSourceOAuth}">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <TextBlock Text="⚡ Modern OAuth2 Authentication" FontWeight="Bold" FontSize="11" Foreground="#93C5FD" />
+                                                <TextBlock Text="{Binding SingleSourceOAuthBadge}" TextTrimming="CharacterEllipsis" FontSize="11" Foreground="#E2E8F0" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                <Button Content="🔑 Sign In" Click="SignInSingleSourceOAuth_Click" Classes="Primary" Padding="8,4" FontSize="11" />
+                                                <Button Content="✕" Click="ClearSingleSourceOAuth_Click" Classes="Outline" Padding="6,4" FontSize="11" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Server Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding SingleSourceHost}" PlaceholderText="e.g. imap.example.com" />
+                                    </StackPanel>
 
                                     <StackPanel>
                                         <TextBlock Text="Email / Username" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
@@ -61,7 +80,7 @@
                                     </StackPanel>
 
                                     <StackPanel>
-                                        <TextBlock Text="Password" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                        <TextBlock Text="Password / App Password" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
                                         <TextBox Text="{Binding SingleSourcePassword}" PasswordChar="•" PlaceholderText="Password" />
                                     </StackPanel>
 
@@ -81,14 +100,33 @@
 
                                     <Grid ColumnDefinitions="2*,10,*">
                                         <StackPanel Grid.Column="0">
-                                            <TextBlock Text="Server Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
-                                            <TextBox Text="{Binding SingleDestHost}" PlaceholderText="e.g. mail.destination.com" />
+                                            <TextBlock Text="Protocol" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                            <ComboBox ItemsSource="{Binding AvailableDestProtocols}" SelectedItem="{Binding SelectedSingleDestProtocolOption}" HorizontalAlignment="Stretch" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
                                             <TextBlock Text="Port" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
                                             <TextBox Text="{Binding SingleDestPort}" />
                                         </StackPanel>
                                     </Grid>
+
+                                    <!-- Modern OAuth2 Sign-In Panel -->
+                                    <Border Classes="InnerCard" Padding="12,8" BorderBrush="#10B981" Background="#064E3B" IsVisible="{Binding IsSingleDestOAuth}">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <TextBlock Text="⚡ Modern OAuth2 Authentication" FontWeight="Bold" FontSize="11" Foreground="#6EE7B7" />
+                                                <TextBlock Text="{Binding SingleDestOAuthBadge}" TextTrimming="CharacterEllipsis" FontSize="11" Foreground="#E2E8F0" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                <Button Content="🔑 Sign In" Click="SignInSingleDestOAuth_Click" Classes="Success" Padding="8,4" FontSize="11" />
+                                                <Button Content="✕" Click="ClearSingleDestOAuth_Click" Classes="Outline" Padding="6,4" FontSize="11" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Server Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                        <TextBox Text="{Binding SingleDestHost}" PlaceholderText="e.g. mail.destination.com" />
+                                    </StackPanel>
 
                                     <StackPanel>
                                         <TextBlock Text="Email / Username" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
@@ -99,7 +137,7 @@
                                     </StackPanel>
 
                                     <StackPanel>
-                                        <TextBlock Text="Password" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
+                                        <TextBlock Text="Password / App Password" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4" />
                                         <TextBox Text="{Binding SingleDestPassword}" PasswordChar="•" PlaceholderText="Password" />
                                     </StackPanel>
 
@@ -135,17 +173,23 @@
 
             <!-- TAB 2: BATCH MIGRATION -->
             <TabItem Header="Batch Migration">
-                <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="0,10,0,0">
+                <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,10,0,0">
                     <!-- SERVER DEFAULTS -->
                     <Border Grid.Row="0" Classes="Card" Padding="14" Margin="0,0,0,10">
                         <Grid ColumnDefinitions="*,12,*,12,Auto">
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Default Source Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2" />
-                                <TextBox Text="{Binding BatchSourceHost}" PlaceholderText="e.g. source.server.com" />
+                                <TextBlock Text="Default Source Protocol &amp; Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2" />
+                                <Grid ColumnDefinitions="*,8,*">
+                                    <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableBatchSourceProtocols}" SelectedItem="{Binding SelectedBatchSourceProtocolOption}" HorizontalAlignment="Stretch" />
+                                    <TextBox Grid.Column="2" Text="{Binding BatchSourceHost}" PlaceholderText="e.g. source.server.com" />
+                                </Grid>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Default Dest Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2" />
-                                <TextBox Text="{Binding BatchDestHost}" PlaceholderText="e.g. dest.server.com" />
+                                <TextBlock Text="Default Dest Protocol &amp; Host" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2" />
+                                <Grid ColumnDefinitions="*,8,*">
+                                    <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableBatchDestProtocols}" SelectedItem="{Binding SelectedBatchDestProtocolOption}" HorizontalAlignment="Stretch" />
+                                    <TextBox Grid.Column="2" Text="{Binding BatchDestHost}" PlaceholderText="e.g. dest.server.com" />
+                                </Grid>
                             </StackPanel>
                             <StackPanel Grid.Column="4" Width="140">
                                 <TextBlock Text="{Binding Concurrency, StringFormat='Workers: {0}'}" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,2" />
@@ -154,14 +198,68 @@
                         </Grid>
                     </Border>
 
+                    <!-- ENTERPRISE TENANT & SERVICE ACCOUNT CONFIGURATION -->
+                    <Border Grid.Row="1" Classes="Card" Padding="14" Margin="0,0,0,10" IsVisible="{Binding HasAnyBatchEnterprise}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="⚡ Enterprise Batch Migration Settings" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" />
+                            <Grid ColumnDefinitions="*,16,*">
+                                <!-- SOURCE ENTERPRISE -->
+                                <StackPanel Grid.Column="0" Spacing="6">
+                                    <!-- M365 Source -->
+                                    <StackPanel Spacing="4" IsVisible="{Binding IsBatchSourceM365Tenant}">
+                                        <TextBlock Text="Source Microsoft 365 Tenant Admin (Azure App Registration)" FontWeight="SemiBold" FontSize="12" Foreground="#60A5FA" />
+                                        <TextBlock Text="Tenant ID (Directory ID):" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBox Text="{Binding BatchSourceTenantId}" PlaceholderText="e.g. 00000000-0000-0000-0000-000000000000" />
+                                        <TextBlock Text="Application (Client) ID:" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBox Text="{Binding BatchSourceClientId}" PlaceholderText="e.g. 11111111-1111-1111-1111-111111111111" />
+                                        <TextBlock Text="Client Secret:" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBox Text="{Binding BatchSourceClientSecret}" PasswordChar="•" PlaceholderText="Client Secret Value" />
+                                    </StackPanel>
+                                    <!-- Google Source -->
+                                    <StackPanel Spacing="4" IsVisible="{Binding IsBatchSourceGoogleSA}">
+                                        <TextBlock Text="Source Google Workspace (Service Account JSON Key)" FontWeight="SemiBold" FontSize="12" Foreground="#60A5FA" />
+                                        <TextBlock Text="Service Account JSON Key File:" FontSize="11" Foreground="#94A3B8" />
+                                        <Grid ColumnDefinitions="*,8,Auto">
+                                            <TextBox Grid.Column="0" Text="{Binding BatchSourceServiceAccountPath}" PlaceholderText="/path/to/service-account.json" />
+                                            <Button Grid.Column="2" Content="Browse..." Click="BrowseSourceServiceAccount_Click" Classes="Outline" Padding="10,6" FontSize="11" />
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- DEST ENTERPRISE -->
+                                <StackPanel Grid.Column="2" Spacing="6">
+                                    <!-- M365 Dest -->
+                                    <StackPanel Spacing="4" IsVisible="{Binding IsBatchDestM365Tenant}">
+                                        <TextBlock Text="Destination Microsoft 365 Tenant Admin (Azure App Registration)" FontWeight="SemiBold" FontSize="12" Foreground="#34D399" />
+                                        <TextBlock Text="Tenant ID (Directory ID):" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBox Text="{Binding BatchDestTenantId}" PlaceholderText="e.g. 00000000-0000-0000-0000-000000000000" />
+                                        <TextBlock Text="Application (Client) ID:" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBox Text="{Binding BatchDestClientId}" PlaceholderText="e.g. 11111111-1111-1111-1111-111111111111" />
+                                        <TextBlock Text="Client Secret:" FontSize="11" Foreground="#94A3B8" />
+                                        <TextBox Text="{Binding BatchDestClientSecret}" PasswordChar="•" PlaceholderText="Client Secret Value" />
+                                    </StackPanel>
+                                    <!-- Google Dest -->
+                                    <StackPanel Spacing="4" IsVisible="{Binding IsBatchDestGoogleSA}">
+                                        <TextBlock Text="Destination Google Workspace (Service Account JSON Key)" FontWeight="SemiBold" FontSize="12" Foreground="#34D399" />
+                                        <TextBlock Text="Service Account JSON Key File:" FontSize="11" Foreground="#94A3B8" />
+                                        <Grid ColumnDefinitions="*,8,Auto">
+                                            <TextBox Grid.Column="0" Text="{Binding BatchDestServiceAccountPath}" PlaceholderText="/path/to/service-account.json" />
+                                            <Button Grid.Column="2" Content="Browse..." Click="BrowseDestServiceAccount_Click" Classes="Outline" Padding="10,6" FontSize="11" />
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
                     <!-- TOOLBAR -->
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
                         <Button Content="➕ Add Account" Click="AddAccount_Click" Classes="Outline" FontSize="11" />
                         <Button Content="➖ Remove Selected" Click="RemoveAccount_Click" Classes="Outline" FontSize="11" />
                     </StackPanel>
 
                     <!-- DATA GRID -->
-                    <Border Grid.Row="2" Classes="Card" Padding="0">
+                    <Border Grid.Row="3" Classes="Card" Padding="0">
                         <DataGrid ItemsSource="{Binding BatchAccounts}" 
                                   SelectedItem="{Binding SelectedAccount}"
                                   AutoGenerateColumns="False" 
@@ -182,7 +280,7 @@
                     </Border>
 
                     <!-- BATCH CONTROLS & OVERALL PROGRESS -->
-                    <Border Grid.Row="3" Classes="Card" Padding="14" Margin="0,10,0,0">
+                    <Border Grid.Row="4" Classes="Card" Padding="14" Margin="0,10,0,0">
                         <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding BatchStatusText}" FontWeight="Bold" FontSize="12" Foreground="#FFFFFF" />

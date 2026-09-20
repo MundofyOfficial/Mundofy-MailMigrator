@@ -143,8 +143,8 @@
                                             <ComboBox SelectedValue="{Binding SingleSourceProtocol, Mode=TwoWay}" SelectedValuePath="Tag" Height="38" IsEnabled="{Binding IsNotSingleMigrating}">
                                                 <ComboBoxItem Content="IMAP (Recommended)" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
                                                 <ComboBoxItem Content="POP3" Tag="{x:Static models:ServerProtocol.Pop3}" />
-                                                <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Modern OAuth2 &amp; Microsoft Graph API authentication is under construction." />
-                                                <ComboBoxItem Content="Google Workspace (Gmail API) — Coming Soon" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" IsEnabled="False" ToolTip="Google Service Account &amp; Gmail API authentication is under construction." />
+                                                <ComboBoxItem Content="Microsoft 365 (Modern OAuth2)" Tag="{x:Static models:ServerProtocol.Microsoft365}" ToolTip="Authenticate using modern browser OAuth2 or Microsoft App Password." />
+                                                <ComboBoxItem Content="Google Workspace (Modern OAuth2)" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" ToolTip="Authenticate using modern browser OAuth2 or Google App Password." />
                                             </ComboBox>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
@@ -152,6 +152,35 @@
                                             <TextBox Text="{Binding SingleSourcePort, UpdateSourceTrigger=PropertyChanged}" Height="38" IsEnabled="{Binding IsNotSingleMigrating}" />
                                         </StackPanel>
                                     </Grid>
+
+                                    <!-- Modern OAuth2 Sign-In Panel -->
+                                    <Border Margin="0,0,0,12" Background="#172554" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSingleSourceOAuth}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <TextBlock Text="⚡ Modern OAuth2 Authentication" FontWeight="Bold" FontSize="11" Foreground="#93C5FD" />
+                                                <TextBlock Text="{Binding SingleSourceOAuthBadge, TargetNullValue='Sign in via browser to authorize mailbox access'}" 
+                                                           FontSize="11" Foreground="#E2E8F0" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Content="🔑 Sign In" Command="{Binding SignInSingleSourceOAuthCommand}" Padding="10,5" FontSize="11" Background="#2563EB" Foreground="#FFFFFF" Margin="0,0,4,0" Cursor="Hand" ToolTip="Opens browser to sign in and grant secure OAuth2 token" />
+                                                <Button Content="✕" Command="{Binding ClearSingleSourceOAuthCommand}" Padding="8,5" FontSize="11" Background="#334155" Foreground="#94A3B8" Cursor="Hand" ToolTip="Clear OAuth token" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
 
                                     <Grid Margin="0,0,0,5">
                                         <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
@@ -164,7 +193,7 @@
                                     <TextBlock Text="Username / Email Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
                                     <TextBox Text="{Binding SingleSourceUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" IsEnabled="{Binding IsNotSingleMigrating}" />
 
-                                    <TextBlock Text="Password / App Password" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <TextBlock Text="Password / App Password (Optional if OAuth2 signed in)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
                                     <TextBox Text="{Binding SingleSourcePassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" IsEnabled="{Binding IsNotSingleMigrating}" />
 
                                     <Grid>
@@ -215,8 +244,8 @@
                                             <TextBlock Text="Protocol" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
                                             <ComboBox SelectedValue="{Binding SingleDestProtocol, Mode=TwoWay}" SelectedValuePath="Tag" Height="38" IsEnabled="{Binding IsNotSingleMigrating}">
                                                 <ComboBoxItem Content="IMAP (Standard / cPanel)" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
-                                                <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Direct Microsoft Graph mailbox injection without user passwords is under construction." />
-                                                <ComboBoxItem Content="Google Workspace (Gmail API) — Coming Soon" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" IsEnabled="False" ToolTip="Google Domain-Wide Delegation &amp; Gmail API migration without user passwords is under construction." />
+                                                <ComboBoxItem Content="Microsoft 365 (Modern OAuth2)" Tag="{x:Static models:ServerProtocol.Microsoft365}" ToolTip="Authenticate using modern browser OAuth2 or Microsoft App Password." />
+                                                <ComboBoxItem Content="Google Workspace (Modern OAuth2)" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" ToolTip="Authenticate using modern browser OAuth2 or Google App Password." />
                                             </ComboBox>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2">
@@ -224,6 +253,35 @@
                                             <TextBox Text="{Binding SingleDestPort, UpdateSourceTrigger=PropertyChanged}" Height="38" IsEnabled="{Binding IsNotSingleMigrating}" />
                                         </StackPanel>
                                     </Grid>
+
+                                    <!-- Modern OAuth2 Sign-In Panel -->
+                                    <Border Margin="0,0,0,12" Background="#064E3B" BorderBrush="#10B981" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSingleDestOAuth}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <TextBlock Text="⚡ Modern OAuth2 Authentication" FontWeight="Bold" FontSize="11" Foreground="#6EE7B7" />
+                                                <TextBlock Text="{Binding SingleDestOAuthBadge, TargetNullValue='Sign in via browser to authorize mailbox access'}" 
+                                                           FontSize="11" Foreground="#E2E8F0" TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Content="🔑 Sign In" Command="{Binding SignInSingleDestOAuthCommand}" Padding="10,5" FontSize="11" Background="#059669" Foreground="#FFFFFF" Margin="0,0,4,0" Cursor="Hand" ToolTip="Opens browser to sign in and grant secure OAuth2 token" />
+                                                <Button Content="✕" Command="{Binding ClearSingleDestOAuthCommand}" Padding="8,5" FontSize="11" Background="#334155" Foreground="#94A3B8" Cursor="Hand" ToolTip="Clear OAuth token" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
 
                                     <Grid Margin="0,0,0,5">
                                         <TextBlock Text="Server Host / Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
@@ -236,7 +294,7 @@
                                     <TextBlock Text="Username / Email Address" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
                                     <TextBox Text="{Binding SingleDestUser, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" IsEnabled="{Binding IsNotSingleMigrating}" />
 
-                                    <TextBlock Text="Password / App Password" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
+                                    <TextBlock Text="Password / App Password (Optional if OAuth2 signed in)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,5" />
                                     <TextBox Text="{Binding SingleDestPassword, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" IsEnabled="{Binding IsNotSingleMigrating}" />
 
                                     <Grid>
@@ -366,6 +424,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
@@ -398,8 +457,8 @@
                                     <ComboBox Grid.Column="0" SelectedValue="{Binding BatchSourceProtocol, Mode=TwoWay}" SelectedValuePath="Tag" ToolTip="Source Protocol / Provider" IsEnabled="{Binding IsNotBatchRunning}">
                                         <ComboBoxItem Content="IMAP" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
                                         <ComboBoxItem Content="POP3" Tag="{x:Static models:ServerProtocol.Pop3}" />
-                                        <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Modern OAuth2 &amp; Microsoft Graph API authentication is under construction." />
-                                        <ComboBoxItem Content="Google Workspace (Gmail API) — Coming Soon" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" IsEnabled="False" ToolTip="Google Service Account &amp; Gmail API authentication is under construction." />
+                                        <ComboBoxItem Content="Microsoft 365" Tag="{x:Static models:ServerProtocol.Microsoft365}" ToolTip="Enterprise migration of all tenant mailboxes using Azure App Registration without user passwords." />
+                                        <ComboBoxItem Content="Google Workspace" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" ToolTip="Enterprise migration of all domain mailboxes using Service Account JSON without user passwords." />
                                     </ComboBox>
                                     <TextBox Grid.Column="2" Text="{Binding BatchSourceHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Source Host (e.g. mail.oldserver.com)" IsEnabled="{Binding IsNotBatchRunning}" />
                                     <TextBox Grid.Column="4" Text="{Binding BatchSourcePort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993 for IMAP, 995 for POP3)" IsEnabled="{Binding IsNotBatchRunning}" />
@@ -422,8 +481,8 @@
                                     </Grid.ColumnDefinitions>
                                     <ComboBox Grid.Column="0" SelectedValue="{Binding BatchDestProtocol, Mode=TwoWay}" SelectedValuePath="Tag" ToolTip="Destination Protocol / Provider" IsEnabled="{Binding IsNotBatchRunning}">
                                         <ComboBoxItem Content="IMAP" Tag="{x:Static models:ServerProtocol.Imap}" IsSelected="True" />
-                                        <ComboBoxItem Content="Microsoft 365 (Graph API) — Coming Soon" Tag="{x:Static models:ServerProtocol.Microsoft365}" IsEnabled="False" ToolTip="Direct Microsoft Graph mailbox injection without user passwords is under construction." />
-                                        <ComboBoxItem Content="Google Workspace (Gmail API) — Coming Soon" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" IsEnabled="False" ToolTip="Google Domain-Wide Delegation &amp; Gmail API migration without user passwords is under construction." />
+                                        <ComboBoxItem Content="Microsoft 365" Tag="{x:Static models:ServerProtocol.Microsoft365}" ToolTip="Enterprise migration into tenant mailboxes using Azure App Registration without user passwords." />
+                                        <ComboBoxItem Content="Google Workspace" Tag="{x:Static models:ServerProtocol.GoogleWorkspace}" ToolTip="Enterprise migration into domain mailboxes using Service Account JSON without user passwords." />
                                     </ComboBox>
                                     <TextBox Grid.Column="2" Text="{Binding BatchDestHost, UpdateSourceTrigger=PropertyChanged}" ToolTip="Dest Host (e.g. imap.newserver.com)" IsEnabled="{Binding IsNotBatchRunning}" />
                                     <TextBox Grid.Column="4" Text="{Binding BatchDestPort, UpdateSourceTrigger=PropertyChanged}" ToolTip="Port (e.g. 993)" IsEnabled="{Binding IsNotBatchRunning}" />
@@ -448,8 +507,131 @@
                         </Grid>
                     </Border>
 
-                    <!-- ROW 1: BATCH TOOLBAR -->
-                    <Border Grid.Row="1" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12">
+                    <!-- ROW 1: ENTERPRISE TENANT & SERVICE ACCOUNT CONFIGURATION (Expander/Border) -->
+                    <Border Grid.Row="1" Background="{StaticResource CardBgBrush}" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,12">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasAnyBatchEnterprise}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel>
+                            <TextBlock Text="🏢 Enterprise Batch Authentication (Admin Access Without Individual User Passwords)" FontWeight="Bold" FontSize="13" Foreground="#93C5FD" Margin="0,0,0,10" />
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- SOURCE ENTERPRISE SETTINGS -->
+                                <StackPanel Grid.Column="0">
+                                    <!-- M365 Source -->
+                                    <StackPanel>
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsBatchSourceM365Tenant}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        <TextBlock Text="Source Microsoft 365 Tenant Admin (Azure App Registration)" FontWeight="SemiBold" FontSize="12" Foreground="#60A5FA" Margin="0,0,0,6" />
+                                        <TextBlock Text="Tenant ID (Directory ID):" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2" />
+                                        <TextBox Text="{Binding BatchSourceTenantId, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                                        <TextBlock Text="Application (Client) ID:" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2" />
+                                        <TextBox Text="{Binding BatchSourceClientId, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                                        <TextBlock Text="Client Secret:" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2" />
+                                        <TextBox Text="{Binding BatchSourceClientSecret, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                                    </StackPanel>
+
+                                    <!-- Google Workspace Source -->
+                                    <StackPanel>
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsBatchSourceGoogleSA}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        <TextBlock Text="Source Google Workspace (Service Account JSON Key)" FontWeight="SemiBold" FontSize="12" Foreground="#60A5FA" Margin="0,0,0,6" />
+                                        <TextBlock Text="Service Account JSON Key File:" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2" />
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="8" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding BatchSourceServiceAccountPath, UpdateSourceTrigger=PropertyChanged}" />
+                                            <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseSourceServiceAccountFileCommand}" Padding="10,4" />
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- DESTINATION ENTERPRISE SETTINGS -->
+                                <StackPanel Grid.Column="2">
+                                    <!-- M365 Dest -->
+                                    <StackPanel>
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsBatchDestM365Tenant}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        <TextBlock Text="Destination Microsoft 365 Tenant Admin (Azure App Registration)" FontWeight="SemiBold" FontSize="12" Foreground="#34D399" Margin="0,0,0,6" />
+                                        <TextBlock Text="Tenant ID (Directory ID):" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2" />
+                                        <TextBox Text="{Binding BatchDestTenantId, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                                        <TextBlock Text="Application (Client) ID:" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2" />
+                                        <TextBox Text="{Binding BatchDestClientId, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                                        <TextBlock Text="Client Secret:" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2" />
+                                        <TextBox Text="{Binding BatchDestClientSecret, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                                    </StackPanel>
+
+                                    <!-- Google Workspace Dest -->
+                                    <StackPanel>
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsBatchDestGoogleSA}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        <TextBlock Text="Destination Google Workspace (Service Account JSON Key)" FontWeight="SemiBold" FontSize="12" Foreground="#34D399" Margin="0,0,0,6" />
+                                        <TextBlock Text="Service Account JSON Key File:" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2" />
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="8" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding BatchDestServiceAccountPath, UpdateSourceTrigger=PropertyChanged}" />
+                                            <Button Grid.Column="2" Content="Browse..." Command="{Binding BrowseDestServiceAccountFileCommand}" Padding="10,4" />
+                                        </Grid>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ROW 2: BATCH TOOLBAR -->
+                    <Border Grid.Row="2" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -493,8 +675,8 @@
                         </Grid>
                     </Border>
 
-                    <!-- ROW 2: INTERACTIVE ACCOUNTS DATAGRID -->
-                    <Border Grid.Row="2" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="2">
+                    <!-- ROW 3: INTERACTIVE ACCOUNTS DATAGRID -->
+                    <Border Grid.Row="3" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="2">
                         <DataGrid x:Name="BatchGrid"
                                   ItemsSource="{Binding BatchAccounts}" 
                                   SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
@@ -825,8 +1007,8 @@
                         </DataGrid>
                     </Border>
 
-                    <!-- ROW 3: BATCH BOTTOM ACTION & STATS -->
-                    <Border Grid.Row="3" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,12,0,0">
+                    <!-- ROW 4: BATCH BOTTOM ACTION & STATS -->
+                    <Border Grid.Row="4" Background="{StaticResource CardBgBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,12,0,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />

@@ -17,9 +17,17 @@ using Mundofy.MailMigrator.Core.Services;
 
 namespace Mundofy.MailMigrator.Mac.ViewModels;
 
+public class ProtocolOption
+{
+    public ServerProtocol Value { get; init; }
+    public string DisplayName { get; init; } = "";
+    public override string ToString() => DisplayName;
+}
+
 public class MacMainViewModel : INotifyPropertyChanged
 {
     private readonly ImapMigrationService _migrationService;
+    private readonly OAuth2Service _oauthService;
     private readonly BatchOrchestrator _batchOrchestrator;
     private readonly ServerAutoDiscoveryService _autoDiscoveryService;
     private CancellationTokenSource? _singleCts;
@@ -27,7 +35,8 @@ public class MacMainViewModel : INotifyPropertyChanged
     public MacMainViewModel()
     {
         _migrationService = new ImapMigrationService();
-        _batchOrchestrator = new BatchOrchestrator(_migrationService);
+        _oauthService = new OAuth2Service();
+        _batchOrchestrator = new BatchOrchestrator(_migrationService, _oauthService);
         _autoDiscoveryService = new ServerAutoDiscoveryService();
 
         _migrationService.LogEmitted += OnLogEmitted;
@@ -46,6 +55,75 @@ public class MacMainViewModel : INotifyPropertyChanged
 
     public string AppVersionString => AppVersion.Current;
     public string AppVersionDisplay => $"v{AppVersion.Current}";
+
+    #region Protocol Dropdown Options
+
+    public List<ProtocolOption> AvailableSourceProtocols { get; } = new()
+    {
+        new() { Value = ServerProtocol.Imap, DisplayName = "IMAP (Recommended)" },
+        new() { Value = ServerProtocol.Pop3, DisplayName = "POP3" },
+        new() { Value = ServerProtocol.Microsoft365, DisplayName = "Microsoft 365 (Modern OAuth2)" },
+        new() { Value = ServerProtocol.GoogleWorkspace, DisplayName = "Google Workspace (Modern OAuth2)" }
+    };
+
+    public List<ProtocolOption> AvailableDestProtocols { get; } = new()
+    {
+        new() { Value = ServerProtocol.Imap, DisplayName = "IMAP (Standard / cPanel)" },
+        new() { Value = ServerProtocol.Microsoft365, DisplayName = "Microsoft 365 (Modern OAuth2)" },
+        new() { Value = ServerProtocol.GoogleWorkspace, DisplayName = "Google Workspace (Modern OAuth2)" }
+    };
+
+    public List<ProtocolOption> AvailableBatchSourceProtocols { get; } = new()
+    {
+        new() { Value = ServerProtocol.Imap, DisplayName = "IMAP (Standard)" },
+        new() { Value = ServerProtocol.Microsoft365, DisplayName = "Microsoft 365 (Tenant Admin / OAuth2)" },
+        new() { Value = ServerProtocol.GoogleWorkspace, DisplayName = "Google Workspace (Service Account)" }
+    };
+
+    public List<ProtocolOption> AvailableBatchDestProtocols { get; } = new()
+    {
+        new() { Value = ServerProtocol.Imap, DisplayName = "IMAP (Standard)" },
+        new() { Value = ServerProtocol.Microsoft365, DisplayName = "Microsoft 365 (Tenant Admin / OAuth2)" },
+        new() { Value = ServerProtocol.GoogleWorkspace, DisplayName = "Google Workspace (Service Account)" }
+    };
+
+    public ProtocolOption SelectedSingleSourceProtocolOption
+    {
+        get => AvailableSourceProtocols.FirstOrDefault(p => p.Value == SingleSourceProtocol) ?? AvailableSourceProtocols[0];
+        set
+        {
+            if (value != null) SingleSourceProtocol = value.Value;
+        }
+    }
+
+    public ProtocolOption SelectedSingleDestProtocolOption
+    {
+        get => AvailableDestProtocols.FirstOrDefault(p => p.Value == SingleDestProtocol) ?? AvailableDestProtocols[0];
+        set
+        {
+            if (value != null) SingleDestProtocol = value.Value;
+        }
+    }
+
+    public ProtocolOption SelectedBatchSourceProtocolOption
+    {
+        get => AvailableBatchSourceProtocols.FirstOrDefault(p => p.Value == BatchSourceProtocol) ?? AvailableBatchSourceProtocols[0];
+        set
+        {
+            if (value != null) BatchSourceProtocol = value.Value;
+        }
+    }
+
+    public ProtocolOption SelectedBatchDestProtocolOption
+    {
+        get => AvailableBatchDestProtocols.FirstOrDefault(p => p.Value == BatchDestProtocol) ?? AvailableBatchDestProtocols[0];
+        set
+        {
+            if (value != null) BatchDestProtocol = value.Value;
+        }
+    }
+
+    #endregion
 
     #region Single Migration Properties
 
@@ -71,7 +149,8 @@ public class MacMainViewModel : INotifyPropertyChanged
         {
             if (SetField(ref _singleSourceProtocol, value))
             {
-                SingleSourcePort = value == ServerProtocol.Pop3 ? 995 : 993;
+                OnPropertyChanged(nameof(SelectedSingleSourceProtocolOption));
+                OnSourceProtocolChanged(value, isBatch: false);
             }
         }
     }
@@ -96,6 +175,29 @@ public class MacMainViewModel : INotifyPropertyChanged
         get => _singleSourcePassword;
         set => SetField(ref _singleSourcePassword, value);
     }
+
+    private string _singleSourceOAuthToken = "";
+    public string SingleSourceOAuthToken
+    {
+        get => _singleSourceOAuthToken;
+        set
+        {
+            if (SetField(ref _singleSourceOAuthToken, value))
+            {
+                OnPropertyChanged(nameof(HasSingleSourceOAuthToken));
+            }
+        }
+    }
+
+    private string _singleSourceOAuthBadge = "";
+    public string SingleSourceOAuthBadge
+    {
+        get => _singleSourceOAuthBadge;
+        set => SetField(ref _singleSourceOAuthBadge, value);
+    }
+
+    public bool IsSingleSourceOAuth => SingleSourceProtocol is ServerProtocol.Microsoft365 or ServerProtocol.GoogleWorkspace;
+    public bool HasSingleSourceOAuthToken => !string.IsNullOrWhiteSpace(SingleSourceOAuthToken);
 
     private string _singleSourceQuotaText = "Quota: Ready to check";
     public string SingleSourceQuotaText
@@ -122,7 +224,14 @@ public class MacMainViewModel : INotifyPropertyChanged
     public ServerProtocol SingleDestProtocol
     {
         get => _singleDestProtocol;
-        set => SetField(ref _singleDestProtocol, value);
+        set
+        {
+            if (SetField(ref _singleDestProtocol, value))
+            {
+                OnPropertyChanged(nameof(SelectedSingleDestProtocolOption));
+                OnDestProtocolChanged(value, isBatch: false);
+            }
+        }
     }
 
     private bool _singleDestUseSsl = true;
@@ -145,6 +254,29 @@ public class MacMainViewModel : INotifyPropertyChanged
         get => _singleDestPassword;
         set => SetField(ref _singleDestPassword, value);
     }
+
+    private string _singleDestOAuthToken = "";
+    public string SingleDestOAuthToken
+    {
+        get => _singleDestOAuthToken;
+        set
+        {
+            if (SetField(ref _singleDestOAuthToken, value))
+            {
+                OnPropertyChanged(nameof(HasSingleDestOAuthToken));
+            }
+        }
+    }
+
+    private string _singleDestOAuthBadge = "";
+    public string SingleDestOAuthBadge
+    {
+        get => _singleDestOAuthBadge;
+        set => SetField(ref _singleDestOAuthBadge, value);
+    }
+
+    public bool IsSingleDestOAuth => SingleDestProtocol is ServerProtocol.Microsoft365 or ServerProtocol.GoogleWorkspace;
+    public bool HasSingleDestOAuthToken => !string.IsNullOrWhiteSpace(SingleDestOAuthToken);
 
     private string _singleDestQuotaText = "Quota: Ready to check";
     public string SingleDestQuotaText
@@ -220,7 +352,14 @@ public class MacMainViewModel : INotifyPropertyChanged
     public ServerProtocol BatchSourceProtocol
     {
         get => _batchSourceProtocol;
-        set => SetField(ref _batchSourceProtocol, value);
+        set
+        {
+            if (SetField(ref _batchSourceProtocol, value))
+            {
+                OnPropertyChanged(nameof(SelectedBatchSourceProtocolOption));
+                OnSourceProtocolChanged(value, isBatch: true);
+            }
+        }
     }
 
     private bool _batchSourceUseSsl = true;
@@ -229,6 +368,45 @@ public class MacMainViewModel : INotifyPropertyChanged
         get => _batchSourceUseSsl;
         set => SetField(ref _batchSourceUseSsl, value);
     }
+
+    private string _batchSourceTenantId = "";
+    public string BatchSourceTenantId
+    {
+        get => _batchSourceTenantId;
+        set => SetField(ref _batchSourceTenantId, value);
+    }
+
+    private string _batchSourceClientId = "";
+    public string BatchSourceClientId
+    {
+        get => _batchSourceClientId;
+        set => SetField(ref _batchSourceClientId, value);
+    }
+
+    private string _batchSourceClientSecret = "";
+    public string BatchSourceClientSecret
+    {
+        get => _batchSourceClientSecret;
+        set => SetField(ref _batchSourceClientSecret, value);
+    }
+
+    private string _batchSourceServiceAccountPath = "";
+    public string BatchSourceServiceAccountPath
+    {
+        get => _batchSourceServiceAccountPath;
+        set => SetField(ref _batchSourceServiceAccountPath, value);
+    }
+
+    private string _batchSourceServiceAccountJson = "";
+    public string BatchSourceServiceAccountJson
+    {
+        get => _batchSourceServiceAccountJson;
+        set => SetField(ref _batchSourceServiceAccountJson, value);
+    }
+
+    public bool IsBatchSourceM365Tenant => BatchSourceProtocol == ServerProtocol.Microsoft365;
+    public bool IsBatchSourceGoogleSA => BatchSourceProtocol == ServerProtocol.GoogleWorkspace;
+    public bool HasBatchEnterpriseSource => IsBatchSourceM365Tenant || IsBatchSourceGoogleSA;
 
     private string _batchDestHost = "";
     public string BatchDestHost
@@ -248,7 +426,14 @@ public class MacMainViewModel : INotifyPropertyChanged
     public ServerProtocol BatchDestProtocol
     {
         get => _batchDestProtocol;
-        set => SetField(ref _batchDestProtocol, value);
+        set
+        {
+            if (SetField(ref _batchDestProtocol, value))
+            {
+                OnPropertyChanged(nameof(SelectedBatchDestProtocolOption));
+                OnDestProtocolChanged(value, isBatch: true);
+            }
+        }
     }
 
     private bool _batchDestUseSsl = true;
@@ -257,6 +442,46 @@ public class MacMainViewModel : INotifyPropertyChanged
         get => _batchDestUseSsl;
         set => SetField(ref _batchDestUseSsl, value);
     }
+
+    private string _batchDestTenantId = "";
+    public string BatchDestTenantId
+    {
+        get => _batchDestTenantId;
+        set => SetField(ref _batchDestTenantId, value);
+    }
+
+    private string _batchDestClientId = "";
+    public string BatchDestClientId
+    {
+        get => _batchDestClientId;
+        set => SetField(ref _batchDestClientId, value);
+    }
+
+    private string _batchDestClientSecret = "";
+    public string BatchDestClientSecret
+    {
+        get => _batchDestClientSecret;
+        set => SetField(ref _batchDestClientSecret, value);
+    }
+
+    private string _batchDestServiceAccountPath = "";
+    public string BatchDestServiceAccountPath
+    {
+        get => _batchDestServiceAccountPath;
+        set => SetField(ref _batchDestServiceAccountPath, value);
+    }
+
+    private string _batchDestServiceAccountJson = "";
+    public string BatchDestServiceAccountJson
+    {
+        get => _batchDestServiceAccountJson;
+        set => SetField(ref _batchDestServiceAccountJson, value);
+    }
+
+    public bool IsBatchDestM365Tenant => BatchDestProtocol == ServerProtocol.Microsoft365;
+    public bool IsBatchDestGoogleSA => BatchDestProtocol == ServerProtocol.GoogleWorkspace;
+    public bool HasBatchEnterpriseDest => IsBatchDestM365Tenant || IsBatchDestGoogleSA;
+    public bool HasAnyBatchEnterprise => HasBatchEnterpriseSource || HasBatchEnterpriseDest;
 
     private int _concurrency = 4;
     public int Concurrency
@@ -443,11 +668,316 @@ public class MacMainViewModel : INotifyPropertyChanged
 
     #endregion
 
+    #region Protocol Handling & OAuth
+
+    private void OnSourceProtocolChanged(ServerProtocol proto, bool isBatch)
+    {
+        switch (proto)
+        {
+            case ServerProtocol.Pop3:
+                if (isBatch) BatchSourcePort = 995;
+                else SingleSourcePort = 995;
+                break;
+
+            case ServerProtocol.Microsoft365:
+                if (isBatch)
+                {
+                    if (string.IsNullOrWhiteSpace(BatchSourceHost)) BatchSourceHost = "outlook.office365.com";
+                    BatchSourcePort = 993;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(SingleSourceHost)) SingleSourceHost = "outlook.office365.com";
+                    SingleSourcePort = 993;
+                }
+                AddLog(LogLevel.Info, isBatch
+                    ? "Selected Microsoft 365 for batch. Configure Tenant Admin credentials below or supply user passwords in CSV."
+                    : "Selected Microsoft 365 source. Click '🔑 Sign In with Microsoft' to authenticate via modern OAuth2 (XOAUTH2) or enter an App Password.");
+                break;
+
+            case ServerProtocol.GoogleWorkspace:
+                if (isBatch)
+                {
+                    if (string.IsNullOrWhiteSpace(BatchSourceHost)) BatchSourceHost = "imap.gmail.com";
+                    BatchSourcePort = 993;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(SingleSourceHost)) SingleSourceHost = "imap.gmail.com";
+                    SingleSourcePort = 993;
+                }
+                AddLog(LogLevel.Info, isBatch
+                    ? "Selected Google Workspace for batch. Select Service Account JSON below or supply user passwords in CSV."
+                    : "Selected Google Workspace source. Click '🔑 Sign In with Google' to authenticate via modern OAuth2 (XOAUTH2) or enter an App Password.");
+                break;
+
+            case ServerProtocol.Imap:
+            default:
+                if (isBatch) BatchSourcePort = 993;
+                else SingleSourcePort = 993;
+                break;
+        }
+
+        if (isBatch)
+        {
+            OnPropertyChanged(nameof(IsBatchSourceM365Tenant));
+            OnPropertyChanged(nameof(IsBatchSourceGoogleSA));
+            OnPropertyChanged(nameof(HasBatchEnterpriseSource));
+            OnPropertyChanged(nameof(HasAnyBatchEnterprise));
+        }
+        else
+        {
+            OnPropertyChanged(nameof(IsSingleSourceOAuth));
+        }
+    }
+
+    private void OnDestProtocolChanged(ServerProtocol proto, bool isBatch)
+    {
+        switch (proto)
+        {
+            case ServerProtocol.Microsoft365:
+                if (isBatch)
+                {
+                    if (string.IsNullOrWhiteSpace(BatchDestHost)) BatchDestHost = "outlook.office365.com";
+                    BatchDestPort = 993;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(SingleDestHost)) SingleDestHost = "outlook.office365.com";
+                    SingleDestPort = 993;
+                }
+                AddLog(LogLevel.Info, isBatch
+                    ? "Selected Microsoft 365 destination for batch. Configure Tenant Admin credentials below or supply user passwords in CSV."
+                    : "Selected Microsoft 365 destination. Click '🔑 Sign In with Microsoft' to authenticate via modern OAuth2 (XOAUTH2) or enter an App Password.");
+                break;
+
+            case ServerProtocol.GoogleWorkspace:
+                if (isBatch)
+                {
+                    if (string.IsNullOrWhiteSpace(BatchDestHost)) BatchDestHost = "imap.gmail.com";
+                    BatchDestPort = 993;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(SingleDestHost)) SingleDestHost = "imap.gmail.com";
+                    SingleDestPort = 993;
+                }
+                AddLog(LogLevel.Info, isBatch
+                    ? "Selected Google Workspace destination for batch. Select Service Account JSON below or supply user passwords in CSV."
+                    : "Selected Google Workspace destination. Click '🔑 Sign In with Google' to authenticate via modern OAuth2 (XOAUTH2) or enter an App Password.");
+                break;
+
+            case ServerProtocol.Imap:
+            default:
+                if (isBatch) BatchDestPort = 993;
+                else SingleDestPort = 993;
+                break;
+        }
+
+        if (isBatch)
+        {
+            OnPropertyChanged(nameof(IsBatchDestM365Tenant));
+            OnPropertyChanged(nameof(IsBatchDestGoogleSA));
+            OnPropertyChanged(nameof(HasBatchEnterpriseDest));
+            OnPropertyChanged(nameof(HasAnyBatchEnterprise));
+        }
+        else
+        {
+            OnPropertyChanged(nameof(IsSingleDestOAuth));
+        }
+    }
+
+    public async Task SignInOAuthAsync(bool isSource)
+    {
+        var proto = isSource ? SingleSourceProtocol : SingleDestProtocol;
+        string email = isSource ? SingleSourceUser : SingleDestUser;
+
+        if (proto == ServerProtocol.Microsoft365)
+        {
+            AddLog(LogLevel.Info, $"Opening browser for Microsoft 365 OAuth sign-in ({(isSource ? "Source" : "Destination")})...");
+            var res = await _oauthService.AuthenticateMicrosoftInteractiveAsync(loginHint: email);
+            if (!res.Success)
+            {
+                AddLog(LogLevel.Error, $"Microsoft 365 sign-in error: {res.ErrorMessage}");
+                return;
+            }
+
+            if (isSource)
+            {
+                SingleSourceOAuthToken = res.AccessToken;
+                SingleSourceOAuthBadge = $"✓ Connected: {res.AccountUsername}";
+                if (string.IsNullOrWhiteSpace(SingleSourceUser)) SingleSourceUser = res.AccountUsername;
+                if (string.IsNullOrWhiteSpace(SingleSourceHost)) SingleSourceHost = "outlook.office365.com";
+                SingleSourcePort = 993;
+            }
+            else
+            {
+                SingleDestOAuthToken = res.AccessToken;
+                SingleDestOAuthBadge = $"✓ Connected: {res.AccountUsername}";
+                if (string.IsNullOrWhiteSpace(SingleDestUser)) SingleDestUser = res.AccountUsername;
+                if (string.IsNullOrWhiteSpace(SingleDestHost)) SingleDestHost = "outlook.office365.com";
+                SingleDestPort = 993;
+            }
+
+            AddLog(LogLevel.Success, $"Successfully connected {(isSource ? "Source" : "Destination")} to Microsoft 365 as '{res.AccountUsername}'!");
+        }
+        else if (proto == ServerProtocol.GoogleWorkspace)
+        {
+            AddLog(LogLevel.Info, $"Opening browser for Google Workspace OAuth sign-in ({(isSource ? "Source" : "Destination")})...");
+            var res = await _oauthService.AuthenticateGoogleInteractiveAsync(loginHint: email);
+            if (!res.Success)
+            {
+                AddLog(LogLevel.Error, $"Google Workspace sign-in error: {res.ErrorMessage}");
+                return;
+            }
+
+            if (isSource)
+            {
+                SingleSourceOAuthToken = res.AccessToken;
+                SingleSourceOAuthBadge = $"✓ Connected: {res.AccountUsername}";
+                if (string.IsNullOrWhiteSpace(SingleSourceUser)) SingleSourceUser = res.AccountUsername;
+                if (string.IsNullOrWhiteSpace(SingleSourceHost)) SingleSourceHost = "imap.gmail.com";
+                SingleSourcePort = 993;
+            }
+            else
+            {
+                SingleDestOAuthToken = res.AccessToken;
+                SingleDestOAuthBadge = $"✓ Connected: {res.AccountUsername}";
+                if (string.IsNullOrWhiteSpace(SingleDestUser)) SingleDestUser = res.AccountUsername;
+                if (string.IsNullOrWhiteSpace(SingleDestHost)) SingleDestHost = "imap.gmail.com";
+                SingleDestPort = 993;
+            }
+
+            AddLog(LogLevel.Success, $"Successfully connected {(isSource ? "Source" : "Destination")} to Google Workspace as '{res.AccountUsername}'!");
+        }
+    }
+
+    public void ClearOAuth(bool isSource)
+    {
+        if (isSource)
+        {
+            SingleSourceOAuthToken = "";
+            SingleSourceOAuthBadge = "";
+            AddLog(LogLevel.Info, "Cleared Source OAuth token.");
+        }
+        else
+        {
+            SingleDestOAuthToken = "";
+            SingleDestOAuthBadge = "";
+            AddLog(LogLevel.Info, "Cleared Destination OAuth token.");
+        }
+    }
+
+    public void LoadSourceServiceAccountFile(string filePath)
+    {
+        BatchSourceServiceAccountPath = filePath;
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                BatchSourceServiceAccountJson = File.ReadAllText(filePath);
+                AddLog(LogLevel.Success, $"Loaded Source Google Service Account JSON: {Path.GetFileName(filePath)}");
+            }
+        }
+        catch (Exception ex)
+        {
+            AddLog(LogLevel.Error, $"Failed to read Source Service Account file: {ex.Message}");
+        }
+    }
+
+    public void LoadDestServiceAccountFile(string filePath)
+    {
+        BatchDestServiceAccountPath = filePath;
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                BatchDestServiceAccountJson = File.ReadAllText(filePath);
+                AddLog(LogLevel.Success, $"Loaded Destination Google Service Account JSON: {Path.GetFileName(filePath)}");
+            }
+        }
+        catch (Exception ex)
+        {
+            AddLog(LogLevel.Error, $"Failed to read Destination Service Account file: {ex.Message}");
+        }
+    }
+
+    private string GetBatchSourceServiceAccountJson()
+    {
+        if (!string.IsNullOrWhiteSpace(BatchSourceServiceAccountJson))
+            return BatchSourceServiceAccountJson;
+        if (!string.IsNullOrWhiteSpace(BatchSourceServiceAccountPath) && File.Exists(BatchSourceServiceAccountPath))
+        {
+            try { return File.ReadAllText(BatchSourceServiceAccountPath); } catch { }
+        }
+        return string.Empty;
+    }
+
+    private string GetBatchDestServiceAccountJson()
+    {
+        if (!string.IsNullOrWhiteSpace(BatchDestServiceAccountJson))
+            return BatchDestServiceAccountJson;
+        if (!string.IsNullOrWhiteSpace(BatchDestServiceAccountPath) && File.Exists(BatchDestServiceAccountPath))
+        {
+            try { return File.ReadAllText(BatchDestServiceAccountPath); } catch { }
+        }
+        return string.Empty;
+    }
+
+    private ServerEndpoint CreateBatchSourceEndpoint()
+    {
+        return new ServerEndpoint
+        {
+            Protocol = BatchSourceProtocol,
+            Host = BatchSourceHost,
+            Port = BatchSourcePort,
+            UseSsl = BatchSourceUseSsl,
+            AllowInvalidCertificates = AllowInvalidCertificates,
+            IsOAuth2 = BatchSourceProtocol is ServerProtocol.Microsoft365 or ServerProtocol.GoogleWorkspace,
+            OAuthTenantId = BatchSourceTenantId,
+            OAuthClientId = BatchSourceClientId,
+            OAuthClientSecret = BatchSourceClientSecret,
+            GoogleServiceAccountJson = GetBatchSourceServiceAccountJson()
+        };
+    }
+
+    private ServerEndpoint CreateBatchDestEndpoint()
+    {
+        return new ServerEndpoint
+        {
+            Protocol = BatchDestProtocol,
+            Host = BatchDestHost,
+            Port = BatchDestPort,
+            UseSsl = BatchDestUseSsl,
+            AllowInvalidCertificates = AllowInvalidCertificates,
+            RootFolder = DstRootFolder,
+            IsOAuth2 = BatchDestProtocol is ServerProtocol.Microsoft365 or ServerProtocol.GoogleWorkspace,
+            OAuthTenantId = BatchDestTenantId,
+            OAuthClientId = BatchDestClientId,
+            OAuthClientSecret = BatchDestClientSecret,
+            GoogleServiceAccountJson = GetBatchDestServiceAccountJson()
+        };
+    }
+
+    #endregion
+
     #region Migration Operations
 
     public async Task StartSingleMigrationAsync()
     {
         if (IsSingleMigrating) return;
+
+        if (IsSingleSourceOAuth && string.IsNullOrWhiteSpace(SingleSourceOAuthToken) && string.IsNullOrWhiteSpace(SingleSourcePassword))
+        {
+            await SignInOAuthAsync(isSource: true);
+            if (string.IsNullOrWhiteSpace(SingleSourceOAuthToken)) return;
+        }
+
+        if (IsSingleDestOAuth && string.IsNullOrWhiteSpace(SingleDestOAuthToken) && string.IsNullOrWhiteSpace(SingleDestPassword))
+        {
+            await SignInOAuthAsync(isSource: false);
+            if (string.IsNullOrWhiteSpace(SingleDestOAuthToken)) return;
+        }
 
         IsSingleMigrating = true;
         SingleProgressPercent = 0;
@@ -460,7 +990,9 @@ public class MacMainViewModel : INotifyPropertyChanged
             Port = SingleSourcePort,
             Protocol = SingleSourceProtocol,
             UseSsl = SingleSourceUseSsl,
-            AllowInvalidCertificates = AllowInvalidCertificates
+            AllowInvalidCertificates = AllowInvalidCertificates,
+            IsOAuth2 = IsSingleSourceOAuth && !string.IsNullOrWhiteSpace(SingleSourceOAuthToken),
+            OAuthAccessToken = SingleSourceOAuthToken
         };
 
         var dstEndpoint = new ServerEndpoint
@@ -469,7 +1001,10 @@ public class MacMainViewModel : INotifyPropertyChanged
             Port = SingleDestPort,
             Protocol = SingleDestProtocol,
             UseSsl = SingleDestUseSsl,
-            AllowInvalidCertificates = AllowInvalidCertificates
+            AllowInvalidCertificates = AllowInvalidCertificates,
+            RootFolder = DstRootFolder,
+            IsOAuth2 = IsSingleDestOAuth && !string.IsNullOrWhiteSpace(SingleDestOAuthToken),
+            OAuthAccessToken = SingleDestOAuthToken
         };
 
         var options = new MigrationOptions
@@ -483,9 +1018,9 @@ public class MacMainViewModel : INotifyPropertyChanged
         var job = new AccountJob
         {
             SourceUser = SingleSourceUser,
-            SourcePassword = SingleSourcePassword,
+            SourcePassword = !string.IsNullOrWhiteSpace(SingleSourceOAuthToken) ? SingleSourceOAuthToken : SingleSourcePassword,
             DestUser = SingleDestUser,
-            DestPassword = SingleDestPassword
+            DestPassword = !string.IsNullOrWhiteSpace(SingleDestOAuthToken) ? SingleDestOAuthToken : SingleDestPassword
         };
 
         try
@@ -535,23 +1070,8 @@ public class MacMainViewModel : INotifyPropertyChanged
         BatchProgressPercent = 0;
         BatchStatusText = "Starting batch migration...";
 
-        var defaultSrc = new ServerEndpoint
-        {
-            Host = BatchSourceHost,
-            Port = BatchSourcePort,
-            Protocol = BatchSourceProtocol,
-            UseSsl = BatchSourceUseSsl,
-            AllowInvalidCertificates = AllowInvalidCertificates
-        };
-
-        var defaultDst = new ServerEndpoint
-        {
-            Host = BatchDestHost,
-            Port = BatchDestPort,
-            Protocol = BatchDestProtocol,
-            UseSsl = BatchDestUseSsl,
-            AllowInvalidCertificates = AllowInvalidCertificates
-        };
+        var defaultSrc = CreateBatchSourceEndpoint();
+        var defaultDst = CreateBatchDestEndpoint();
 
         var options = new MigrationOptions
         {
@@ -594,6 +1114,12 @@ public class MacMainViewModel : INotifyPropertyChanged
 
     public async Task CheckSingleSourceQuotaAsync()
     {
+        if (IsSingleSourceOAuth && string.IsNullOrWhiteSpace(SingleSourceOAuthToken) && string.IsNullOrWhiteSpace(SingleSourcePassword))
+        {
+            await SignInOAuthAsync(isSource: true);
+            if (string.IsNullOrWhiteSpace(SingleSourceOAuthToken)) return;
+        }
+
         SingleSourceQuotaText = "Checking source quota...";
         var ep = new ServerEndpoint
         {
@@ -601,15 +1127,24 @@ public class MacMainViewModel : INotifyPropertyChanged
             Port = SingleSourcePort,
             Protocol = SingleSourceProtocol,
             UseSsl = SingleSourceUseSsl,
-            AllowInvalidCertificates = AllowInvalidCertificates
+            AllowInvalidCertificates = AllowInvalidCertificates,
+            IsOAuth2 = IsSingleSourceOAuth && !string.IsNullOrWhiteSpace(SingleSourceOAuthToken),
+            OAuthAccessToken = SingleSourceOAuthToken
         };
 
-        var quota = await _migrationService.GetMailboxQuotaAsync(ep, SingleSourceUser, SingleSourcePassword);
+        string authCred = !string.IsNullOrWhiteSpace(SingleSourceOAuthToken) ? SingleSourceOAuthToken : SingleSourcePassword;
+        var quota = await _migrationService.GetMailboxQuotaAsync(ep, SingleSourceUser, authCred);
         SingleSourceQuotaText = quota != null && quota.StorageUsedBytes.HasValue ? quota.FormattedSummary : "Storage: Unlimited / Unmetered";
     }
 
     public async Task CheckSingleDestQuotaAsync()
     {
+        if (IsSingleDestOAuth && string.IsNullOrWhiteSpace(SingleDestOAuthToken) && string.IsNullOrWhiteSpace(SingleDestPassword))
+        {
+            await SignInOAuthAsync(isSource: false);
+            if (string.IsNullOrWhiteSpace(SingleDestOAuthToken)) return;
+        }
+
         SingleDestQuotaText = "Checking destination quota...";
         var ep = new ServerEndpoint
         {
@@ -617,10 +1152,13 @@ public class MacMainViewModel : INotifyPropertyChanged
             Port = SingleDestPort,
             Protocol = SingleDestProtocol,
             UseSsl = SingleDestUseSsl,
-            AllowInvalidCertificates = AllowInvalidCertificates
+            AllowInvalidCertificates = AllowInvalidCertificates,
+            IsOAuth2 = IsSingleDestOAuth && !string.IsNullOrWhiteSpace(SingleDestOAuthToken),
+            OAuthAccessToken = SingleDestOAuthToken
         };
 
-        var quota = await _migrationService.GetMailboxQuotaAsync(ep, SingleDestUser, SingleDestPassword);
+        string authCred = !string.IsNullOrWhiteSpace(SingleDestOAuthToken) ? SingleDestOAuthToken : SingleDestPassword;
+        var quota = await _migrationService.GetMailboxQuotaAsync(ep, SingleDestUser, authCred);
         SingleDestQuotaText = quota != null && quota.StorageUsedBytes.HasValue ? quota.FormattedSummary : "Storage: Unlimited / Unmetered";
     }
 

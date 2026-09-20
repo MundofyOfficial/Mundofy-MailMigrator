@@ -41,9 +41,12 @@ public class BatchOrchestrator
 
     public bool IsRunning { get; private set; }
 
-    public BatchOrchestrator(ImapMigrationService migrationService)
+    private readonly OAuth2Service _oauthService;
+
+    public BatchOrchestrator(ImapMigrationService migrationService, OAuth2Service? oauthService = null)
     {
         _migrationService = migrationService;
+        _oauthService = oauthService ?? new OAuth2Service();
         _migrationService.LogEmitted += (s, e) => LogEmitted?.Invoke(this, e);
     }
 
@@ -192,6 +195,14 @@ public class BatchOrchestrator
 
                             try
                             {
+                                bool authOk = await PrepareAccountTokensAsync(source, dest, account, accountCts.Token);
+                                if (!authOk)
+                                {
+                                    Interlocked.Increment(ref _failedAccounts);
+                                    accountProgress?.Report(account);
+                                    continue;
+                                }
+
                                 await _migrationService.MigrateAccountAsync(source, dest, account, options, accountProgress, accountCts.Token);
 
                                 if (account.Status == MigrationStatus.Completed)
@@ -287,7 +298,14 @@ public class BatchOrchestrator
         acc.Status = MigrationStatus.Testing;
         acc.StatusMessage = "Testing source connection...";
 
-        var (srcOk, srcMsg, srcQuota) = await _migrationService.TestConnectionWithQuotaAsync(source, acc.SourceUser, acc.SourcePassword, ct);
+        bool authOk = await PrepareAccountTokensAsync(source, dest, acc, ct);
+        if (!authOk)
+        {
+            return false;
+        }
+
+        string srcPassOrToken = !string.IsNullOrWhiteSpace(acc.SourceOAuthToken) ? acc.SourceOAuthToken : acc.SourcePassword;
+        var (srcOk, srcMsg, srcQuota) = await _migrationService.TestConnectionWithQuotaAsync(source, acc.SourceUser, srcPassOrToken, ct);
         if (!srcOk)
         {
             acc.Status = MigrationStatus.Failed;
@@ -297,7 +315,8 @@ public class BatchOrchestrator
         acc.SourceQuota = srcQuota;
 
         acc.StatusMessage = "Testing destination connection...";
-        var (dstOk, dstMsg, dstQuota) = await _migrationService.TestConnectionWithQuotaAsync(dest, acc.DestUser, acc.DestPassword, ct);
+        string dstPassOrToken = !string.IsNullOrWhiteSpace(acc.DestOAuthToken) ? acc.DestOAuthToken : acc.DestPassword;
+        var (dstOk, dstMsg, dstQuota) = await _migrationService.TestConnectionWithQuotaAsync(dest, acc.DestUser, dstPassOrToken, ct);
         if (!dstOk)
         {
             acc.Status = MigrationStatus.Failed;
@@ -329,10 +348,14 @@ public class BatchOrchestrator
         acc.StatusMessage = "Checking quotas...";
         try
         {
-            var srcQuota = await _migrationService.GetMailboxQuotaAsync(source, acc.SourceUser, acc.SourcePassword, ct);
+            await PrepareAccountTokensAsync(source, dest, acc, ct);
+
+            string srcPassOrToken = !string.IsNullOrWhiteSpace(acc.SourceOAuthToken) ? acc.SourceOAuthToken : acc.SourcePassword;
+            var srcQuota = await _migrationService.GetMailboxQuotaAsync(source, acc.SourceUser, srcPassOrToken, ct);
             acc.SourceQuota = srcQuota;
 
-            var dstQuota = await _migrationService.GetMailboxQuotaAsync(dest, acc.DestUser, acc.DestPassword, ct);
+            string dstPassOrToken = !string.IsNullOrWhiteSpace(acc.DestOAuthToken) ? acc.DestOAuthToken : acc.DestPassword;
+            var dstQuota = await _migrationService.GetMailboxQuotaAsync(dest, acc.DestUser, dstPassOrToken, ct);
             acc.DestQuota = dstQuota;
 
             if (dstQuota != null && srcQuota != null &&
@@ -424,5 +447,76 @@ public class BatchOrchestrator
             return true;
         }
         return false;
+    }
+
+    public async Task<bool> PrepareAccountTokensAsync(ServerEndpoint source, ServerEndpoint dest, AccountJob account, CancellationToken ct = default)
+    {
+        // Passthrough direct access token if already supplied on source endpoint
+        if (!string.IsNullOrWhiteSpace(source.OAuthAccessToken) && string.IsNullOrWhiteSpace(account.SourceOAuthToken))
+        {
+            account.SourceOAuthToken = source.OAuthAccessToken;
+        }
+
+        // Passthrough direct access token if already supplied on dest endpoint
+        if (!string.IsNullOrWhiteSpace(dest.OAuthAccessToken) && string.IsNullOrWhiteSpace(account.DestOAuthToken))
+        {
+            account.DestOAuthToken = dest.OAuthAccessToken;
+        }
+
+        // Source M365 Tenant Admin
+        if (source.Protocol == ServerProtocol.Microsoft365 && !string.IsNullOrWhiteSpace(source.OAuthClientSecret) && string.IsNullOrWhiteSpace(account.SourceOAuthToken))
+        {
+            var res = await _oauthService.AcquireMicrosoftTenantTokenAsync(source.OAuthTenantId, source.OAuthClientId, source.OAuthClientSecret, ct);
+            if (!res.Success)
+            {
+                account.Status = MigrationStatus.Failed;
+                account.StatusMessage = $"Source M365 Auth Error: {res.ErrorMessage}";
+                LogEmitted?.Invoke(this, new LogEntry { Level = LogLevel.Error, Message = $"[{account.SourceUser}] {account.StatusMessage}" });
+                return false;
+            }
+            account.SourceOAuthToken = res.AccessToken;
+        }
+        // Source Google Workspace Service Account
+        else if (source.Protocol == ServerProtocol.GoogleWorkspace && !string.IsNullOrWhiteSpace(source.GoogleServiceAccountJson) && string.IsNullOrWhiteSpace(account.SourceOAuthToken))
+        {
+            var res = await _oauthService.AcquireGoogleServiceAccountTokenAsync(source.GoogleServiceAccountJson, account.SourceUser, ct);
+            if (!res.Success)
+            {
+                account.Status = MigrationStatus.Failed;
+                account.StatusMessage = $"Source Google Auth Error: {res.ErrorMessage}";
+                LogEmitted?.Invoke(this, new LogEntry { Level = LogLevel.Error, Message = $"[{account.SourceUser}] {account.StatusMessage}" });
+                return false;
+            }
+            account.SourceOAuthToken = res.AccessToken;
+        }
+
+        // Destination M365 Tenant Admin
+        if (dest.Protocol == ServerProtocol.Microsoft365 && !string.IsNullOrWhiteSpace(dest.OAuthClientSecret) && string.IsNullOrWhiteSpace(account.DestOAuthToken))
+        {
+            var res = await _oauthService.AcquireMicrosoftTenantTokenAsync(dest.OAuthTenantId, dest.OAuthClientId, dest.OAuthClientSecret, ct);
+            if (!res.Success)
+            {
+                account.Status = MigrationStatus.Failed;
+                account.StatusMessage = $"Destination M365 Auth Error: {res.ErrorMessage}";
+                LogEmitted?.Invoke(this, new LogEntry { Level = LogLevel.Error, Message = $"[{account.DestUser}] {account.StatusMessage}" });
+                return false;
+            }
+            account.DestOAuthToken = res.AccessToken;
+        }
+        // Destination Google Workspace Service Account
+        else if (dest.Protocol == ServerProtocol.GoogleWorkspace && !string.IsNullOrWhiteSpace(dest.GoogleServiceAccountJson) && string.IsNullOrWhiteSpace(account.DestOAuthToken))
+        {
+            var res = await _oauthService.AcquireGoogleServiceAccountTokenAsync(dest.GoogleServiceAccountJson, account.DestUser, ct);
+            if (!res.Success)
+            {
+                account.Status = MigrationStatus.Failed;
+                account.StatusMessage = $"Destination Google Auth Error: {res.ErrorMessage}";
+                LogEmitted?.Invoke(this, new LogEntry { Level = LogLevel.Error, Message = $"[{account.DestUser}] {account.StatusMessage}" });
+                return false;
+            }
+            account.DestOAuthToken = res.AccessToken;
+        }
+
+        return true;
     }
 }

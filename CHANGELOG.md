@@ -5,6 +5,32 @@ All notable changes to **Mundofy MailMigrator** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-09-20
+
+### Added
+* **Microsoft 365 Modern Authentication (OAuth2 / XOAUTH2)**:
+  * Native browser-based interactive sign-in flow supporting modern OAuth2 and PKCE for Microsoft 365 (Office 365 / Outlook) without legacy basic authentication.
+  * Direct IMAP SASL `XOAUTH2` authentication via secure MailKit token pipeline.
+  * Interactive "🔑 Sign In" button with real-time account badge and quick token clear controls on Single Account Migration (Source and Destination).
+  * Auto-configuration of Microsoft endpoint host (`outlook.office365.com`) and secure SSL port (993).
+* **Google Workspace Modern Authentication (OAuth2 / XOAUTH2)**:
+  * Native browser-based loopback OAuth2 sign-in flow with PKCE for Google Workspace and Gmail accounts.
+  * Direct IMAP SASL `XOAUTH2` authentication over SSL.
+  * Interactive "🔑 Sign In" button with connected account status badge and clear controls on Single Account Migration (Source and Destination).
+  * Auto-configuration of Google endpoint host (`imap.gmail.com`) and secure SSL port (993).
+* **Enterprise Batch Migration for Microsoft 365**:
+  * Tenant-wide migration without individual mailbox passwords using Azure App Registration (`IMAP.AccessAsApp` application permissions).
+  * Dedicated enterprise configuration fields: Tenant ID (Directory ID), Application (Client) ID, and Client Secret.
+  * Dynamic per-mailbox OAuth2 bearer token acquisition via MSAL client credentials flow for batch accounts.
+* **Enterprise Batch Migration for Google Workspace**:
+  * Domain-wide batch migration without individual user passwords using Google Cloud Service Account JSON keys with Domain-Wide Delegation.
+  * Interactive file browser to load Google Service Account key files (`.json`) with automated client credential parsing.
+  * Dynamic per-mailbox token assertion with user subject impersonation (`https://mail.google.com/` scope) for batch accounts.
+* **Full Cross-Platform Parity**:
+  * Both Windows (WPF) and macOS (Avalonia) desktop applications feature identical Microsoft 365 and Google Workspace modern authentication and enterprise batch options.
+
+---
+
 ## [1.4.0] - 2026-09-19
 
 ### Added
