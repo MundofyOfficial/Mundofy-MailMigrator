@@ -239,13 +239,19 @@ jobs:
         Write-Host "Target release tag: $tag"
         "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-        # Clean legacy split architecture assets if present
-        $rel = Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GH_REPO/releases/tags/$tag" -Headers $headers
-        foreach ($asset in $rel.assets) {
-            if ($asset.name -in @("MundofyMailMigrator-macOS-arm64.zip", "MundofyMailMigrator-macOS-x64.zip")) {
-                Write-Host "Removing legacy split asset $($asset.name)..."
-                Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GH_REPO/releases/assets/$($asset.id)" -Method Delete -Headers $headers
+        # Clean legacy split architecture assets if release already exists
+        try {
+            $rel = Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GH_REPO/releases/tags/$tag" -Headers $headers
+            if ($rel -and $rel.assets) {
+                foreach ($asset in $rel.assets) {
+                    if ($asset.name -in @("MundofyMailMigrator-macOS-arm64.zip", "MundofyMailMigrator-macOS-x64.zip")) {
+                        Write-Host "Removing legacy split asset $($asset.name)..."
+                        Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GH_REPO/releases/assets/$($asset.id)" -Method Delete -Headers $headers
+                    }
+                }
             }
+        } catch {
+            Write-Host "Release $tag does not exist yet or has no assets to clean."
         }
 
         $version = $tag.TrimStart('v', 'V')
