@@ -1,16 +1,16 @@
-# Mundofy MailMigrator (v1.4.0)
+# Mundofy MailMigrator (v1.5.0)
 
 [![Download Windows (x64)](https://img.shields.io/badge/Download-Windows_(x64)-2563EB?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
-[![Download macOS (arm64/x64)](https://img.shields.io/badge/Download-macOS_(Apple_Silicon_&_Intel)-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
-[![Latest Release](https://img.shields.io/badge/Release-v1.4.0-059669?style=for-the-badge)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
-[![Changelog](https://img.shields.io/badge/Changelog-v1.4.0-orange?style=for-the-badge)](CHANGELOG.md)
+[![Download macOS (Universal)](https://img.shields.io/badge/Download-macOS_(Universal_DMG_&_App)-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
+[![Latest Release](https://img.shields.io/badge/Release-v1.5.0-059669?style=for-the-badge)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)
+[![Changelog](https://img.shields.io/badge/Changelog-v1.5.0-orange?style=for-the-badge)](CHANGELOG.md)
 [![Privacy: Zero Telemetry](https://img.shields.io/badge/Privacy-Zero--Telemetry-10B981?style=for-the-badge&logo=shield&logoColor=white)](#-100-privacy-by-design--zero-telemetry-guarantee)
 [![Wiki Documentation](https://img.shields.io/badge/Wiki-Documentation-purple?style=for-the-badge&logo=github&logoColor=white)](https://github.com/MundofyOfficial/Mundofy-MailMigrator/wiki)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
 > 🚀 **[Click Here to Download Latest Releases](https://github.com/MundofyOfficial/Mundofy-MailMigrator/releases/latest)**  
 > * **Windows**: `MundofyMailMigrator.exe` (Single-file standalone 64-bit Windows executable. Zero installation, zero runtime dependencies.)
-> * **macOS**: Dedicated native desktop app for Apple Silicon (`MundofyMailMigrator-macOS-arm64.zip`) and Intel Mac (`MundofyMailMigrator-macOS-x64.zip`). Zero runtime dependencies.
+> * **macOS**: Universal macOS Disk Image (`MundofyMailMigrator-macOS.dmg`) and zipped application (`MundofyMailMigrator-macOS.app.zip`) supporting both Apple Silicon (M1/M2/M3/M4) and Intel Macs with zero runtime dependencies.
 
 > 📚 **[Browse the Full Wiki Documentation](https://github.com/MundofyOfficial/Mundofy-MailMigrator/wiki)** for comprehensive guides on Single Account Migration, Concurrency Batching, CLI Automation, and Troubleshooting.
 
@@ -190,13 +190,11 @@ dotnet publish src\Mundofy.MailMigrator.App\Mundofy.MailMigrator.App.csproj -c R
 
 Here is a list of features, community requests, and enhancements currently being investigated for implementation in upcoming updates:
 
-* **📅 Date Range Filtering:** Option to migrate only emails newer than a specified date (e.g., *"last 1 year"* or custom date range) to conserve storage quota.
-* **🗑️ Folder Exclusion Filters:** Options to easily exclude `Trash`, `Spam`, and `Junk` folders to save bandwidth.
+* **☁️ Google Workspace & Microsoft 365 to Nextcloud Migration:** Direct, end-to-end migration pipeline from proprietary big-tech ecosystems (Google Workspace and Microsoft 365) to private, sovereign **Nextcloud** instances. Includes direct mailbox transfer into Nextcloud Mail backends, auto-provisioning via Nextcloud OCS API, and roadmap expansion into Nextcloud Contacts (CardDAV), Nextcloud Calendar (CalDAV), and Nextcloud Files (WebDAV).
 * **🔄 Smart Folder Normalization:** Automatic mapping between different provider naming conventions (e.g., `Sent Items` ➔ `Sent`, `Deleted Items` ➔ `Trash`).
 * **📊 Exportable Migration Audit Reports:** One-click generation of comprehensive CSV and printable HTML reports (mailbox status, bytes transferred, messages skipped, duration).
 * **🔁 1-Click "Retry Failed Only":** Instantly re-queue only failed accounts or interrupted items without re-evaluating completed mailboxes.
 * **⚡ Bandwidth Throttling / Rate Limiting:** Configurable rate limits to prevent aggressive server throttling (HTTP/IMAP 429 / connection limits).
-* **🔐 OAuth 2.0 / Modern Authentication:** Interactive browser login for Microsoft 365 and Google Workspace without requiring app passwords.
 * **🐧 Cross-Platform Linux & Docker CLI:** Native lightweight Linux binary (`linux-x64`, `linux-arm64`) and official Docker container for automated server pipelines. The classic `imapcopy` was our inspiration after all, but is unfortunately getting outdated—bringing modern TLS 1.3, POP3, and multi-threading back to Linux and containers is a natural continuation of that legacy.
 
 > 💬 Have an idea or need a specific feature? Feel free to open a feature request on our [GitHub Issue Tracker](https://github.com/MundofyOfficial/Mundofy-MailMigrator/issues)!

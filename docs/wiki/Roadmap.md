@@ -38,6 +38,15 @@ Have an idea or need a specific feature? Feel free to open a suggestion on our [
 * **Concept:** Interactive browser login flow for modern cloud email services (Microsoft 365 and Google Workspace).
 * **Benefit:** Allows connecting without requiring users or domain admins to configure 16-character App Passwords or disable MFA.
 
+### ☁️ Google Workspace & Microsoft 365 to Nextcloud Migration
+* **Concept:** Direct, end-to-end migration pipeline from proprietary big-tech ecosystems (Google Workspace and Microsoft 365) to self-hosted or managed **Nextcloud** instances.
+* **Scope & Capabilities:**
+  * **Email & Mailbox Transfer:** Seamless modern OAuth2 / IMAP transfer into Nextcloud's underlying mail backend (Dovecot, Stalwart, Mailcow, Postfix) with automatic folder structure alignment.
+  * **Nextcloud Provisioning & Auto-Configuration:** Auto-detection and direct connection via Nextcloud Provisioning API (OCS) and Nextcloud Mail app endpoints.
+  * **Groupware Expansion (Contacts & Calendars):** Automated migration of address books (Google Contacts / Outlook People) to Nextcloud Contacts via CardDAV, and events (Google Calendar / Outlook Calendar) to Nextcloud Calendar via CalDAV.
+  * **Drive to Nextcloud Files (WebDAV):** Optional data and document migration from Google Drive / OneDrive into user Nextcloud storage directories.
+* **Benefit:** Empowers organizations, enterprises, and privacy-conscious users with a 1-click sovereign exit route from Google Workspace and Microsoft 365 to private Nextcloud infrastructure with zero vendor lock-in.
+
 ### 🐧 Cross-Platform Linux & Docker CLI
 * **Concept:** A standalone cross-platform console build (`linux-x64`, `linux-arm64`) and an official Docker container image (`docker run mundofy/mailmigrator ...`).
 * **Heritage & Motivation:** The classic `imapcopy` by Armin Diehl was our core inspiration and a trusted tool for Linux sysadmins for over a decade. However, it is unfortunately getting outdated (lacking native TLS 1.3 encryption, modern 64-bit architecture, POP3 support, and containerized deployment). Revitalizing this legacy with a native Linux binary and official Docker image will give Linux sysadmins a modern, high-speed successor.
