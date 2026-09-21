@@ -61,6 +61,49 @@ Copy ""user2"" ""pass2"" * *
     }
 
     [Fact]
+    public void TestImapCopyCfgParser_PureLegacyOriginalFormat()
+    {
+        // Authentic 2001-2009 Armin Diehl imapcopy format with zero new flags
+        string legacyConfig = @"
+; Original ImapCopy Config
+SourceServer oldmail.domain.com
+SourcePort 143
+DestServer newmail.domain.com
+DestPort 143
+
+DebugSrc
+DebugDst
+DenyFlags \Recent
+converttimezone UTC +0000
+
+Copy foo foopass foo foodestpass
+Copy bar barpass * *
+";
+        var result = ImapCopyCfgParser.Parse(legacyConfig);
+
+        Assert.Equal("oldmail.domain.com", result.SourceEndpoint.Host);
+        Assert.Equal(143, result.SourceEndpoint.Port);
+        Assert.False(result.SourceEndpoint.UseSsl); // Port 143 defaults to STARTTLS / non-SSL
+        Assert.Equal("newmail.domain.com", result.DestEndpoint.Host);
+        Assert.Equal(143, result.DestEndpoint.Port);
+        Assert.False(result.DestEndpoint.UseSsl);
+        Assert.False(result.SourceEndpoint.AllowInvalidCertificates);
+        Assert.Null(result.LogFilePath);
+        Assert.Equal(2, result.Accounts.Count);
+
+        Assert.Equal("foo", result.Accounts[0].SourceUser);
+        Assert.Equal("foopass", result.Accounts[0].SourcePassword);
+        Assert.Equal("foo", result.Accounts[0].DestUser);
+        Assert.Equal("foodestpass", result.Accounts[0].DestPassword);
+
+        // Wildcards handled identically
+        Assert.Equal("bar", result.Accounts[1].SourceUser);
+        Assert.Equal("barpass", result.Accounts[1].SourcePassword);
+        Assert.Equal("bar", result.Accounts[1].DestUser);
+        Assert.Equal("barpass", result.Accounts[1].DestPassword);
+    }
+
+    [Fact]
     public void TestImapCopyCfgParser_WithOriginalDistCfg()
     {
         string distPath = Path.Combine("..", "..", "..", "..", "..", "Dist", "ImapCopy.cfg");
