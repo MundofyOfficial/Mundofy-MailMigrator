@@ -10,6 +10,7 @@ public class ImapCopyCfgResult
     public ServerEndpoint DestEndpoint { get; set; } = new() { Port = 993, UseSsl = true };
     public MigrationOptions Options { get; set; } = new();
     public List<AccountJob> Accounts { get; set; } = new();
+    public string? LogFilePath { get; set; }
 }
 
 public static class ImapCopyCfgParser
@@ -104,6 +105,26 @@ public static class ImapCopyCfgParser
                     if (tokens.Count > 1 && int.TryParse(tokens[1], out int conc))
                         result.Options.MaxConcurrency = Math.Clamp(conc, 1, 32);
                     break;
+                case "allowinvalidcertificates":
+                case "allowinvalidcerts":
+                case "permitinvalidcertificates":
+                case "permitunsignedssl":
+                case "insecuressl":
+                case "insecure":
+                    if (tokens.Count > 1)
+                    {
+                        bool allow = tokens[1].Equals("yes", StringComparison.OrdinalIgnoreCase) ||
+                                     tokens[1].Equals("true", StringComparison.OrdinalIgnoreCase) ||
+                                     tokens[1].Equals("1", StringComparison.OrdinalIgnoreCase);
+                        result.SourceEndpoint.AllowInvalidCertificates = allow;
+                        result.DestEndpoint.AllowInvalidCertificates = allow;
+                    }
+                    break;
+                case "logfile":
+                case "log":
+                case "exportlog":
+                    if (tokens.Count > 1) result.LogFilePath = tokens[1];
+                    break;
                 case "copy":
                     if (tokens.Count >= 5)
                     {
@@ -149,6 +170,12 @@ public static class ImapCopyCfgParser
         sb.AppendLine("# Concurrency settings (number of parallel account migrations)");
         sb.AppendLine($"Concurrency {options.MaxConcurrency}");
         sb.AppendLine();
+
+        if (source.AllowInvalidCertificates || dest.AllowInvalidCertificates)
+        {
+            sb.AppendLine("AllowInvalidCertificates Yes");
+            sb.AppendLine();
+        }
 
         if (options.SkipFolders.Count > 0)
         {

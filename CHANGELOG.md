@@ -5,6 +5,26 @@ All notable changes to **Mundofy MailMigrator** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-09-21
+
+### Added
+* **Headless CLI Real-Time File Logging & Export**:
+  * Added `-l, --log <path>` CLI option (with aliases `--log-file`, `--export-log`) to stream all progress logs, worker events, and summary statistics to a file in real-time.
+  * Added `LogFile <path>` directive (with aliases `Log`, `ExportLog`) to `ImapCopy.cfg` for automatic logging when executing config-driven workflows.
+  * Automated parent directory creation and auto-flushing to guarantee zero data loss during long migrations.
+* **Unsigned & Self-Signed SSL Certificate Bypass**:
+  * Added `-k, --allow-invalid-certs, --insecure, --permit-unsigned-ssl` CLI arguments to permit self-signed, expired, or internal SSL certificates in headless migrations.
+  * Added `AllowInvalidCertificates Yes` (aliases: `AllowInvalidCerts`, `PermitUnsignedSSL`) configuration directive to `ImapCopy.cfg`.
+* **Headless System Sleep Prevention**:
+  * Integrated Windows power management (`SetThreadExecutionState`) into the CLI runner to prevent computers from sleeping during long unattended headless migrations.
+* **Modernized Default Template (`Dist/ImapCopy.cfg`)**:
+  * Overhauled the default distributed starter configuration template with modern TLS 1.3 ports (`993`), `SourceProtocol IMAP`, `Concurrency 4`, `AllowInvalidCertificates`, and `LogFile`.
+* **Comprehensive Wiki & Documentation Suite**:
+  * Added 4 new dedicated guides for macOS (`macOS-User-Guide.md`), Modern OAuth2 (`Modern-OAuth2-&-Cloud-Providers.md`), Mailbox Quotas & Capacity Guard (`Mailbox-Quotas-&-Capacity-Guard.md`), and Live Logs (`Logs-Search-&-Export.md`).
+  * Updated all existing documentation to reflect complete feature parity across Windows, macOS, and CLI.
+
+---
+
 ## [1.5.2] - 2026-09-20
 
 ### Added

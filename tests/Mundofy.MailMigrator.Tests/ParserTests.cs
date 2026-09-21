@@ -67,14 +67,17 @@ Copy ""user2"" ""pass2"" * *
         if (File.Exists(distPath))
         {
             var result = ImapCopyCfgParser.ParseFile(distPath);
-            Assert.Equal("localhost", result.SourceEndpoint.Host);
-            Assert.Equal(143, result.SourceEndpoint.Port);
-            Assert.Equal("localhost", result.DestEndpoint.Host);
-            Assert.Equal(143, result.DestEndpoint.Port);
+            Assert.Equal("mail.oldschool.com", result.SourceEndpoint.Host);
+            Assert.Equal(993, result.SourceEndpoint.Port);
+            Assert.Equal("mail.newschool.com", result.DestEndpoint.Host);
+            Assert.Equal(993, result.DestEndpoint.Port);
+            Assert.Equal(4, result.Options.MaxConcurrency);
+            Assert.Equal("migration.txt", result.LogFilePath);
             Assert.Contains("\\Recent", result.Options.DenyFlags);
-            Assert.Equal(2, result.Accounts.Count);
-            Assert.Equal("foo", result.Accounts[0].SourceUser);
-            Assert.Equal("bar", result.Accounts[1].SourceUser);
+            Assert.Equal(3, result.Accounts.Count);
+            Assert.Equal("alice@oldschool.com", result.Accounts[0].SourceUser);
+            Assert.Equal("bob@oldschool.com", result.Accounts[1].SourceUser);
+            Assert.Equal("sales@oldschool.com", result.Accounts[2].SourceUser);
         }
     }
 
@@ -177,5 +180,42 @@ ceo@oldcorp.com,ceo@newcorp.com";
         Assert.True(options.ShouldCopyFolder("Sent"));
         Assert.False(options.ShouldCopyFolder("Trash"));
         Assert.False(options.ShouldCopyFolder("Junk/Old"));
+    }
+
+    [Theory]
+    [InlineData("AllowInvalidCertificates Yes", true)]
+    [InlineData("AllowInvalidCerts true", true)]
+    [InlineData("PermitUnsignedSSL 1", true)]
+    [InlineData("InsecureSSL No", false)]
+    [InlineData("", false)]
+    public void TestImapCopyCfgParser_AllowInvalidCertificates(string directive, bool expected)
+    {
+        string cfg = $@"
+SourceServer mail.test.com
+SourcePort 993
+DestServer mail.dest.com
+DestPort 993
+{directive}
+Copy ""u1"" ""p1"" ""u2"" ""p2""
+";
+        var result = ImapCopyCfgParser.Parse(cfg);
+        Assert.Equal(expected, result.SourceEndpoint.AllowInvalidCertificates);
+        Assert.Equal(expected, result.DestEndpoint.AllowInvalidCertificates);
+    }
+
+    [Theory]
+    [InlineData("LogFile \"C:\\Logs\\migration.txt\"", "C:\\Logs\\migration.txt")]
+    [InlineData("Log migration.log", "migration.log")]
+    [InlineData("ExportLog out.txt", "out.txt")]
+    public void TestImapCopyCfgParser_LogFile(string directive, string expected)
+    {
+        string cfg = $@"
+SourceServer mail.test.com
+DestServer mail.dest.com
+{directive}
+Copy ""u1"" ""p1"" ""u2"" ""p2""
+";
+        var result = ImapCopyCfgParser.Parse(cfg);
+        Assert.Equal(expected, result.LogFilePath);
     }
 }
